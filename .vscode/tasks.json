@@ -1,0 +1,43 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-backend",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/backend/StockInventory.Api.csproj",
+        "/property:GenerateFullPaths=true"
+      ],
+      "options": {
+        "env": {
+          "DOTNET_CLI_HOME": "/tmp"
+        }
+      },
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "start-frontend",
+      "type": "npm",
+      "script": "dev",
+      "path": "frontend/",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Compiling|Ready in|Starting",
+          "endsPattern": "Ready in|Local:|Compiled"
+        }
+      }
+    }
+  ]
+}

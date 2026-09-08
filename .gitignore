@@ -1,13 +1,24 @@
-# .NET
+# .NET & C#
 bin/
 obj/
 *.user
 *.suo
 .vs/
+
+# VS Code (Keep debug and task launch configurations tracked)
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# SQLite Database (Auto-generated on launch)
+*.db
 *.db-shm
 *.db-wal
+!stock.db.example
 
-# Node & Next.js
+# Node.js & Next.js
 node_modules/
 .next/
 out/
