@@ -54,7 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-20 sm:w-24 shrink-0 flex-col items-center border-r border-slate-200/80 bg-white/70 py-6 backdrop-blur-md md:flex dark:border-slate-800/80 dark:bg-slate-900/60">
+    <aside className="sticky top-0 z-40 hidden h-screen w-20 sm:w-24 shrink-0 flex-col items-center border-r border-slate-200/80 bg-white/70 py-6 backdrop-blur-md md:flex dark:border-slate-800/80 dark:bg-slate-900/60">
       {/* Top Brand Logo */}
       <div className="flex flex-col items-center gap-2 mb-8">
         <BrandLogo size="md" />
@@ -67,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           const isActive = activeTab === item.id;
 
           return (
-            <div key={item.id} className="relative group">
+            <div key={item.id} className="relative group hover:z-50">
               <button
                 type="button"
                 onClick={() => onChangeTab(item.id)}
