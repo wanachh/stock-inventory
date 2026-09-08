@@ -104,6 +104,8 @@ app.Run();
 
 static string ConvertPostgresUrlToNpgsql(string url)
 {
+    url = url.Trim().Trim('\'', '"');
+
     if (url.Contains("Host=") || url.Contains("Server="))
     {
         return url;
@@ -113,8 +115,10 @@ static string ConvertPostgresUrlToNpgsql(string url)
     {
         var uri = new Uri(url);
         var userInfo = uri.UserInfo.Split(':');
-        var username = userInfo[0];
-        var password = userInfo.Length > 1 ? userInfo[1] : "";
+        var username = Uri.UnescapeDataString(userInfo[0]);
+        var rawPassword = userInfo.Length > 1 ? userInfo[1] : "";
+        rawPassword = rawPassword.TrimEnd('\'', '"');
+        var password = Uri.UnescapeDataString(rawPassword);
         var host = uri.Host;
         var port = uri.Port > 0 ? uri.Port : 5432;
         var database = uri.AbsolutePath.TrimStart('/');
