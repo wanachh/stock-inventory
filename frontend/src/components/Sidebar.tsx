@@ -54,7 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="sticky top-0 z-40 hidden h-screen w-20 sm:w-24 shrink-0 flex-col items-center border-r border-slate-200/80 bg-white/70 py-6 backdrop-blur-md md:flex dark:border-slate-800/80 dark:bg-slate-900/60">
+    <aside className="sticky top-0 z-50 hidden h-screen w-20 sm:w-24 shrink-0 flex-col items-center border-r border-slate-200/80 bg-white/70 py-6 backdrop-blur-md md:flex dark:border-slate-800/80 dark:bg-slate-900/60">
       {/* Top Brand Logo */}
       <div className="flex flex-col items-center gap-2 mb-8">
         <BrandLogo size="md" />
@@ -87,8 +87,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               </button>
 
-              {/* Tooltip on hover */}
-              <div className="pointer-events-none absolute left-full ml-3.5 top-1/2 -translate-y-1/2 z-50 hidden rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white whitespace-nowrap shadow-xl group-hover:block dark:bg-white dark:text-slate-900 animate-in fade-in zoom-in-95 duration-150">
+              {/* Tooltip on hover (Floats above all page content) */}
+              <div className="pointer-events-none absolute left-full ml-3.5 top-1/2 -translate-y-1/2 z-[60] hidden rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white whitespace-nowrap shadow-2xl ring-1 ring-white/10 group-hover:block dark:bg-white dark:text-slate-900 dark:ring-black/10 animate-in fade-in zoom-in-95 duration-150">
                 {item.label}
                 <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900 dark:border-r-white" />
               </div>

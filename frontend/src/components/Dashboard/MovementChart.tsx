@@ -14,9 +14,10 @@ import {
 
 interface MovementChartProps {
   data: DailyMovementSummary[];
+  productName?: string;
 }
 
-export const MovementChart: React.FC<MovementChartProps> = ({ data }) => {
+export const MovementChart: React.FC<MovementChartProps> = ({ data, productName }) => {
   const [metric, setMetric] = useState<"quantity" | "cost">("quantity");
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -65,11 +66,15 @@ export const MovementChart: React.FC<MovementChartProps> = ({ data }) => {
               <BarChart3 className="h-4 w-4" />
             </div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-              ความเคลื่อนไหวสต็อก (Stock Movement Flow)
+              {productName
+                ? `ความเคลื่อนไหวสต็อก: ${productName}`
+                : "ความเคลื่อนไหวสต็อก (Stock Movement Flow)"}
             </h3>
           </div>
           <p className="mt-1 text-xs text-slate-400 dark:text-slate-400">
-            เปรียบเทียบยอดรับเข้าและยอดตัดจ่ายรายวัน (กวาดตาดูเพื่อวางแผนสต็อก)
+            {productName
+              ? `เปรียบเทียบยอดรับเข้าและยอดตัดจ่ายรายวันของ "${productName}"`
+              : "เปรียบเทียบยอดรับเข้าและยอดตัดจ่ายรายวัน (กวาดตาดูเพื่อวางแผนสต็อก)"}
           </p>
         </div>
 

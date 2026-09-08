@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
-import { DashboardSummary, ProductDetail, StockTransaction } from "../types";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { DashboardSummary, ProductDetail, StockTransaction, DashboardKpis, DailyMovementSummary } from "../types";
 import { api } from "../lib/api";
 import { Navbar } from "../components/Navbar";
 import { Sidebar, NavTab } from "../components/Sidebar";
@@ -24,12 +24,15 @@ import { PasscodeGate } from "../components/Auth/PasscodeGate";
 import { VisitorBadge } from "../components/Dashboard/VisitorBadge";
 import { StockDistributionDonut } from "../components/Dashboard/StockDistributionDonut";
 import { GoalProgressCards } from "../components/Dashboard/GoalProgressCards";
-import { AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
+import { AlertTriangle, CheckCircle2, RefreshCw, Filter, X } from "lucide-react";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<NavTab>("dashboard");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Selected product filter on dashboard ("all" or number productId)
+  const [selectedProductId, setSelectedProductId] = useState<number | "all">("all");
 
   // Data states
   const [dashboard, setDashboard] = useState<DashboardSummary | null>(null);
@@ -84,6 +87,83 @@ export default function Home() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Derived filtered state for Dashboard (per-product or global all)
+  const activeProduct = useMemo(() => {
+    if (selectedProductId === "all") return null;
+    return products.find((p) => p.id === selectedProductId) || null;
+  }, [selectedProductId, products]);
+
+  const activeKpis = useMemo<DashboardKpis>(() => {
+    if (!dashboard) {
+      return {
+        totalRemainingItems: 0,
+        totalRemainingValuation: 0,
+        totalItemsOut: 0,
+        totalCostOut: 0,
+        totalItemsIn: 0,
+        totalCostIn: 0,
+        lowStockProductCount: 0,
+      };
+    }
+    if (!activeProduct) {
+      return dashboard.kpis;
+    }
+
+    const prodTxs = transactions.filter((t) => t.productId === activeProduct.id);
+    const inTxs = prodTxs.filter((t) => t.type === "StockIn");
+    const outTxs = prodTxs.filter((t) => t.type === "StockOut");
+
+    return {
+      totalRemainingItems: activeProduct.totalQuantityRemaining,
+      totalRemainingValuation: activeProduct.totalValuation,
+      totalItemsOut: outTxs.reduce((sum, t) => sum + t.quantity, 0),
+      totalCostOut: outTxs.reduce((sum, t) => sum + t.totalCost, 0),
+      totalItemsIn: inTxs.reduce((sum, t) => sum + t.quantity, 0),
+      totalCostIn: inTxs.reduce((sum, t) => sum + t.totalCost, 0),
+      lowStockProductCount:
+        activeProduct.totalQuantityRemaining <= activeProduct.minThreshold ? 1 : 0,
+    };
+  }, [dashboard, activeProduct, transactions]);
+
+  const activeMovementTrend = useMemo<DailyMovementSummary[]>(() => {
+    if (!dashboard) return [];
+    if (!activeProduct) {
+      return dashboard.movementTrend;
+    }
+
+    const prodTxs = transactions.filter((t) => t.productId === activeProduct.id);
+
+    return dashboard.movementTrend.map((daySummary) => {
+      const dayTxs = prodTxs.filter((t) => {
+        const d = new Date(t.createdAt);
+        const enDate = d.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+        return (
+          enDate.toLowerCase() === daySummary.date.toLowerCase() ||
+          t.createdAt.includes(daySummary.date)
+        );
+      });
+
+      const dayIn = dayTxs.filter((t) => t.type === "StockIn");
+      const dayOut = dayTxs.filter((t) => t.type === "StockOut");
+
+      return {
+        date: daySummary.date,
+        inQuantity: dayIn.reduce((sum, t) => sum + t.quantity, 0),
+        inCost: dayIn.reduce((sum, t) => sum + t.totalCost, 0),
+        outQuantity: dayOut.reduce((sum, t) => sum + t.quantity, 0),
+        outCost: dayOut.reduce((sum, t) => sum + t.totalCost, 0),
+      };
+    });
+  }, [dashboard, activeProduct, transactions]);
+
+  const activeTransactions = useMemo<StockTransaction[]>(() => {
+    if (!dashboard) return [];
+    if (!activeProduct) {
+      return dashboard.recentTransactions;
+    }
+    return transactions.filter((t) => t.productId === activeProduct.id).slice(0, 10);
+  }, [dashboard, activeProduct, transactions]);
 
   // Handle hardware scanner gun trigger
   const handleHardwareScan = async (code: string) => {
@@ -256,16 +336,82 @@ export default function Home() {
             {/* TAB 1: DASHBOARD (Matching the reference design widgets) */}
             {activeTab === "dashboard" && dashboard && (
               <div className="space-y-6">
-                {/* 1. Top KPI Row: Hero Blue, Sells Wave, Revenue Wave, Activity Bubbles */}
+                {/* 0. Contextual Product Selector Bar (ภาพรวมทั้งคลัง vs เลือกดูรายตัว) */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white p-3.5 sm:px-5 sm:py-3.5 shadow-xs dark:border-slate-800/80 dark:bg-slate-900">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 shrink-0">
+                      <Filter className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200">
+                          มุมมองข้อมูล (View Mode):
+                        </span>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                            activeProduct
+                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
+                              : "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300"
+                          }`}
+                        >
+                          {activeProduct ? "กรองดูรายสินค้า" : "ภาพรวมทั้งคลัง"}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
+                        {activeProduct
+                          ? `แสดงข้อมูลเฉพาะ: [${activeProduct.sku}] ${activeProduct.name} (เกณฑ์แจ้งเตือน: ${activeProduct.minThreshold} ชิ้น)`
+                          : `วิเคราะห์และสรุปยอดสต็อกสะสมจากสินค้าทั้งหมด ${products.length} รายการ`}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Product Select Dropdown */}
+                    <div className="relative w-full sm:w-auto">
+                      <select
+                        value={selectedProductId}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSelectedProductId(val === "all" ? "all" : Number(val));
+                        }}
+                        className="h-10 w-full sm:w-80 rounded-xl border border-slate-200 bg-slate-50 px-3.5 pr-8 text-xs font-bold text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 cursor-pointer"
+                      >
+                        <option value="all">🌐 ภาพรวมสินค้าทั้งหมด ({products.length} รายการ)</option>
+                        {products.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            📦 [{p.sku}] {p.name} (คงเหลือ {p.totalQuantityRemaining} ชิ้น)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Reset to All Button */}
+                    {selectedProductId !== "all" && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedProductId("all")}
+                        className="flex h-10 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 text-xs font-bold text-rose-700 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300 cursor-pointer shrink-0 transition"
+                      >
+                        <X className="h-4 w-4" />
+                        <span>ดูภาพรวม</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 1. Top KPI Row: Hero Blue, Sells, Revenue, Activity */}
                 <KpiCards
-                  kpis={dashboard.kpis}
+                  kpis={activeKpis}
                   onFilterLowStock={() => setActiveTab("products")}
                 />
 
-                {/* 2. Middle Row: Movement Dual-Wave Chart & Stock Distribution Donut */}
+                {/* 2. Middle Row: Movement Grouped Bar Chart & Stock Distribution Donut */}
                 <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
                   <div className="xl:col-span-2">
-                    <MovementChart data={dashboard.movementTrend} />
+                    <MovementChart
+                      data={activeMovementTrend}
+                      productName={activeProduct ? `[${activeProduct.sku}] ${activeProduct.name}` : undefined}
+                    />
                   </div>
                   <div>
                     <StockDistributionDonut />
@@ -281,7 +427,13 @@ export default function Home() {
                     <TopProductsCard
                       products={dashboard.topValuedProducts}
                       onSelectProduct={(sku) => {
-                        setActiveTab("products");
+                        const found = products.find((p) => p.sku === sku);
+                        if (found) {
+                          setSelectedProductId(found.id);
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        } else {
+                          setActiveTab("products");
+                        }
                       }}
                     />
                   </div>
@@ -289,7 +441,7 @@ export default function Home() {
 
                 {/* 4. Recent Chronological Ledger */}
                 <RecentTransactions
-                  transactions={dashboard.recentTransactions}
+                  transactions={activeTransactions}
                   onViewAll={() => setActiveTab("transactions")}
                 />
               </div>
