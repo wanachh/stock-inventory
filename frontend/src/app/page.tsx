@@ -23,8 +23,6 @@ import { QuickScanView } from "../components/Scanner/QuickScanView";
 import { GlobalScannerListener } from "../components/Scanner/GlobalScannerListener";
 import { PasscodeGate } from "../components/Auth/PasscodeGate";
 import { VisitorBadge } from "../components/Dashboard/VisitorBadge";
-import { StockDistributionDonut } from "../components/Dashboard/StockDistributionDonut";
-import { GoalProgressCards } from "../components/Dashboard/GoalProgressCards";
 import { AlertTriangle, CheckCircle2, RefreshCw, Filter, X } from "lucide-react";
 
 export default function Home() {
@@ -504,44 +502,32 @@ export default function Home() {
                   onFilterLowStock={() => setActiveTab("products")}
                 />
 
-                {/* 2. Middle Row: Movement Grouped Bar Chart & Stock Distribution Donut */}
-                <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-                  <div className="xl:col-span-2">
-                    <MovementChart
-                      data={activeMovementTrend}
-                      productName={
-                        isFiltered
-                          ? selectedProductIds.size === 1
-                            ? (() => { const p = products.find(x => selectedProductIds.has(x.id)); return p ? `${p.name}` : undefined; })()
-                            : `${selectedProductIds.size} สินค้าที่เลือก`
-                          : undefined
-                      }
-                    />
-                  </div>
-                  <div>
-                    <StockDistributionDonut />
-                  </div>
-                </div>
+                {/* 2. Stock movement */}
+                <MovementChart
+                  data={activeMovementTrend}
+                  productName={
+                    isFiltered
+                      ? selectedProductIds.size === 1
+                        ? (() => { const p = products.find(x => selectedProductIds.has(x.id)); return p ? `${p.name}` : undefined; })()
+                        : `${selectedProductIds.size} สินค้าที่เลือก`
+                      : undefined
+                  }
+                />
 
-                {/* 3. Goals & Top Valued Products */}
-                <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-                  <div>
-                    <GoalProgressCards />
-                  </div>
-                  <div className="xl:col-span-2">
-                    <TopProductsCard
-                      products={dashboard.topValuedProducts}
-                      onSelectProduct={(sku) => {
-                        const found = products.find((p) => p.sku === sku);
-                        if (found) {
-                          setSelectedProductIds(new Set([found.id]));
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        } else {
-                          setActiveTab("products");
-                        }
-                      }}
-                    />
-                  </div>
+                {/* 3. Top valued products */}
+                <div>
+                  <TopProductsCard
+                    products={dashboard.topValuedProducts}
+                    onSelectProduct={(sku) => {
+                      const found = products.find((p) => p.sku === sku);
+                      if (found) {
+                        setSelectedProductIds(new Set([found.id]));
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      } else {
+                        setActiveTab("products");
+                      }
+                    }}
+                  />
                 </div>
 
                 {/* 4. Recent Chronological Ledger */}
