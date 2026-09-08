@@ -8,6 +8,7 @@ import {
   StockOutRequest,
   StockTransaction,
   UpdateProductRequest,
+  UpdateTransactionRequest,
 } from "../types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api";
@@ -114,6 +115,19 @@ export const api = {
     const qs = q.toString() ? `?${q.toString()}` : "";
     return request<StockTransaction[]>(`/transactions${qs}`);
   },
+
+  getTransaction: (id: number) => request<StockTransaction>(`/transactions/${id}`),
+
+  updateTransaction: (id: number, data: UpdateTransactionRequest) =>
+    request<StockTransaction>(`/transactions/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  deleteTransaction: (id: number) =>
+    request<void>(`/transactions/${id}`, {
+      method: "DELETE",
+    }),
 };
 
 // Formatting helpers

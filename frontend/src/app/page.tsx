@@ -15,6 +15,7 @@ import { ProductModal } from "../components/Products/ProductModal";
 import { BatchesModal } from "../components/Products/BatchesModal";
 import { MovementModal } from "../components/Products/MovementModal";
 import { TransactionJournal } from "../components/Transactions/TransactionJournal";
+import { EditTransactionModal } from "../components/Transactions/EditTransactionModal";
 import { QuickScanView } from "../components/Scanner/QuickScanView";
 import { GlobalScannerListener } from "../components/Scanner/GlobalScannerListener";
 import { AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
@@ -39,6 +40,9 @@ export default function Home() {
 
   const [isBatchesModalOpen, setIsBatchesModalOpen] = useState(false);
   const [batchesProduct, setBatchesProduct] = useState<ProductDetail | null>(null);
+
+  const [isEditTransactionModalOpen, setIsEditTransactionModalOpen] = useState(false);
+  const [transactionToEdit, setTransactionToEdit] = useState<StockTransaction | null>(null);
 
   // Toast notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -111,6 +115,28 @@ export default function Home() {
   const handleViewBatches = (p: ProductDetail) => {
     setBatchesProduct(p);
     setIsBatchesModalOpen(true);
+  };
+
+  const handleOpenEditTransaction = (tx: StockTransaction) => {
+    setTransactionToEdit(tx);
+    setIsEditTransactionModalOpen(true);
+  };
+
+  const handleDeleteTransaction = async (tx: StockTransaction) => {
+    const isStockIn = tx.type === "StockIn";
+    const confirmMsg = isStockIn
+      ? `ต้องการลบรายการรับเข้าสต็อก #${tx.id} (${tx.productName} จำนวน ${tx.quantity} ชิ้น) ใช่หรือไม่?\n\n⚠️ หากล็อตนี้ถูกนำไปตัดขาย (FIFO) แล้ว ระบบจะบล็อกการลบเพื่อรักษาความถูกต้องทางบัญชี`
+      : `ต้องการลบรายการเบิกออก #${tx.id} (${tx.productName} จำนวน ${tx.quantity} ชิ้น) ใช่หรือไม่?\n\n✅ ระบบจะทำการคืนสต็อกกลับเข้าทุกล็อตย่อย FIFO เดิมทันที`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      await api.deleteTransaction(tx.id);
+      showToast(`ลบรายการ #${tx.id} เรียบร้อย (ปรับปรุงยอดสต็อกและล็อต FIFO แล้ว)`);
+      loadData();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการลบรายการ");
+    }
   };
 
   const handleProductCreated = async (data: any) => {
@@ -244,6 +270,8 @@ export default function Home() {
             <TransactionJournal
               transactions={transactions}
               onRefresh={loadData}
+              onEditTransaction={handleOpenEditTransaction}
+              onDeleteTransaction={handleDeleteTransaction}
             />
           )}
 
@@ -287,6 +315,16 @@ export default function Home() {
         isOpen={isBatchesModalOpen}
         onClose={() => setIsBatchesModalOpen(false)}
         product={batchesProduct}
+      />
+
+      <EditTransactionModal
+        isOpen={isEditTransactionModalOpen}
+        onClose={() => setIsEditTransactionModalOpen(false)}
+        transaction={transactionToEdit}
+        onSuccess={() => {
+          showToast("แก้ไขรายการเคลื่อนไหวสต็อกเรียบร้อย");
+          loadData();
+        }}
       />
     </div>
   );

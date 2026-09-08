@@ -534,6 +534,252 @@ public partial class InventoryService : IInventoryService
         )).ToList();
     }
 
+    public async Task<StockTransactionDto?> GetTransactionByIdAsync(int id)
+    {
+        var t = await _db.StockTransactions
+            .Include(t => t.Product)
+            .Include(t => t.Details)
+                .ThenInclude(d => d.InventoryBatch)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (t == null) return null;
+
+        return new StockTransactionDto(
+            t.Id,
+            t.ProductId,
+            t.Product?.Sku ?? "N/A",
+            t.Product?.Name ?? "Unknown Product",
+            t.Type.ToString(),
+            t.Quantity,
+            t.TotalCost,
+            t.ReferenceNote,
+            t.CreatedAt,
+            t.Details.Select(d => new TransactionDetailItemDto(
+                d.InventoryBatchId,
+                d.InventoryBatch?.BatchNumber ?? $"Lot-{d.InventoryBatchId}",
+                d.QuantityDrawn,
+                d.UnitCost,
+                d.SubtotalCost
+            )).ToList()
+        );
+    }
+
+    public async Task<StockTransactionDto> UpdateTransactionAsync(int id, UpdateTransactionRequest req)
+    {
+        var tx = await _db.StockTransactions
+            .Include(t => t.Product)
+            .Include(t => t.Details)
+                .ThenInclude(d => d.InventoryBatch)
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (tx == null)
+        {
+            throw new KeyNotFoundException($"ไม่พบรายการเคลื่อนไหวสต็อกรหัส {id}");
+        }
+
+        if (req.ReferenceNote != null)
+        {
+            tx.ReferenceNote = req.ReferenceNote.Trim();
+        }
+        if (req.CreatedAt.HasValue)
+        {
+            tx.CreatedAt = req.CreatedAt.Value;
+        }
+
+        if (tx.Type == TransactionType.StockIn)
+        {
+            // If updating unit cost of stock in
+            if (req.UnitCost.HasValue)
+            {
+                if (req.UnitCost.Value < 0)
+                {
+                    throw new ArgumentException("ราคาต้นทุนต่อชิ้นต้องไม่ติดลบ");
+                }
+                foreach (var detail in tx.Details)
+                {
+                    detail.UnitCost = req.UnitCost.Value;
+                    detail.SubtotalCost = detail.QuantityDrawn * req.UnitCost.Value;
+                    if (detail.InventoryBatch != null)
+                    {
+                        detail.InventoryBatch.UnitCost = req.UnitCost.Value;
+                    }
+                }
+                tx.TotalCost = tx.Quantity * req.UnitCost.Value;
+            }
+
+            // If updating quantity of stock in
+            if (req.Quantity.HasValue && req.Quantity.Value != tx.Quantity)
+            {
+                if (req.Quantity.Value <= 0)
+                {
+                    throw new ArgumentException("จำนวนสินค้าต้องเป็นจำนวนเต็มบวกมากกว่า 0 ชิ้น");
+                }
+
+                var batch = tx.Details.FirstOrDefault()?.InventoryBatch;
+                if (batch != null)
+                {
+                    int alreadyDrawn = batch.QuantityReceived - batch.QuantityRemaining;
+                    if (req.Quantity.Value < alreadyDrawn)
+                    {
+                        throw new InvalidOperationException($"ไม่สามารถปรับลดจำนวนรับเข้าให้ต่ำกว่า {alreadyDrawn} ชิ้นได้ เนื่องจากสินค้าล็อตนี้ถูกตัดจำหน่ายไปแล้ว {alreadyDrawn} ชิ้น");
+                    }
+
+                    int diff = req.Quantity.Value - batch.QuantityReceived;
+                    batch.QuantityReceived = req.Quantity.Value;
+                    batch.QuantityRemaining += diff;
+                    if (batch.QuantityRemaining > 0 && batch.Status == BatchStatus.Depleted)
+                    {
+                        batch.Status = BatchStatus.Active;
+                    }
+
+                    var detail = tx.Details.FirstOrDefault();
+                    if (detail != null)
+                    {
+                        detail.QuantityDrawn = req.Quantity.Value;
+                        detail.SubtotalCost = req.Quantity.Value * batch.UnitCost;
+                    }
+
+                    tx.Quantity = req.Quantity.Value;
+                    tx.TotalCost = req.Quantity.Value * batch.UnitCost;
+                }
+            }
+        }
+        else if (tx.Type == TransactionType.StockOut)
+        {
+            // If updating quantity of stock out
+            if (req.Quantity.HasValue && req.Quantity.Value != tx.Quantity)
+            {
+                if (req.Quantity.Value <= 0)
+                {
+                    throw new ArgumentException("จำนวนสินค้าที่ตัดออกต้องเป็นจำนวนเต็มบวกมากกว่า 0 ชิ้น");
+                }
+
+                // 1. Revert previous deductions to batches
+                foreach (var detail in tx.Details)
+                {
+                    if (detail.InventoryBatch != null)
+                    {
+                        detail.InventoryBatch.QuantityRemaining += detail.QuantityDrawn;
+                        detail.InventoryBatch.Status = BatchStatus.Active;
+                    }
+                }
+                _db.TransactionBatchDetails.RemoveRange(tx.Details);
+                tx.Details.Clear();
+
+                // 2. Check total available stock across active batches for this product
+                var availableBatches = await _db.InventoryBatches
+                    .Where(b => b.ProductId == tx.ProductId && b.Status == BatchStatus.Active && b.QuantityRemaining > 0)
+                    .OrderBy(b => b.ReceivedDate)
+                    .ThenBy(b => b.Id)
+                    .ToListAsync();
+
+                int totalAvailable = availableBatches.Sum(b => b.QuantityRemaining);
+                if (totalAvailable < req.Quantity.Value)
+                {
+                    throw new InvalidOperationException($"สินค้าคงเหลือไม่เพียงพอสำหรับการปรับจำนวน (มีคงเหลือ {totalAvailable} ชิ้น, ต้องการ {req.Quantity.Value} ชิ้น)");
+                }
+
+                // 3. Re-run FIFO allocation
+                int remainingToDraw = req.Quantity.Value;
+                decimal totalCostOut = 0m;
+
+                foreach (var batch in availableBatches)
+                {
+                    if (remainingToDraw <= 0) break;
+
+                    int draw = Math.Min(batch.QuantityRemaining, remainingToDraw);
+                    batch.QuantityRemaining -= draw;
+                    if (batch.QuantityRemaining == 0)
+                    {
+                        batch.Status = BatchStatus.Depleted;
+                    }
+
+                    decimal subtotal = draw * batch.UnitCost;
+                    totalCostOut += subtotal;
+
+                    var newDetail = new TransactionBatchDetail
+                    {
+                        StockTransactionId = tx.Id,
+                        InventoryBatchId = batch.Id,
+                        QuantityDrawn = draw,
+                        UnitCost = batch.UnitCost,
+                        SubtotalCost = subtotal
+                    };
+                    _db.TransactionBatchDetails.Add(newDetail);
+                    tx.Details.Add(newDetail);
+
+                    remainingToDraw -= draw;
+                }
+
+                tx.Quantity = req.Quantity.Value;
+                tx.TotalCost = totalCostOut;
+            }
+        }
+
+        if (tx.Product != null)
+        {
+            tx.Product.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _db.SaveChangesAsync();
+
+        return (await GetTransactionByIdAsync(tx.Id))!;
+    }
+
+    public async Task<bool> DeleteTransactionAsync(int id)
+    {
+        var tx = await _db.StockTransactions
+            .Include(t => t.Product)
+            .Include(t => t.Details)
+                .ThenInclude(d => d.InventoryBatch)
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (tx == null) return false;
+
+        if (tx.Type == TransactionType.StockIn)
+        {
+            var batch = tx.Details.FirstOrDefault()?.InventoryBatch;
+            if (batch != null)
+            {
+                int alreadyDrawn = batch.QuantityReceived - batch.QuantityRemaining;
+                if (alreadyDrawn > 0)
+                {
+                    throw new InvalidOperationException($"ไม่สามารถลบรายการรับเข้านี้ได้ เนื่องจากมีสินค้าในล็อตนี้ถูกตัดจำหน่ายไปแล้ว {alreadyDrawn} ชิ้น กรุณายกเลิกหรือแก้ไขรายการตัดออกที่เกี่ยวข้องก่อน");
+                }
+
+                _db.TransactionBatchDetails.RemoveRange(tx.Details);
+                _db.InventoryBatches.Remove(batch);
+            }
+            _db.StockTransactions.Remove(tx);
+        }
+        else if (tx.Type == TransactionType.StockOut)
+        {
+            // Restore quantities back to original batches
+            foreach (var detail in tx.Details)
+            {
+                if (detail.InventoryBatch != null)
+                {
+                    detail.InventoryBatch.QuantityRemaining += detail.QuantityDrawn;
+                    if (detail.InventoryBatch.Status == BatchStatus.Depleted)
+                    {
+                        detail.InventoryBatch.Status = BatchStatus.Active;
+                    }
+                }
+            }
+            _db.TransactionBatchDetails.RemoveRange(tx.Details);
+            _db.StockTransactions.Remove(tx);
+        }
+
+        if (tx.Product != null)
+        {
+            tx.Product.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<DashboardSummaryResponse> GetDashboardSummaryAsync()
     {
         // Active batches across all products

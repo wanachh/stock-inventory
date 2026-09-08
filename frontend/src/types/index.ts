@@ -127,6 +127,13 @@ export interface UpdateProductRequest {
   minThreshold?: number;
 }
 
+export interface UpdateTransactionRequest {
+  quantity?: number;
+  unitCost?: number;
+  referenceNote?: string;
+  createdAt?: string;
+}
+
 export interface StockInRequest {
   productId?: number;
   skuOrBarcode?: string;

@@ -1,0 +1,212 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { StockTransaction, UpdateTransactionRequest } from "../../types";
+import { formatCurrency, formatNumber } from "../../lib/api";
+import { X, Check, AlertCircle, ShieldAlert } from "lucide-react";
+
+interface EditTransactionModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  transaction: StockTransaction | null;
+  onSuccess: () => void;
+}
+
+export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
+  isOpen,
+  onClose,
+  transaction,
+  onSuccess,
+}) => {
+  const [quantity, setQuantity] = useState<number | "">("");
+  const [unitCost, setUnitCost] = useState<number | "">("");
+  const [referenceNote, setReferenceNote] = useState("");
+  const [dateStr, setDateStr] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (transaction) {
+      setQuantity(transaction.quantity);
+      setReferenceNote(transaction.referenceNote || "");
+      const firstDetail = transaction.details?.[0];
+      setUnitCost(firstDetail ? firstDetail.unitCost : "");
+      try {
+        const d = new Date(transaction.createdAt);
+        setDateStr(d.toISOString().slice(0, 16));
+      } catch {
+        setDateStr("");
+      }
+      setError(null);
+    }
+  }, [transaction, isOpen]);
+
+  if (!isOpen || !transaction) return null;
+
+  const isStockIn = transaction.type === "StockIn";
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    const qty = Number(quantity);
+    if (quantity === "" || isNaN(qty) || qty <= 0) {
+      setError("จำนวนสินค้าต้องเป็นจำนวนเต็มบวกมากกว่า 0 ชิ้น (ไม่สามารถใส่ 0 หรือติดลบได้)");
+      return;
+    }
+    if (!Number.isInteger(qty)) {
+      setError("จำนวนสินค้าต้องเป็นจำนวนเต็มเท่านั้น ไม่สามารถมีทศนิยมได้");
+      return;
+    }
+
+    let costNum: number | undefined = undefined;
+    if (isStockIn) {
+      costNum = Number(unitCost);
+      if (unitCost === "" || isNaN(costNum) || costNum < 0) {
+        setError("ราคาต้นทุนต่อชิ้นต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป");
+        return;
+      }
+    }
+
+    setLoading(true);
+    try {
+      const updateData: UpdateTransactionRequest = {
+        quantity: qty,
+        unitCost: costNum,
+        referenceNote: referenceNote.trim(),
+        createdAt: dateStr ? new Date(dateStr).toISOString() : undefined,
+      };
+
+      const { api } = await import("../../lib/api");
+      await api.updateTransaction(transaction.id, updateData);
+      onSuccess();
+      onClose();
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError("เกิดข้อผิดพลาดในการแก้ไขรายการ");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
+      <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex items-center justify-between border-b border-zinc-100 pb-4 dark:border-zinc-800">
+          <div>
+            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
+              แก้ไขรายการเคลื่อนไหวสต็อก #{transaction.id}
+            </h3>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              {transaction.productName} ({transaction.sku}) • {isStockIn ? "รับเข้า" : "ตัดออก"}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {error && (
+          <div className="mt-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300">
+            <ShieldAlert className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          {/* Quantity */}
+          <div>
+            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              จำนวนสินค้า (ชิ้น) <span className="text-rose-500">* (จำนวนเต็มเท่านั้น)</span>
+            </label>
+            <input
+              type="number"
+              min={1}
+              step={1}
+              value={quantity}
+              onKeyDown={(e) => {
+                if (e.key === "." || e.key === "," || e.key === "e" || e.key === "E" || e.key === "-") {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                const val = e.target.value;
+                setQuantity(val === "" ? "" : parseFloat(val));
+              }}
+              required
+              className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-bold text-zinc-900 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+            />
+          </div>
+
+          {/* Unit Cost for Stock In */}
+          {isStockIn && (
+            <div>
+              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                ราคาต้นทุนจริงต่อชิ้น (฿) <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={unitCost}
+                onChange={(e) =>
+                  setUnitCost(e.target.value === "" ? "" : parseFloat(e.target.value))
+                }
+                required
+                className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-bold text-zinc-900 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              />
+            </div>
+          )}
+
+          {/* Date & Time */}
+          <div>
+            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              วัน-เวลาทำรายการ (แก้ไขย้อนหลังได้)
+            </label>
+            <input
+              type="datetime-local"
+              value={dateStr}
+              onChange={(e) => setDateStr(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-900 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+            />
+          </div>
+
+          {/* Reference */}
+          <div>
+            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              เลขที่อ้างอิง / หมายเหตุ
+            </label>
+            <input
+              type="text"
+              value={referenceNote}
+              onChange={(e) => setReferenceNote(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+            />
+          </div>
+
+          <div className="mt-6 flex items-center justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-95 disabled:opacity-50"
+            >
+              <Check className="h-4 w-4" />
+              <span>{loading ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};

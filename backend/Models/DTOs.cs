@@ -35,6 +35,13 @@ public record StockOutRequest(
     string? ReferenceNote
 );
 
+public record UpdateTransactionRequest(
+    int? Quantity,
+    decimal? UnitCost,
+    string? ReferenceNote,
+    DateTime? CreatedAt
+);
+
 public record StockOutPreviewItem(
     int BatchId,
     string BatchNumber,

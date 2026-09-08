@@ -14,16 +14,22 @@ import {
   Clock,
   Layers,
   FileSpreadsheet,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 
 interface TransactionJournalProps {
   transactions: StockTransaction[];
   onRefresh?: () => void;
+  onEditTransaction?: (transaction: StockTransaction) => void;
+  onDeleteTransaction?: (transaction: StockTransaction) => void;
 }
 
 export const TransactionJournal: React.FC<TransactionJournalProps> = ({
   transactions,
   onRefresh,
+  onEditTransaction,
+  onDeleteTransaction,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -158,12 +164,13 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
               <th className="px-4 py-3.5 text-right">มูลค่าต้นทุนจริงรวม</th>
               <th className="px-4 py-3.5">เอกสารอ้างอิง / หมายเหตุ</th>
               <th className="px-4 py-3.5 text-center">แจกแจงล็อต</th>
+              <th className="px-4 py-3.5 text-right">จัดการ</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-zinc-400">
+                <td colSpan={8} className="px-4 py-12 text-center text-zinc-400">
                   ไม่พบรายการเคลื่อนไหว
                 </td>
               </tr>
@@ -248,12 +255,36 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                           )}
                         </button>
                       </td>
+
+                      {/* Actions: Edit & Delete */}
+                      <td className="px-4 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {onEditTransaction && (
+                            <button
+                              onClick={() => onEditTransaction(t)}
+                              title="แก้ไขรายการ (จำนวน, ต้นทุน, หรือหมายเหตุ)"
+                              className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-blue-600 dark:hover:bg-zinc-800 dark:hover:text-blue-400"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                          )}
+                          {onDeleteTransaction && (
+                            <button
+                              onClick={() => onDeleteTransaction(t)}
+                              title="ลบ/ยกเลิกรายการนี้ (ระบบจะคืนสต็อก/ปรับปรุงล็อตเดิมให้อัตโนมัติ)"
+                              className="rounded-lg p-1.5 text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
 
                     {/* Expandable Breakdown Details */}
                     {isExpanded && (
                       <tr className="bg-zinc-50/80 dark:bg-zinc-900/60">
-                        <td colSpan={7} className="px-6 py-3">
+                        <td colSpan={8} className="px-6 py-3">
                           <div className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
                             <div className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
                               📋 รายละเอียดการตัด/รับตามล็อตจริง (Batch Breakdown for Accounting):

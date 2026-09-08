@@ -17,5 +17,8 @@ public interface IInventoryService
     Task<StockTransactionDto> StockOutAsync(StockOutRequest req);
 
     Task<List<StockTransactionDto>> GetTransactionsAsync(int? productId = null, TransactionType? type = null, DateTime? fromDate = null, DateTime? toDate = null);
+    Task<StockTransactionDto?> GetTransactionByIdAsync(int id);
+    Task<StockTransactionDto> UpdateTransactionAsync(int id, UpdateTransactionRequest req);
+    Task<bool> DeleteTransactionAsync(int id);
     Task<DashboardSummaryResponse> GetDashboardSummaryAsync();
 }
