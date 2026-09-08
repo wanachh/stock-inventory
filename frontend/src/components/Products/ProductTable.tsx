@@ -171,9 +171,9 @@ export const ProductTable: React.FC<ProductTableProps> = ({
               <button
                 type="button"
                 onClick={onOpenExcelImport}
-                className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 shadow-xs transition hover:bg-emerald-100 dark:border-emerald-800/40 dark:bg-emerald-950/40 dark:text-emerald-300"
+                className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 shadow-xs transition hover:bg-blue-100 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300"
               >
-                <Upload className="h-3.5 w-3.5" />
+                <Download className="h-3.5 w-3.5" />
                 <span>นำเข้า Excel</span>
               </button>
             )}
@@ -181,10 +181,10 @@ export const ProductTable: React.FC<ProductTableProps> = ({
               <button
                 type="button"
                 onClick={onOpenExcelExport}
-                className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 shadow-xs transition hover:bg-blue-100 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300"
+                className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 shadow-xs transition hover:bg-emerald-100 dark:border-emerald-800/40 dark:bg-emerald-950/40 dark:text-emerald-300"
               >
-                <Download className="h-3.5 w-3.5" />
-                <span>ส่งออก Excel</span>
+                <Upload className="h-3.5 w-3.5" />
+                <span>ออกรายงาน Excel</span>
               </button>
             )}
           </div>

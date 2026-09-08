@@ -67,9 +67,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         {onOpenExcelImport && (
           <button
             onClick={onOpenExcelImport}
-            className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-xs font-semibold text-emerald-700 shadow-xs transition hover:bg-emerald-100 active:scale-95 dark:border-emerald-800/40 dark:bg-emerald-950/40 dark:text-emerald-300"
+            className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-2 text-xs font-semibold text-blue-700 shadow-xs transition hover:bg-blue-100 active:scale-95 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300"
           >
-            <Upload className="h-3.5 w-3.5" />
+            <Download className="h-3.5 w-3.5" />
             <span className="hidden md:inline">นำเข้า Excel</span>
           </button>
         )}
@@ -78,9 +78,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         {onOpenExcelExport && (
           <button
             onClick={onOpenExcelExport}
-            className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-2 text-xs font-semibold text-blue-700 shadow-xs transition hover:bg-blue-100 active:scale-95 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300"
+            className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-xs font-semibold text-emerald-700 shadow-xs transition hover:bg-emerald-100 active:scale-95 dark:border-emerald-800/40 dark:bg-emerald-950/40 dark:text-emerald-300"
           >
-            <Download className="h-3.5 w-3.5" />
+            <Upload className="h-3.5 w-3.5" />
             <span className="hidden md:inline">ออกรายงาน Excel</span>
           </button>
         )}

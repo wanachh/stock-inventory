@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import {
   FileSpreadsheet,
   Download,
+  Upload,
   Calendar,
   X,
   Layers,
@@ -163,8 +164,8 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-100 pb-4 dark:border-zinc-800">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
-              <Download className="h-5 w-5" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-500/20">
+              <Upload className="h-5 w-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
@@ -340,7 +341,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
           <button
             type="button"
             onClick={handleExport}
-            className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition hover:bg-blue-700 active:scale-95"
+            className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 transition hover:bg-emerald-700 active:scale-95"
           >
             <FileSpreadsheet className="h-4 w-4" />
             <span>ดาวน์โหลดรายงาน Excel (.xlsx)</span>

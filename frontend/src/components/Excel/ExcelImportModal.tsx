@@ -107,8 +107,8 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4 dark:border-zinc-800">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-500/20">
-              <FileSpreadsheet className="h-5 w-5" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
+              <Download className="h-5 w-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
@@ -123,7 +123,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={downloadExcelTemplate}
-              className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800/40 dark:bg-emerald-950/40 dark:text-emerald-300"
+              className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300"
             >
               <Download className="h-3.5 w-3.5" />
               <span>ดาวน์โหลดเทมเพลต Excel</span>
@@ -145,7 +145,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 p-10 text-center transition hover:border-emerald-500 hover:bg-emerald-50/30 dark:border-zinc-700 dark:bg-zinc-900/30 dark:hover:border-emerald-500/50"
+              className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 p-10 text-center transition hover:border-blue-500 hover:bg-blue-50/30 dark:border-zinc-700 dark:bg-zinc-900/30 dark:hover:border-blue-500/50"
             >
               <input
                 ref={fileInputRef}
@@ -154,8 +154,8 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                 onChange={handleFileChange}
                 className="hidden"
               />
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400">
-                <Upload className="h-7 w-7" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400">
+                <Download className="h-7 w-7" />
               </div>
               <h3 className="mt-4 text-sm font-bold text-zinc-800 dark:text-zinc-200">
                 ลากไฟล์ Excel (.xlsx, .csv) มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์
@@ -359,7 +359,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                 type="button"
                 onClick={handleConfirmImport}
                 disabled={importing || parseResult.validRows === 0}
-                className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 transition hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition hover:bg-blue-700 active:scale-95 disabled:opacity-50"
               >
                 {importing ? (
                   <>
