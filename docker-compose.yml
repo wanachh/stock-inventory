@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5200:8080"
+    volumes:
+      - backend-data:/app
+    restart: unless-stopped
+
+volumes:
+  backend-data:
