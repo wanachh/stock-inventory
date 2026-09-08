@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { ProductDetail, StockOutPreviewResponse } from "../../types";
 import { api, formatCurrency, formatNumber } from "../../lib/api";
 import {
@@ -42,6 +43,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
   initialType = "StockIn",
   onSuccess,
 }) => {
+  const { t } = useTranslation();
   const [type, setType] = useState<"StockIn" | "StockOut">(initialType);
   const [selectedProductId, setSelectedProductId] = useState<number | "">("");
 
@@ -314,7 +316,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
         <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
           <div>
             <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
-              บันทึกการเคลื่อนไหวสต็อก (Stock Movement)
+              {t("shell.movement")} (Stock Movement)
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               รองรับทั้งการพิมพ์รหัส หรือใช้ปืนยิงบาร์โค้ดสแกน
@@ -340,7 +342,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
             }`}
           >
             <Plus className="h-4 w-4" />
-            <span>รับสินค้าเข้า (Stock In)</span>
+            <span>{t("transaction.in")} (Stock In)</span>
           </button>
           <button
             type="button"
@@ -352,7 +354,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
             }`}
           >
             <Minus className="h-4 w-4" />
-            <span>ตัดสินค้าออก (Stock Out)</span>
+            <span>{t("transaction.out")} (Stock Out)</span>
           </button>
         </div>
 
@@ -371,7 +373,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
               <div className="flex items-center justify-between border-b border-blue-100 pb-3 dark:border-blue-900/50">
                 <div className="flex items-center gap-2 text-xs font-bold text-blue-800 dark:text-blue-300">
                   <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  <span>กำลังสร้างสินค้าใหม่พร้อมรับเข้าสต็อก</span>
+                  <span>{t("shell.newProduct")} (Stock In)</span>
                 </div>
                 <button
                   type="button"
@@ -494,7 +496,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                       </span>
                     </div>
                   ) : (
-                    <span className="text-zinc-400">คลิกเพื่อเลือกสินค้า หรือพิมพ์ค้นหา...</span>
+                      <span className="text-zinc-400">{t("product.search")}</span>
                   )}
                 </div>
 
@@ -599,7 +601,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                           : "border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 font-medium"
                       }`}
                     >
-                      สินค้าทั้งหมด ({products.length})
+                      {t("product.all")} ({products.length})
                     </button>
                     <button
                       type="button"
@@ -610,7 +612,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                           : "border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 font-medium"
                       }`}
                     >
-                      มีในสต็อก ({inStockCount})
+                      {t("scanner.inStock")} ({inStockCount})
                     </button>
                   </div>
 
@@ -898,7 +900,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
               onClick={onClose}
               className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
             >
-              ยกเลิก
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
@@ -918,12 +920,12 @@ export const MovementModal: React.FC<MovementModalProps> = ({
               <CheckCircle2 className="h-4 w-4" />
               <span>
                 {loading
-                  ? "กำลังบันทึก..."
+                  ? t("common.loading")
                   : isNewProductMode
                   ? "สร้างสินค้าใหม่ & รับเข้าสต็อก"
                   : type === "StockIn"
                   ? "ยืนยันรับเข้าสต็อก"
-                  : "ยืนยันตัดสต็อกออก"}
+                  : t("transaction.out")}
               </span>
             </button>
           </div>

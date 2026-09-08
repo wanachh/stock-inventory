@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Upload,
   FileSpreadsheet,
@@ -26,6 +27,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [parseResult, setParseResult] = useState<ParseExcelResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -112,7 +114,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
-                นำเข้าสต็อกและสินค้าจากไฟล์ Excel (.xlsx / .csv)
+                {t("shell.importExcel")} (.xlsx / .csv)
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 รองรับเทมเพลตคอลัมน์: ลำดับ, SKU, barcode, Brand, จำนวน, ราคาก่อนแวท, แวท, หลังแวท
@@ -126,7 +128,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
               className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300"
             >
               <Download className="h-3.5 w-3.5" />
-              <span>ดาวน์โหลดเทมเพลต Excel</span>
+              <span>{t("shell.importExcel")} template</span>
             </button>
             <button
               onClick={onClose}
@@ -175,7 +177,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
             <div className="flex items-center justify-center py-12">
               <div className="flex flex-col items-center gap-3">
                 <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent"></div>
-                <p className="text-xs text-zinc-500">กำลังประมวลผลไฟล์ Excel...</p>
+                <p className="text-xs text-zinc-500">{t("common.loading")}</p>
               </div>
             </div>
           )}
@@ -339,7 +341,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                 onClick={handleReset}
                 className="text-xs font-semibold text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
               >
-                เลือกไฟล์ใหม่
+                {t("common.clear")}
               </button>
             )}
           </div>
@@ -351,7 +353,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
               disabled={importing}
               className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
-              ยกเลิก
+              {t("common.cancel")}
             </button>
 
             {parseResult && (
@@ -364,7 +366,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                 {importing ? (
                   <>
                     <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    <span>กำลังนำเข้าสต็อก...</span>
+                    <span>{t("common.loading")}</span>
                   </>
                 ) : (
                   <>

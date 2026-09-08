@@ -11,6 +11,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { BrandLogo } from "./Common/BrandLogo";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 export type NavTab = "dashboard" | "products" | "transactions" | "scanner";
 
@@ -25,29 +27,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onChangeTab,
   lowStockCount = 0,
 }) => {
+  const { t } = useTranslation();
   const navItems = [
     {
       id: "dashboard" as NavTab,
-      label: "แดชบอร์ดต้นทุน",
+      label: t("nav.dashboard"),
       sublabel: "Dashboard",
       icon: LayoutDashboard,
     },
     {
       id: "products" as NavTab,
-      label: "สินค้าและล็อต",
+      label: t("nav.products"),
       sublabel: "Products",
       icon: Package,
       badge: lowStockCount > 0 ? lowStockCount : undefined,
     },
     {
       id: "transactions" as NavTab,
-      label: "ประวัติ เข้า-ออก",
+      label: t("nav.transactions"),
       sublabel: "Transactions",
       icon: ArrowRightLeft,
     },
     {
       id: "scanner" as NavTab,
-      label: "ยิงสแกนบาร์โค้ด",
+      label: t("nav.scanner"),
       sublabel: "Scanner",
       icon: ScanLine,
     },
@@ -99,8 +102,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Bottom Mode Pill */}
       <div className="mt-auto flex flex-col items-center gap-3">
+        <LanguageSwitcher />
         <div
-          title=" Real-Cost Active"
+          title={t("shell.realCost")}
           className="flex h-10 w-10 items-center justify-center rounded-2xl border border-emerald-200/80 bg-emerald-50 text-emerald-600 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-400"
         >
           <ShieldCheck className="h-4 w-4" />

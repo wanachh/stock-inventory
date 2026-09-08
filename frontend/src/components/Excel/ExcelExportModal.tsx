@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   FileSpreadsheet,
   Download,
@@ -28,6 +29,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
   products,
   transactions,
 }) => {
+  const { t } = useTranslation();
   const [reportType, setReportType] = useState<"StockIn" | "StockOut" | "CurrentStock" | "All">("StockIn");
   
   // Default date range: current month (e.g. 2026-08-01 to 2026-08-31)
@@ -66,7 +68,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
   };
 
   const handleExport = () => {
-    let exportData: Array<{
+    const exportData: Array<{
       sku: string;
       barcode?: string | null;
       brand: string;
@@ -169,7 +171,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
-                ส่งออกรายงาน Excel (.xlsx)
+                {t("shell.exportExcel")} (.xlsx)
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 ฟอร์แมตตามเทมเพลต: ลำดับ, SKU, barcode, Brand, จำนวน, ราคาก่อนแวท, แวท, หลังแวท
@@ -336,7 +338,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
             onClick={onClose}
             className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
           >
-            ยกเลิก
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -344,7 +346,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
             className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 transition hover:bg-emerald-700 active:scale-95"
           >
             <FileSpreadsheet className="h-4 w-4" />
-            <span>ดาวน์โหลดรายงาน Excel (.xlsx)</span>
+            <span>{t("shell.exportExcel")} (.xlsx)</span>
           </button>
         </div>
       </div>

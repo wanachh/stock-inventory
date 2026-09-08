@@ -3,6 +3,7 @@
 import React from "react";
 import { LayoutDashboard, Package, ArrowRightLeft, ScanLine } from "lucide-react";
 import { NavTab } from "./Sidebar";
+import { useTranslation } from "react-i18next";
 
 interface MobileNavProps {
   activeTab: NavTab;
@@ -15,16 +16,17 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   onChangeTab,
   lowStockCount = 0,
 }) => {
+  const { t } = useTranslation();
   const tabs = [
-    { id: "dashboard" as NavTab, label: "แดชบอร์ด", icon: LayoutDashboard },
+    { id: "dashboard" as NavTab, label: t("nav.dashboardShort"), icon: LayoutDashboard },
     {
       id: "products" as NavTab,
-      label: "สินค้า",
+      label: t("nav.productsShort"),
       icon: Package,
       badge: lowStockCount > 0 ? lowStockCount : undefined,
     },
-    { id: "transactions" as NavTab, label: "เข้า-ออก", icon: ArrowRightLeft },
-    { id: "scanner" as NavTab, label: "สแกน", icon: ScanLine },
+    { id: "transactions" as NavTab, label: t("nav.transactionsShort"), icon: ArrowRightLeft },
+    { id: "scanner" as NavTab, label: t("nav.scannerShort"), icon: ScanLine },
   ];
 
   return (

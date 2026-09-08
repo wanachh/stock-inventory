@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import { DashboardSummary, ProductDetail, StockTransaction, DashboardKpis, DailyMovementSummary } from "../types";
+import { useTranslation } from "react-i18next";
+import { CreateProductRequest, DashboardSummary, ProductDetail, StockTransaction, DashboardKpis, DailyMovementSummary, UpdateProductRequest } from "../types";
 import { api } from "../lib/api";
 import { Navbar } from "../components/Navbar";
 import { Sidebar, NavTab } from "../components/Sidebar";
@@ -30,6 +31,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<NavTab>("dashboard");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   // Multi-select product filter on dashboard (empty Set = all products)
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
@@ -248,13 +250,13 @@ export default function Home() {
     }
   };
 
-  const handleProductCreated = async (data: any) => {
+  const handleProductCreated = async (data: CreateProductRequest) => {
     await api.createProduct(data);
     showToast("สร้างสินค้าใหม่เรียบร้อย");
     loadData();
   };
 
-  const handleProductUpdated = async (id: number, data: any) => {
+  const handleProductUpdated = async (id: number, data: UpdateProductRequest) => {
     await api.updateProduct(id, data);
     showToast("อัปเดตข้อมูลสินค้าเรียบร้อย");
     loadData();
@@ -311,16 +313,16 @@ export default function Home() {
             <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl dark:text-white">
-                  {activeTab === "dashboard" && "ภาพรวมสต็อกและต้นทุน (Accounting Dashboard)"}
-                  {activeTab === "products" && "รายการสินค้าและประวัติล็อต (Products & Batches)"}
-                  {activeTab === "transactions" && "สมุดรายวันประวัติการเข้า-ออก (Stock Journal)"}
-                  {activeTab === "scanner" && "โหมดเครื่องสแกนบาร์โค้ด & รหัส SKU (Machine Scanner)"}
+                  {activeTab === "dashboard" && t("page.dashboardTitle")}
+                  {activeTab === "products" && t("page.productsTitle")}
+                  {activeTab === "transactions" && t("page.transactionsTitle")}
+                  {activeTab === "scanner" && t("page.scannerTitle")}
                 </h2>
                 <p className="text-xs text-slate-400">
-                  {activeTab === "dashboard" && "สรุปมูลค่าคงเหลือจริง มูลค่าต้นทุนที่ตัดออก และการไหลเวียนสินค้า"}
-                  {activeTab === "products" && "จัดการสินค้า แก้ไขรหัส ตรวจสอบราคาซื้อจริงรายรอบ และทำรายการด่วน"}
-                  {activeTab === "transactions" && "ตรวจสอบการตัดสต็อกแบบ  แยกตามล็อตจริงเพื่อส่งรายงานบัญชี"}
-                  {activeTab === "scanner" && "พร้อมรับสัญญาณจากหัวอ่านสแกนเนอร์อัตโนมัติ"}
+                  {activeTab === "dashboard" && t("page.dashboardDescription")}
+                  {activeTab === "products" && t("page.productsDescription")}
+                  {activeTab === "transactions" && t("page.transactionsDescription")}
+                  {activeTab === "scanner" && t("page.scannerDescription")}
                 </p>
               </div>
 
@@ -330,7 +332,7 @@ export default function Home() {
                 className="flex w-fit items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 cursor-pointer"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-                <span>รีเฟรชข้อมูล</span>
+                <span>{t("common.refresh")}</span>
               </button>
             </div>
 

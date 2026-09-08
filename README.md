@@ -27,3 +27,21 @@
 * **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS, Lucide Icons
 * **Backend**: ASP.NET Core Minimal API (.NET 10), Entity Framework Core
 * **Database**: SQLite / PostgreSQL
+
+## Environment Configuration
+
+Frontend builds require `NEXT_PUBLIC_API_URL`. The value may be either the API host
+(`https://stockpulse-api.example.com`) or the API root
+(`https://stockpulse-api.example.com/api`); the frontend normalizes both forms.
+Local development uses `http://localhost:5200`. Production builds fail early when
+the variable is missing instead of silently deploying a frontend that calls localhost.
+
+The backend accepts a comma-separated `CORS_ORIGINS` value in production, for example:
+
+```text
+CORS_ORIGINS=https://stockpulse.pages.dev,https://inventory.example.com
+```
+
+Set `NEXT_PUBLIC_API_URL` in the frontend build environment and `CORS_ORIGINS` in
+the Render backend environment. `DATABASE_URL` remains the production PostgreSQL
+connection string.

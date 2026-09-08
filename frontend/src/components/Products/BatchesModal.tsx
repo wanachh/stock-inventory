@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { InventoryBatch, ProductDetail } from "../../types";
 import { api, formatCurrency, formatDate, formatNumber } from "../../lib/api";
 import { X, Layers, Calendar, Receipt, CheckCircle2, Clock } from "lucide-react";
@@ -12,6 +13,7 @@ interface BatchesModalProps {
 }
 
 export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, product }) => {
+  const { t } = useTranslation();
   const [batches, setBatches] = useState<InventoryBatch[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -48,7 +50,7 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-50">
-                  ทุกล็อตสินค้า (Batch / Lot History)
+                  {t("product.batches")}
                 </h3>
                 <span className="font-mono text-xs text-slate-500">[{product.sku}]</span>
               </div>
@@ -68,13 +70,13 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
         {/* Summary Bar */}
         <div className="grid grid-cols-2 gap-4 border-b border-slate-100 bg-slate-50/70 p-4 text-xs dark:border-slate-800 dark:bg-slate-800/50">
           <div>
-            <span className="text-slate-500 dark:text-slate-400">คงเหลือปัจจุบันทั้งหมด:</span>
+            <span className="text-slate-500 dark:text-slate-400">{t("product.remaining")}</span>
             <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-              {formatNumber(totalRemaining)} ชิ้น
+              {formatNumber(totalRemaining)} {t("common.pieces")}
             </div>
           </div>
           <div className="text-right">
-            <span className="text-slate-500 dark:text-slate-400">มูลค่าคงเหลือจริงรวม:</span>
+            <span className="text-slate-500 dark:text-slate-400">{t("product.valuation")}</span>
             <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
               {formatCurrency(totalValuation)}
             </div>
@@ -84,10 +86,10 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
         {/* Batches Content */}
         <div className="flex-1 overflow-y-auto p-5">
           {loading ? (
-            <div className="py-12 text-center text-xs text-slate-400">กำลังโหลดข้อมูลล็อต...</div>
+            <div className="py-12 text-center text-xs text-slate-400">{t("common.loading")}</div>
           ) : batches.length === 0 ? (
             <div className="py-12 text-center text-xs text-slate-400">
-              ยังไม่มีประวัติการรับเข้าของสินค้านี้
+              {t("transaction.empty")}
             </div>
           ) : (
             <div className="space-y-3">
@@ -114,11 +116,11 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
                           </span>
                           {isActive ? (
                             <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                              ยังมีของในล็อต
+                              {t("product.normal")}
                             </span>
                           ) : (
                             <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-400">
-                              ตัดหมดแล้ว (Depleted)
+                              {t("product.out")}
                             </span>
                           )}
                         </div>
@@ -179,7 +181,7 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
             onClick={onClose}
             className="rounded-2xl bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
           >
-            ปิดหน้าต่าง
+            {t("common.close")}
           </button>
         </div>
       </div>

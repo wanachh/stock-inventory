@@ -1,0 +1,83 @@
+{
+  "nav": {
+    "dashboard": "แดชบอร์ดต้นทุน",
+    "products": "สินค้าและล็อต",
+    "transactions": "ประวัติ เข้า-ออก",
+    "scanner": "ยิงสแกนบาร์โค้ด",
+    "dashboardShort": "แดชบอร์ด",
+    "productsShort": "สินค้า",
+    "transactionsShort": "เข้า-ออก",
+    "scannerShort": "สแกน"
+  },
+  "common": {
+    "all": "ทั้งหมด",
+    "clear": "ล้าง",
+    "cancel": "ยกเลิก",
+    "confirm": "ยืนยัน",
+    "close": "ปิด",
+    "save": "บันทึก",
+    "search": "ค้นหา",
+    "loading": "กำลังโหลด...",
+    "refresh": "รีเฟรชข้อมูล",
+    "selected": "ที่เลือก",
+    "items": "รายการ",
+    "products": "สินค้า",
+    "pieces": "ชิ้น",
+    "lightMode": "สลับเป็นโหมดสว่าง (Light Mode)",
+    "darkMode": "สลับเป็นโหมดมืด (Dark Mode)",
+    "thai": "ไทย",
+    "english": "อังกฤษ"
+  },
+  "shell": {
+    "greeting": "สวัสดี",
+    "overview": "ภาพรวมสถานะคลังสินค้าและมูลค่าต้นทุนจริงรายรอบ (Real-Cost Channels)",
+    "scannerReady": "เครื่องสแกนบาร์โค้ดพร้อมทำงาน (ยิงสแกนได้ทันที)",
+    "scannerReadyShort": "Scanner Ready",
+    "importExcel": "นำเข้า Excel",
+    "exportExcel": "ออกรายงาน Excel",
+    "movement": "เข้า/ออก",
+    "newProduct": "เพิ่มสินค้าใหม่",
+    "newProductShort": "สินค้า",
+    "lock": "ล็อคหน้าจอระบบ (ต้องใส่รหัสทีมใหม่)",
+    "admin": "ผู้ดูแลระบบ",
+    "realCost": "Real-Cost Active"
+  },
+  "page": {
+    "dashboardTitle": "ภาพรวมสต็อกและต้นทุน (Accounting Dashboard)",
+    "productsTitle": "รายการสินค้าและประวัติล็อต (Products & Batches)",
+    "transactionsTitle": "สมุดรายวันประวัติการเข้า-ออก (Stock Journal)",
+    "scannerTitle": "โหมดเครื่องสแกนบาร์โค้ด & รหัส SKU (Machine Scanner)",
+    "dashboardDescription": "สรุปมูลค่าคงเหลือจริง มูลค่าต้นทุนที่ตัดออก และการไหลเวียนสินค้า",
+    "productsDescription": "จัดการสินค้า ล็อตต้นทุน และตรวจสอบยอดคงเหลือ",
+    "transactionsDescription": "ตรวจสอบและแก้ไขรายการรับเข้า-ตัดออกย้อนหลัง",
+    "scannerDescription": "ค้นหาสินค้าด้วยบาร์โค้ดหรือรหัส SKU อย่างรวดเร็ว",
+    "connectionError": "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ .NET API ได้",
+    "retry": "ลองใหม่",
+    "filterProducts": "กรองตามสินค้า",
+    "selectedProducts": "สินค้าที่เลือก",
+    "selectProducts": "เลือกสินค้า",
+    "selectProductsHelp": "เลือกสินค้าที่ต้องการ",
+    "showingSelected": "แสดงข้อมูลเฉพาะ {{count}} สินค้าที่เลือก",
+    "showingAll": "แสดงภาพรวมสินค้าทั้งหมด {{count}} รายการ",
+    "clearAll": "ล้างทั้งหมด",
+    "confirmSelection": "ยืนยัน ({{label}})",
+    "allProducts": "ทั้งหมด",
+    "stockRemaining": "คงเหลือ {{count}} ชิ้น",
+    "scanFound": "สแกนพบ: [{{sku}}] {{name}}",
+    "scanNotFound": "สแกนรหัส \"{{code}}\" ไม่พบในระบบ"
+  },
+  "language": { "label": "ภาษา", "thai": "ไทย", "english": "English" },
+  "auth": {
+    "checking": "กำลังตรวจสอบสิทธิ์การเข้าใช้งาน...", "invalid": "รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง", "locked": "ระบบถูกล็อค", "unlock": "ปลดล็อคระบบ", "title": "ระบบจัดการสต็อกและต้นทุนสินค้า", "protected": "Team Protected System", "placeholder": "กรอกรหัสผ่านเพื่อปลดล็อก...", "verifying": "กำลังตรวจสอบความถูกต้อง...", "access": "เข้าใช้งานระบบ (UNLOCK)", "remember": "จดจำอุปกรณ์นี้เป็นเวลา", "days": "30 วัน", "footer": "StockPulse Private Inventory • เข้ารหัสความปลอดภัยระดับทีม"
+  },
+  "product": {
+    "search": "ค้นหาด้วย SKU, Barcode, หรือชื่อสินค้า...", "clear": "ล้าง", "allCategories": "ทุกหมวดหมู่ ({{count}})", "all": "ทั้งหมด", "normal": "ปกติ", "low": "ใกล้หมด", "out": "หมด", "notFound": "ไม่พบสินค้าที่ตรงกับเงื่อนไขการค้นหา", "noProducts": "ไม่พบสินค้า", "threshold": "เกณฑ์เตือน: {{count}} ชิ้น", "batches": "{{count}} ล็อตที่ยังเหลือ", "realCost": "ตามราคาทุนจริง", "stockIn": "รับเข้า", "stockOut": "ตัดออก", "remaining": "คงเหลือ:", "value": "มูลค่ารวม:", "edit": "แก้ไข", "import": "นำเข้า Excel", "export": "ออกรายงาน Excel", "nameCategory": "ชื่อสินค้า / หมวดหมู่", "status": "สถานะสต็อก", "quantity": "จำนวนคงเหลือ", "valuation": "มูลค่าคงเหลือจริง", "quickMovement": "จัดการสต็อกด่วน", "tools": "เครื่องมือ"
+  },
+  "transaction": {
+    "search": "ค้นหาด้วย SKU, ชื่อสินค้า, หรือเลขที่บิลอ้างอิง...", "all": "ทั้งหมด ({{count}})", "in": "รับเข้า", "out": "ตัดออก", "excelTitle": "ส่งออกรายงาน Excel ตามช่วงวันที่เลือก (เทมเพลตมาตรฐาน)", "excel": "รายงาน Excel", "csvTitle": "ส่งออกรายงานเป็น CSV สำหรับงานบัญชี", "date": "วัน-เวลา", "type": "ประเภท", "product": "สินค้า (SKU)", "quantity": "จำนวนชิ้น", "cost": "มูลค่าต้นทุนจริงรวม", "reference": "เอกสารอ้างอิง / หมายเหตุ", "breakdown": "แจกแจงล็อต", "manage": "จัดการ", "empty": "ไม่พบรายการเคลื่อนไหว", "batches": "{{count}} ล็อต", "editTitle": "แก้ไขรายการ (จำนวน, ต้นทุน, หรือหมายเหตุ)", "deleteTitle": "ลบ/ยกเลิกรายการนี้ (ระบบจะคืนสต็อก/ปรับปรุงล็อตเดิมให้อัตโนมัติ)"
+  },
+  "scanner": {
+    "notFound": "ไม่พบสินค้าสำหรับรหัส: {{code}}", "title": "เครื่องสแกนบาร์โค้ด & ค้นหารหัส SKU ด่วน", "description": "ใช้ปืนยิงบาร์โค้ด USB/Bluetooth ยิงใส่หน้านี้ได้ทันที หรือพิมพ์รหัส SKU แล้วกด Enter", "placeholder": "ยิงบาร์โค้ด หรือพิมพ์ SKU เช่น PRD-A001...", "search": "ค้นหา", "out": "หมดสต็อก", "low": "ใกล้หมด", "inStock": "มีสินค้า", "remaining": "คงเหลือปัจจุบัน:", "valuation": "มูลค่าต้นทุนจริงคงเหลือ:", "viewBatches": "ดูทุกล็อต ({{count}})", "stockIn": "รับเข้า (Stock In)", "stockOut": "ตัดออก (Stock Out)", "detected": "ตรวจพบการยิงสแกนเนอร์!"
+  },
+  "dashboard": { "goals": "เป้าหมายคลัง (Goals)", "goalDescription": "ตัวชี้วัดประสิทธิภาพสต็อกสินค้า", "stockBalance": "คงเหลือในคลัง", "balanceDetail": "สินค้าคงเหลือทั้งหมด (Balance)", "realCost": "มูลค่าต้นทุนจริง:", "costByBatch": "คำนวณตามราคาซื้อจริงของทุกล็อตย่อย", "stockOut": "เบิก-ขายออก", "outDetail": "ยอดตัดจ่าย / ขายออก (Stock Out)", "cogs": "ต้นทุนตัดจ่าย:", "fifo": "ตัดจากล็อตเก่าก่อนเสมอตามหลักบัญชี", "stockIn": "รับเข้าสต็อก", "inDetail": "ยอดรับเข้าสต็อก (Stock In)", "inValue": "มูลค่ายอดซื้อเข้ารวม:", "batchHistory": "แยกเก็บประวัติต้นทุนตามล็อตจริง", "lowStock": "สินค้าใกล้หมด (Low Stock)", "safe": "ปลอดภัย", "reorder": "ดูรายการที่ถึงจุดสั่งซื้อ", "online": "ออนไลน์", "times": "ครั้ง", "noData": "ยังไม่มีข้อมูลสินค้า" }
+}

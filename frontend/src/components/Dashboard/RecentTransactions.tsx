@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StockTransaction } from "../../types";
 import { formatCurrency, formatDateTime, formatNumber } from "../../lib/api";
 import { ArrowDownRight, ArrowUpRight, Clock } from "lucide-react";
@@ -14,12 +15,13 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
   transactions,
   onViewAll,
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800/80 dark:bg-slate-900">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-            รายการเคลื่อนไหวล่าสุด
+            {t("transaction.date")} (ล่าสุด)
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             ประวัติการรับเข้าและตัดออกพร้อมต้นทุนจริง
@@ -38,7 +40,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
       <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800/60">
         {transactions.length === 0 ? (
           <p className="py-6 text-center text-xs text-slate-400">
-            ยังไม่มีประวัติการเคลื่อนไหว
+            {t("transaction.empty")}
           </p>
         ) : (
           transactions.slice(0, 6).map((tx) => {
@@ -74,7 +76,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
                             : "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300"
                         }`}
                       >
-                        {isStockIn ? "+ รับเข้า" : "- ตัดออก"}
+                        {isStockIn ? `+ ${t("transaction.in")}` : `- ${t("transaction.out")}`}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
@@ -105,7 +107,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
                     }`}
                   >
                     {isStockIn ? "+" : "-"}
-                    {formatNumber(tx.quantity)} ชิ้น
+                    {formatNumber(tx.quantity)} {t("common.pieces")}
                   </div>
                   <div className="text-xs font-medium text-slate-600 dark:text-slate-400">
                     {formatCurrency(tx.totalCost)}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "../components/Theme/ThemeContext";
+import { I18nProvider } from "../components/I18nProvider";
 
 export const metadata: Metadata = {
   title: "StockPulse - ระบบจัดการสต็อกและต้นทุนสินค้า ( Real-Cost)",
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="th" className="h-full" suppressHydrationWarning>
       <body className="min-h-full bg-[#f4f6fa] font-sans text-slate-900 antialiased dark:bg-[#0b0f19] dark:text-slate-50 transition-colors duration-200">
-        <ThemeProvider>{children}</ThemeProvider>
+        <I18nProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   );

@@ -8,14 +8,12 @@ import {
   Lock,
   Upload,
   Download,
-  Search,
-  Bell,
   Sun,
   Moon,
-  User,
 } from "lucide-react";
 import { VisitorBadge } from "./Dashboard/VisitorBadge";
 import { useTheme } from "./Theme/ThemeContext";
+import { useTranslation } from "react-i18next";
 
 interface NavbarProps {
   onOpenNewProduct: () => void;
@@ -37,16 +35,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   userName = "StockPulse Team",
 }) => {
   const { theme, toggleTheme } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <header className="sticky top-0 z-30 flex flex-col justify-between gap-4 border-b border-slate-200/80 bg-white/85 px-6 py-4 backdrop-blur-md sm:flex-row sm:items-center dark:border-slate-800/80 dark:bg-slate-900/85">
       {/* Left Greeting (Matching the reference design) */}
       <div>
         <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-          Hi, <span className="text-blue-600 dark:text-blue-400">{userName}</span>
+          {t("shell.greeting")}, <span className="text-blue-600 dark:text-blue-400">{userName}</span>
         </h1>
         <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-          ภาพรวมสถานะคลังสินค้าและมูลค่าต้นทุนจริงรายรอบ ( Real-Cost Channels)
+          {t("shell.overview")}
         </p>
       </div>
 
@@ -59,7 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Scanner Gun Active Indicator */}
         <div
-          title="เครื่องสแกนบาร์โค้ดพร้อมทำงาน (ยิงสแกนได้ทันที)"
+          title={t("shell.scannerReady")}
           className="flex items-center gap-1.5 rounded-2xl border border-emerald-200/80 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300"
         >
           <span className="relative flex h-2 w-2">
@@ -67,7 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
           </span>
           <ScanLine className="h-3.5 w-3.5" />
-          <span className="hidden lg:inline">Scanner Ready</span>
+          <span className="hidden lg:inline">{t("shell.scannerReadyShort")}</span>
         </div>
 
         {/* Excel Import Button */}
@@ -77,7 +76,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="flex items-center gap-1.5 rounded-2xl border border-blue-200/80 bg-blue-50/80 px-3 py-2 text-xs font-semibold text-blue-700 shadow-2xs transition hover:bg-blue-100 active:scale-95 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300 cursor-pointer"
           >
             <Download className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">นำเข้า Excel</span>
+            <span className="hidden md:inline">{t("shell.importExcel")}</span>
           </button>
         )}
 
@@ -88,7 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="flex items-center gap-1.5 rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-3 py-2 text-xs font-semibold text-emerald-700 shadow-2xs transition hover:bg-emerald-100 active:scale-95 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300 cursor-pointer"
           >
             <Upload className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">ออกรายงาน Excel</span>
+            <span className="hidden md:inline">{t("shell.exportExcel")}</span>
           </button>
         )}
 
@@ -98,7 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 shadow-2xs transition hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer"
         >
           <ArrowDownUp className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-          <span>เข้า/ออก</span>
+          <span>{t("shell.movement")}</span>
         </button>
 
         {/* New Product Button */}
@@ -107,14 +106,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="flex items-center gap-1.5 rounded-2xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-blue-500/25 transition hover:bg-blue-700 active:scale-95 cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">เพิ่มสินค้าใหม่</span>
-          <span className="sm:hidden">สินค้า</span>
+          <span className="hidden sm:inline">{t("shell.newProduct")}</span>
+          <span className="sm:hidden">{t("shell.newProductShort")}</span>
         </button>
 
         {/* Theme Toggle Button (Light / Dark) */}
         <button
           onClick={toggleTheme}
-          title={theme === "light" ? "สลับเป็นโหมดมืด (Dark Mode)" : "สลับเป็นโหมดสว่าง (Light Mode)"}
+          title={theme === "light" ? t("common.darkMode") : t("common.lightMode")}
           className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-2xs transition hover:bg-slate-50 active:scale-95 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 cursor-pointer"
         >
           {theme === "light" ? (
@@ -130,7 +129,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             ST
           </div>
           <span className="hidden sm:inline text-xs font-bold text-slate-700 dark:text-slate-200">
-            Admin
+            {t("shell.admin")}
           </span>
         </div>
 
@@ -138,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {onLock && (
           <button
             onClick={onLock}
-            title="ล็อคหน้าจอระบบ (ต้องใส่รหัสทีมใหม่)"
+            title={t("shell.lock")}
             className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 active:scale-95 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200 cursor-pointer"
           >
             <Lock className="h-4 w-4" />

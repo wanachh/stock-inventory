@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { MoreHorizontal } from "lucide-react";
 
 interface StockDistributionDonutProps {
@@ -10,6 +11,7 @@ interface StockDistributionDonutProps {
 export const StockDistributionDonut: React.FC<StockDistributionDonutProps> = ({
   healthyRatio = 65,
 }) => {
+  const { t } = useTranslation();
   // SVG Donut calculation
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
@@ -21,9 +23,9 @@ export const StockDistributionDonut: React.FC<StockDistributionDonutProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-            สัดส่วนสต็อก (Distribution)
+            {t("dashboard.stockBalance")} (Distribution)
           </h3>
-          <p className="text-xs text-slate-400">ภาพรวมล็อตและคลังสินค้า</p>
+          <p className="text-xs text-slate-400">{t("dashboard.goalDescription")}</p>
         </div>
         <button
           type="button"

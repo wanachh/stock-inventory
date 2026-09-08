@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { DashboardKpis } from "../../types";
 import { formatCurrency, formatNumber } from "../../lib/api";
 import {
@@ -19,6 +20,7 @@ interface KpiCardsProps {
 }
 
 export const KpiCards: React.FC<KpiCardsProps> = ({ kpis, onFilterLowStock }) => {
+  const { t } = useTranslation();
   const isLowStock = (kpis.lowStockProductCount || 0) > 0;
 
   return (
@@ -33,20 +35,20 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ kpis, onFilterLowStock }) =>
             </div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
-              คงเหลือในคลัง
+              {t("dashboard.stockBalance")}
             </span>
           </div>
 
           {/* Main Metric */}
           <div className="mt-5">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider dark:text-slate-500">
-              สินค้าคงเหลือทั้งหมด (Balance)
+              {t("dashboard.balanceDetail")}
             </span>
             <div className="mt-1 flex items-baseline gap-2">
               <span className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl dark:text-white">
                 {formatNumber(kpis.totalRemainingItems)}
               </span>
-              <span className="text-sm font-bold text-slate-400">ชิ้น</span>
+              <span className="text-sm font-bold text-slate-400">{t("common.pieces")}</span>
             </div>
           </div>
         </div>
@@ -54,7 +56,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ kpis, onFilterLowStock }) =>
         {/* Footer info: มูลค่าต้นทุนจริง */}
         <div className="mt-6 border-t border-slate-100 pt-4 dark:border-slate-800">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500 dark:text-slate-400">มูลค่าต้นทุนจริง:</span>
+            <span className="text-slate-500 dark:text-slate-400">{t("dashboard.realCost")}</span>
             <span className="font-extrabold text-blue-600 dark:text-blue-400">
               {formatCurrency(kpis.totalRemainingValuation)}
             </span>
@@ -103,7 +105,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ kpis, onFilterLowStock }) =>
           </div>
           <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
             <ShieldCheck className="h-3.5 w-3.5 text-rose-500 shrink-0" />
-            <span>ตัดจากล็อตเก่าก่อนเสมอตามหลักบัญชี</span>
+            <span>{t("dashboard.fifo")}</span>
           </p>
         </div>
       </div>
@@ -118,7 +120,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ kpis, onFilterLowStock }) =>
             </div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
-              รับเข้าสต็อก
+              {t("dashboard.stockIn")}
             </span>
           </div>
 
@@ -146,7 +148,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ kpis, onFilterLowStock }) =>
           </div>
           <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-            <span>แยกเก็บประวัติต้นทุนตามล็อตจริง</span>
+              <span>{t("dashboard.batchHistory")}</span>
           </p>
         </div>
       </div>
@@ -180,7 +182,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ kpis, onFilterLowStock }) =>
           {/* Main Metric */}
           <div className="mt-5">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider dark:text-slate-500">
-              สินค้าใกล้หมด (Low Stock)
+              {t("dashboard.lowStock")}
             </span>
             <div className="mt-1 flex items-baseline gap-2">
               <span className={`text-3xl font-black tracking-tight sm:text-4xl ${
@@ -207,7 +209,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ kpis, onFilterLowStock }) =>
           ) : (
             <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>สถานะสินค้าทุกตัว:</span>
-              <span className="font-bold text-emerald-600 dark:text-emerald-400">ปลอดภัย</span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400">{t("dashboard.safe")}</span>
             </div>
           )}
           <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">

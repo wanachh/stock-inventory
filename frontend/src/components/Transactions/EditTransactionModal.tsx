@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { StockTransaction, UpdateTransactionRequest } from "../../types";
 import { formatCurrency, formatNumber } from "../../lib/api";
 import { X, Check, AlertCircle, ShieldAlert } from "lucide-react";
@@ -18,6 +19,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
   transaction,
   onSuccess,
 }) => {
+  const { t } = useTranslation();
   const [quantity, setQuantity] = useState<number | "">("");
   const [unitCost, setUnitCost] = useState<number | "">("");
   const [referenceNote, setReferenceNote] = useState("");
@@ -195,7 +197,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               onClick={onClose}
               className="rounded-2xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 cursor-pointer"
             >
-              ยกเลิก
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
@@ -203,7 +205,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               className="flex items-center gap-1.5 rounded-2xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-blue-500/25 hover:bg-blue-700 active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               <Check className="h-4 w-4" />
-              <span>{loading ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}</span>
+              <span>{loading ? t("common.loading") : t("common.save")}</span>
             </button>
           </div>
         </form>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScanLine, CheckCircle2 } from "lucide-react";
 
 interface GlobalScannerListenerProps {
@@ -8,6 +9,7 @@ interface GlobalScannerListenerProps {
 }
 
 export const GlobalScannerListener: React.FC<GlobalScannerListenerProps> = ({ onScan }) => {
+  const { t } = useTranslation();
   const [lastScanned, setLastScanned] = useState<string | null>(null);
   const bufferRef = useRef<string>("");
   const lastKeyTimeRef = useRef<number>(0);
@@ -70,7 +72,7 @@ export const GlobalScannerListener: React.FC<GlobalScannerListenerProps> = ({ on
       <div>
         <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-200">
           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-          <span>ตรวจพบการยิงสแกนเนอร์!</span>
+          <span>{t("scanner.detected")}</span>
         </div>
         <p className="font-mono text-xs font-medium text-emerald-700 dark:text-emerald-300">
           Code: <span className="font-bold">{lastScanned}</span>

@@ -1,0 +1,83 @@
+{
+  "nav": {
+    "dashboard": "Cost Dashboard",
+    "products": "Products & Batches",
+    "transactions": "Stock History",
+    "scanner": "Barcode Scanner",
+    "dashboardShort": "Dashboard",
+    "productsShort": "Products",
+    "transactionsShort": "In / Out",
+    "scannerShort": "Scan"
+  },
+  "common": {
+    "all": "All",
+    "clear": "Clear",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close",
+    "save": "Save",
+    "search": "Search",
+    "loading": "Loading...",
+    "refresh": "Refresh data",
+    "selected": "selected",
+    "items": "items",
+    "products": "products",
+    "pieces": "pcs",
+    "lightMode": "Switch to light mode",
+    "darkMode": "Switch to dark mode",
+    "thai": "Thai",
+    "english": "English"
+  },
+  "shell": {
+    "greeting": "Hi",
+    "overview": "Inventory status and real-cost overview (Real-Cost Channels)",
+    "scannerReady": "Barcode scanner ready",
+    "scannerReadyShort": "Scanner Ready",
+    "importExcel": "Import Excel",
+    "exportExcel": "Export Excel report",
+    "movement": "Stock in / out",
+    "newProduct": "Add new product",
+    "newProductShort": "Product",
+    "lock": "Lock screen (team passcode required)",
+    "admin": "Admin",
+    "realCost": "Real-Cost Active"
+  },
+  "page": {
+    "dashboardTitle": "Inventory & Cost Overview (Accounting Dashboard)",
+    "productsTitle": "Products and Batch History (Products & Batches)",
+    "transactionsTitle": "Stock Movement Journal (Stock Journal)",
+    "scannerTitle": "Barcode & SKU Scanner (Machine Scanner)",
+    "dashboardDescription": "Real remaining value, issued cost, and product movement at a glance",
+    "productsDescription": "Manage products, cost batches, and remaining stock",
+    "transactionsDescription": "Review and edit historical stock movements",
+    "scannerDescription": "Find products quickly by barcode or SKU",
+    "connectionError": "Unable to connect to the .NET API server",
+    "retry": "Retry",
+    "filterProducts": "Filter by product",
+    "selectedProducts": "products",
+    "selectProducts": "Select products",
+    "selectProductsHelp": "Choose products to include",
+    "showingSelected": "Showing data for {{count}} selected products",
+    "showingAll": "Showing all {{count}} products",
+    "clearAll": "Clear all",
+    "confirmSelection": "Confirm ({{label}})",
+    "allProducts": "All",
+    "stockRemaining": "{{count}} pcs remaining",
+    "scanFound": "Found: [{{sku}}] {{name}}",
+    "scanNotFound": "Code \"{{code}}\" was not found"
+  },
+  "language": { "label": "Language", "thai": "ไทย", "english": "English" },
+  "auth": {
+    "checking": "Checking access...", "invalid": "Incorrect passcode. Please try again.", "locked": "System locked", "unlock": "Unlock system", "title": "Inventory & Cost Management", "protected": "Team Protected System", "placeholder": "Enter passcode to unlock...", "verifying": "Verifying...", "access": "Unlock system", "remember": "Remember this device for", "days": "30 days", "footer": "StockPulse Private Inventory • Team-level security"
+  },
+  "product": {
+    "search": "Search by SKU, barcode, or product name...", "clear": "Clear", "allCategories": "All categories ({{count}})", "all": "All", "normal": "Normal", "low": "Low stock", "out": "Out of stock", "notFound": "No products match the search criteria", "noProducts": "No products found", "threshold": "Alert threshold: {{count}} pcs", "batches": "{{count}} batches remaining", "realCost": "Real cost by batch", "stockIn": "Stock in", "stockOut": "Stock out", "remaining": "Remaining:", "value": "Total value:", "edit": "Edit", "import": "Import Excel", "export": "Export Excel report", "nameCategory": "Product / Category", "status": "Stock status", "quantity": "Remaining quantity", "valuation": "Remaining value", "quickMovement": "Quick stock action", "tools": "Tools"
+  },
+  "transaction": {
+    "search": "Search by SKU, product name, or reference...", "all": "All ({{count}})", "in": "Stock in", "out": "Stock out", "excelTitle": "Export Excel report for the selected date range", "excel": "Excel report", "csvTitle": "Export CSV report for accounting", "date": "Date / time", "type": "Type", "product": "Product (SKU)", "quantity": "Quantity", "cost": "Total real cost", "reference": "Reference / note", "breakdown": "Batch breakdown", "manage": "Actions", "empty": "No movements found", "batches": "{{count}} batches", "editTitle": "Edit movement (quantity, cost, or note)", "deleteTitle": "Delete or reverse this movement"
+  },
+  "scanner": {
+    "notFound": "No product found for code: {{code}}", "title": "Barcode Scanner & Quick SKU Search", "description": "Scan with a USB/Bluetooth barcode reader or enter a SKU and press Enter", "placeholder": "Scan a barcode or enter SKU, e.g. PRD-A001...", "search": "Search", "out": "Out of stock", "low": "Low stock", "inStock": "In stock", "remaining": "Current remaining:", "valuation": "Remaining real cost:", "viewBatches": "View all batches ({{count}})", "stockIn": "Stock in", "stockOut": "Stock out", "detected": "Scanner input detected!"
+  },
+  "dashboard": { "goals": "Inventory goals", "goalDescription": "Inventory performance indicators", "stockBalance": "Current stock", "balanceDetail": "Total remaining stock", "realCost": "Real cost:", "costByBatch": "Calculated from actual cost by batch", "stockOut": "Stock out", "outDetail": "Issued / sold stock", "cogs": "Issued cost:", "fifo": "Oldest batches are issued first", "stockIn": "Stock in", "inDetail": "Received stock", "inValue": "Total purchase value:", "batchHistory": "Actual cost history is kept by batch", "lowStock": "Low-stock products", "safe": "Safe", "reorder": "View reorder candidates", "online": "online", "times": "times", "noData": "No product data" }
+}

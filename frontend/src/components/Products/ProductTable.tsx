@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { ProductDetail } from "../../types";
 import { formatCurrency, formatNumber } from "../../lib/api";
 import {
@@ -40,6 +41,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   initialSearch = "",
   initialStatusFilter = "all",
 }) => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState(initialStatusFilter);
@@ -92,7 +94,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
             data-scanner-input="true"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="ค้นหาด้วย SKU, Barcode, หรือชื่อสินค้า..."
+            placeholder={t("product.search")}
             className="w-full rounded-2xl border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
           />
           {searchTerm && (
@@ -100,7 +102,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
               onClick={() => setSearchTerm("")}
               className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md px-1.5 py-0.5 text-xs font-semibold text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
             >
-              ล้าง
+              {t("product.clear")}
             </button>
           )}
         </div>
@@ -113,7 +115,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs transition-all duration-150 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20 cursor-pointer"
           >
-            <option value="all">ทุกหมวดหมู่ ({categories.length})</option>
+            <option value="all">{t("product.allCategories", { count: categories.length })}</option>
             {categories.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -131,7 +133,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
               }`}
             >
-              ทั้งหมด
+              {t("product.all")}
             </button>
             <button
               onClick={() => setStatusFilter("InStock")}
@@ -141,7 +143,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
-              ปกติ
+              {t("product.normal")}
             </button>
             <button
               onClick={() => setStatusFilter("LowStock")}
@@ -151,7 +153,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
-              ใกล้หมด
+              {t("product.low")}
             </button>
             <button
               onClick={() => setStatusFilter("OutOfStock")}
@@ -161,7 +163,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
-              หมด
+              {t("product.out")}
             </button>
           </div>
 
@@ -174,7 +176,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                 className="flex items-center gap-1.5 rounded-2xl border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 shadow-xs transition hover:bg-blue-100 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300 cursor-pointer"
               >
                 <Download className="h-3.5 w-3.5" />
-                <span>นำเข้า Excel</span>
+                <span>{t("product.import")}</span>
               </button>
             )}
             {onOpenExcelExport && (
@@ -184,7 +186,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                 className="flex items-center gap-1.5 rounded-2xl border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 shadow-xs transition hover:bg-emerald-100 dark:border-emerald-800/40 dark:bg-emerald-950/40 dark:text-emerald-300 cursor-pointer"
               >
                 <Upload className="h-3.5 w-3.5" />
-                <span>ออกรายงาน Excel</span>
+                <span>{t("product.export")}</span>
               </button>
             )}
           </div>
@@ -197,19 +199,19 @@ export const ProductTable: React.FC<ProductTableProps> = ({
           <thead className="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-600 uppercase dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
             <tr>
               <th className="px-4 py-3.5">SKU / Barcode</th>
-              <th className="px-4 py-3.5">ชื่อสินค้า / หมวดหมู่</th>
-              <th className="px-4 py-3.5 text-center">สถานะสต็อก</th>
-              <th className="px-4 py-3.5 text-right">จำนวนคงเหลือ</th>
-              <th className="px-4 py-3.5 text-right">มูลค่าคงเหลือจริง</th>
-              <th className="px-4 py-3.5 text-center">จัดการสต็อกด่วน</th>
-              <th className="px-4 py-3.5 text-right">เครื่องมือ</th>
+              <th className="px-4 py-3.5">{t("product.nameCategory")}</th>
+              <th className="px-4 py-3.5 text-center">{t("product.status")}</th>
+              <th className="px-4 py-3.5 text-right">{t("product.quantity")}</th>
+              <th className="px-4 py-3.5 text-right">{t("product.valuation")}</th>
+              <th className="px-4 py-3.5 text-center">{t("product.quickMovement")}</th>
+              <th className="px-4 py-3.5 text-right">{t("product.tools")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
-                  ไม่พบสินค้าที่ตรงกับเงื่อนไขการค้นหา
+                  {t("product.notFound")}
                 </td>
               </tr>
             ) : (

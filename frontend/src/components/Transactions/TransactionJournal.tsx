@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { StockTransaction } from "../../types";
 import { formatCurrency, formatDateTime, formatNumber } from "../../lib/api";
 import {
@@ -33,6 +34,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
   onDeleteTransaction,
   onOpenExcelExport,
 }) => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -102,7 +104,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="ค้นหาด้วย SKU, ชื่อสินค้า, หรือเลขที่บิลอ้างอิง..."
+            placeholder={t("transaction.search")}
             className="w-full rounded-2xl border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
           />
           {searchTerm && (
@@ -110,7 +112,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
               onClick={() => setSearchTerm("")}
               className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md px-1.5 py-0.5 text-xs font-semibold text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
             >
-              ล้าง
+              {t("common.clear")}
             </button>
           )}
         </div>
@@ -126,7 +128,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
-              ทั้งหมด ({transactions.length})
+              {t("transaction.all", { count: transactions.length })}
             </button>
             <button
               onClick={() => setTypeFilter("StockIn")}
@@ -136,7 +138,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
-              รับเข้า
+              {t("transaction.in")}
             </button>
             <button
               onClick={() => setTypeFilter("StockOut")}
@@ -146,7 +148,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
-              ตัดออก
+              {t("transaction.out")}
             </button>
           </div>
 
@@ -154,18 +156,18 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
           {onOpenExcelExport && (
             <button
               onClick={onOpenExcelExport}
-              title="ส่งออกรายงาน Excel ตามช่วงวันที่เลือก (เทมเพลตมาตรฐาน)"
+              title={t("transaction.excelTitle")}
               className="flex items-center gap-1.5 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 active:scale-95 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300 cursor-pointer"
             >
               <Download className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span className="hidden sm:inline">รายงาน Excel</span>
+              <span className="hidden sm:inline">{t("transaction.excel")}</span>
             </button>
           )}
 
           {/* Export CSV */}
           <button
             onClick={handleExportCsv}
-            title="ส่งออกรายงานเป็น CSV สำหรับงานบัญชี"
+            title={t("transaction.csvTitle")}
             className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer"
           >
             <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -179,21 +181,21 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
         <table className="w-full text-left text-sm">
           <thead className="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-600 uppercase dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
             <tr>
-              <th className="px-4 py-3.5">วัน-เวลา</th>
-              <th className="px-4 py-3.5">ประเภท</th>
-              <th className="px-4 py-3.5">สินค้า (SKU)</th>
-              <th className="px-4 py-3.5 text-right">จำนวนชิ้น</th>
-              <th className="px-4 py-3.5 text-right">มูลค่าต้นทุนจริงรวม</th>
-              <th className="px-4 py-3.5">เอกสารอ้างอิง / หมายเหตุ</th>
-              <th className="px-4 py-3.5 text-center">แจกแจงล็อต</th>
-              <th className="px-4 py-3.5 text-right">จัดการ</th>
+              <th className="px-4 py-3.5">{t("transaction.date")}</th>
+              <th className="px-4 py-3.5">{t("transaction.type")}</th>
+              <th className="px-4 py-3.5">{t("transaction.product")}</th>
+              <th className="px-4 py-3.5 text-right">{t("transaction.quantity")}</th>
+              <th className="px-4 py-3.5 text-right">{t("transaction.cost")}</th>
+              <th className="px-4 py-3.5">{t("transaction.reference")}</th>
+              <th className="px-4 py-3.5 text-center">{t("transaction.breakdown")}</th>
+              <th className="px-4 py-3.5 text-right">{t("transaction.manage")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
-                  ไม่พบรายการเคลื่อนไหว
+                  {t("transaction.empty")}
                 </td>
               </tr>
             ) : (

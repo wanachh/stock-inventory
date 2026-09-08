@@ -14,7 +14,15 @@ import {
   ExcelImportResult,
 } from "../types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api";
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+if (!configuredApiUrl && process.env.NODE_ENV === "production") {
+  throw new Error("NEXT_PUBLIC_API_URL must be configured for production builds.");
+}
+
+const apiUrl = configuredApiUrl || "http://localhost:5200";
+const API_BASE = apiUrl.replace(/\/+$/, "").endsWith("/api")
+  ? apiUrl.replace(/\/+$/, "")
+  : `${apiUrl.replace(/\/+$/, "")}/api`;
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE}${path}`;

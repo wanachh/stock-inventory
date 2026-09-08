@@ -28,7 +28,7 @@ export async function parseExcelFile(file: File): Promise<ParseExcelResult> {
   const worksheet = workbook.Sheets[firstSheetName];
 
   // Convert worksheet to array of objects
-  const rawRows: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+  const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, { defval: "" });
 
   const items: ParsedExcelRow[] = [];
   const nowIso = new Date().toISOString();
@@ -43,7 +43,7 @@ export async function parseExcelFile(file: File): Promise<ParseExcelResult> {
     const lineNum = index + 1;
 
     // Flexible column resolution (case-insensitive & trimmed)
-    const findVal = (keys: string[]): any => {
+    const findVal = (keys: string[]): unknown => {
       for (const k of keys) {
         for (const rowKey of Object.keys(row)) {
           if (rowKey.trim().toLowerCase() === k.toLowerCase()) {
@@ -94,15 +94,16 @@ export async function parseExcelFile(file: File): Promise<ParseExcelResult> {
     }
 
     // VAT & Post-VAT calculation
-    let vatNum: number = isNaN(Number(rawVat)) || rawVat === "" ? +(preVatNum * 0.07).toFixed(2) : Number(rawVat);
-    let postVatNum: number =
+    const vatNum: number = isNaN(Number(rawVat)) || rawVat === "" ? +(preVatNum * 0.07).toFixed(2) : Number(rawVat);
+    const postVatNum: number =
       isNaN(Number(rawPostVat)) || rawPostVat === "" ? +(preVatNum + vatNum).toFixed(2) : Number(rawPostVat);
 
     // If datetime is missing: "for import datetime if cannot find you can use datetime that import"
     let receivedDateStr = nowIso;
     if (rawDate) {
       try {
-        const d = new Date(rawDate);
+        const dateValue = typeof rawDate === "string" || typeof rawDate === "number" ? rawDate : String(rawDate);
+        const d = new Date(dateValue);
         if (!isNaN(d.getTime())) {
           receivedDateStr = d.toISOString();
         }
@@ -267,7 +268,7 @@ export function exportExcelReport(options: ExportReportOptions) {
   });
 
   // Summary footer row
-  const summaryRow: any = {
+  const summaryRow: Record<string, string | number> = {
     ลำดับ: "รวมทั้งสิ้น",
     SKU: `${rows.length} รายการ`,
     barcode: "",

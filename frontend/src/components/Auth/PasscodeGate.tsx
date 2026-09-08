@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertCircle, Eye, EyeOff, Clock, ShieldCheck, Sun, Moon } from "lucide-react";
 import { BrandLogo } from "../Common/BrandLogo";
 import { useTheme } from "../Theme/ThemeContext";
@@ -19,6 +20,7 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { t } = useTranslation();
 
   const STORAGE_KEY = "stockpulse_team_session";
 
@@ -58,7 +60,7 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
         setIsAuthenticated(true);
         return;
       }
-      setError("รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
+      setError(t("auth.invalid"));
       setPasscode("");
     } catch (err: unknown) {
       // Fallback: If backend is temporarily offline, verify via salted SHA-256 hash
@@ -86,7 +88,7 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
       if (err instanceof Error && err.message && !err.message.includes("401")) {
         setError(err.message);
       } else {
-        setError("รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
+        setError(t("auth.invalid"));
       }
       setPasscode("");
     } finally {
@@ -100,7 +102,7 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
       <div className="flex min-h-screen items-center justify-center bg-[#f4f6fa] dark:bg-[#0b0f19]">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
-          <p className="text-xs text-slate-500">กำลังตรวจสอบสิทธิ์การเข้าใช้งาน...</p>
+          <p className="text-xs text-slate-500">{t("auth.checking")}</p>
         </div>
       </div>
     );
@@ -119,7 +121,7 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
         <button
           type="button"
           onClick={toggleTheme}
-          title={theme === "light" ? "สลับเป็นโหมดมืด (Dark)" : "สลับเป็นโหมดสว่าง (Light)"}
+          title={theme === "light" ? t("common.darkMode") : t("common.lightMode")}
           className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
         >
           {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4 text-amber-400" />}
@@ -137,13 +139,13 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
               Stock<span className="text-blue-600 dark:text-blue-400">Pulse</span>
             </h1>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              ระบบจัดการสต็อกและต้นทุนสินค้า 
+              {t("auth.title")}
             </p>
 
             {/* Status Pill */}
             <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50/80 px-3 py-1 text-[11px] font-semibold text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-pulse"></span>
-              <span>Team Protected System</span>
+              <span>{t("auth.protected")}</span>
             </div>
           </div>
 
@@ -157,7 +159,7 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
                   setPasscode(e.target.value);
                   setError(null);
                 }}
-                placeholder="กรอกรหัสผ่านเพื่อปลดล็อก..."
+                placeholder={t("auth.placeholder")}
                 autoFocus
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50/70 py-3.5 px-4 pr-11 text-center text-lg font-bold tracking-widest text-slate-900 shadow-2xs transition hover:border-slate-300 focus:border-blue-600 focus:bg-white focus:outline-hidden focus:ring-4 focus:ring-blue-500/15 dark:border-slate-700 dark:bg-slate-800/70 dark:text-white dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:bg-slate-900 dark:focus:ring-blue-500/20"
               />
@@ -184,7 +186,7 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
               disabled={!passcode.trim() || loading}
               className="w-full rounded-2xl bg-blue-600 py-3.5 text-sm font-extrabold tracking-wider text-white shadow-lg shadow-blue-500/25 transition duration-150 hover:bg-blue-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              {loading ? "กำลังตรวจสอบความถูกต้อง..." : "เข้าใช้งานระบบ (UNLOCK)"}
+              {loading ? t("auth.verifying") : t("auth.access")}
             </button>
           </form>
 
@@ -192,7 +194,7 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
           <div className="mt-5 flex items-center justify-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
             <Clock className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
             <span>
-              จดจำอุปกรณ์นี้เป็นเวลา <strong className="text-slate-700 dark:text-slate-200">30 วัน</strong> (30-day lifetime)
+              {t("auth.remember")} <strong className="text-slate-700 dark:text-slate-200">{t("auth.days")}</strong>
             </span>
           </div>
         </div>
@@ -200,7 +202,7 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
         {/* Footer info */}
         <div className="mt-6 flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-600">
           <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-          <span>StockPulse Private Inventory • เข้ารหัสความปลอดภัยระดับทีม</span>
+          <span>{t("auth.footer")}</span>
         </div>
       </div>
     </div>

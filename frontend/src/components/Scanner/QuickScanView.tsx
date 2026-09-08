@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ProductDetail } from "../../types";
 import { api, formatCurrency, formatNumber } from "../../lib/api";
 import { ScanLine, Search, Plus, Minus, Layers, CheckCircle2, AlertCircle } from "lucide-react";
@@ -16,6 +17,7 @@ export const QuickScanView: React.FC<QuickScanViewProps> = ({
   onOpenStockOut,
   onViewBatches,
 }) => {
+  const { t } = useTranslation();
   const [code, setCode] = useState("");
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(false);
@@ -34,7 +36,7 @@ export const QuickScanView: React.FC<QuickScanViewProps> = ({
     } catch (err: unknown) {
       setProduct(null);
       if (err instanceof Error) setError(err.message);
-      else setError(`ไม่พบสินค้าสำหรับรหัส: ${code.trim()}`);
+      else setError(t("scanner.notFound", { code: code.trim() }));
     } finally {
       setLoading(false);
     }
@@ -48,10 +50,10 @@ export const QuickScanView: React.FC<QuickScanViewProps> = ({
           <ScanLine className="h-8 w-8" />
         </div>
         <h2 className="mt-4 text-xl font-bold text-slate-900 dark:text-slate-50">
-          เครื่องสแกนบาร์โค้ด & ค้นหารหัส SKU ด่วน
+          {t("scanner.title")}
         </h2>
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          ใช้ปืนยิงบาร์โค้ด USB/Bluetooth ยิงใส่หน้านี้ได้ทันที หรือพิมพ์รหัส SKU แล้วกด Enter
+          {t("scanner.description")}
         </p>
 
         <form onSubmit={handleLookup} className="mx-auto mt-6 flex max-w-md items-center gap-2">
@@ -63,7 +65,7 @@ export const QuickScanView: React.FC<QuickScanViewProps> = ({
               autoFocus
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="ยิงบาร์โค้ด หรือพิมพ์ SKU เช่น PRD-A001..."
+              placeholder={t("scanner.placeholder")}
               className="w-full rounded-2xl border border-slate-200 bg-white py-3 pr-4 pl-10 font-mono text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
           </div>
@@ -72,7 +74,7 @@ export const QuickScanView: React.FC<QuickScanViewProps> = ({
             disabled={loading}
             className="rounded-2xl bg-blue-600 px-5 py-3 text-xs font-bold text-white shadow-sm hover:bg-blue-700 active:scale-95 disabled:opacity-50 cursor-pointer"
           >
-            {loading ? "กำลังค้นหา..." : "ค้นหา"}
+            {loading ? t("common.loading") : t("scanner.search")}
           </button>
         </form>
 
@@ -117,22 +119,22 @@ export const QuickScanView: React.FC<QuickScanViewProps> = ({
               }`}
             >
               {product.status === "OutOfStock"
-                ? "หมดสต็อก"
+                ? t("scanner.out")
                 : product.status === "LowStock"
-                ? "ใกล้หมด"
-                : "มีสินค้า"}
+                ? t("scanner.low")
+                : t("scanner.inStock")}
             </span>
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-4 rounded-2xl bg-slate-50 p-4 text-xs dark:bg-slate-800/50">
             <div>
-              <span className="text-slate-500 dark:text-slate-400">คงเหลือปัจจุบัน:</span>
+              <span className="text-slate-500 dark:text-slate-400">{t("scanner.remaining")}</span>
               <div className="text-2xl font-bold text-slate-900 dark:text-slate-50">
-                {formatNumber(product.totalQuantityRemaining)} ชิ้น
+                {formatNumber(product.totalQuantityRemaining)} {t("common.pieces")}
               </div>
             </div>
             <div className="text-right">
-              <span className="text-slate-500 dark:text-slate-400">มูลค่าต้นทุนจริงคงเหลือ:</span>
+              <span className="text-slate-500 dark:text-slate-400">{t("scanner.valuation")}</span>
               <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                 {formatCurrency(product.totalValuation)}
               </div>
@@ -146,7 +148,7 @@ export const QuickScanView: React.FC<QuickScanViewProps> = ({
               className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 cursor-pointer"
             >
               <Layers className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span>ดูทุกล็อต ({product.activeBatches.length})</span>
+              <span>{t("scanner.viewBatches", { count: product.activeBatches.length })}</span>
             </button>
 
             <div className="flex items-center gap-2">
@@ -155,7 +157,7 @@ export const QuickScanView: React.FC<QuickScanViewProps> = ({
                 className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 active:scale-95 cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
-                <span>รับเข้า (Stock In)</span>
+                <span>{t("scanner.stockIn")}</span>
               </button>
               <button
                 onClick={() => onOpenStockOut(product)}
@@ -163,7 +165,7 @@ export const QuickScanView: React.FC<QuickScanViewProps> = ({
                 className="flex items-center gap-1.5 rounded-xl bg-rose-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-rose-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
               >
                 <Minus className="h-4 w-4" />
-                <span>ตัดออก (Stock Out)</span>
+                <span>{t("scanner.stockOut")}</span>
               </button>
             </div>
           </div>

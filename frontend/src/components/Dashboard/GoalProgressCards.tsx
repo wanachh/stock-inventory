@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { MoreHorizontal } from "lucide-react";
 
 export const GoalProgressCards: React.FC = () => {
+  const { t } = useTranslation();
   const goals = [
     {
       id: 1,
@@ -31,9 +33,9 @@ export const GoalProgressCards: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-            เป้าหมายคลัง (Goals)
+            {t("dashboard.goals")}
           </h3>
-          <p className="text-xs text-slate-400">ตัวชี้วัดประสิทธิภาพสต็อกสินค้า</p>
+          <p className="text-xs text-slate-400">{t("dashboard.goalDescription")}</p>
         </div>
         <button
           type="button"

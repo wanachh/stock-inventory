@@ -15,7 +15,7 @@ builder.Services.Configure<JsonOptions>(options =>
 });
 
 // Configure Database (PostgreSQL if DATABASE_URL or DefaultConnection is set, otherwise SQLite)
-var postgresUrl = Environment.GetEnvironmentVariable("DATABASE_URL") 
+var postgresUrl = Environment.GetEnvironmentVariable("DATABASE_URL")
                ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -35,15 +35,23 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Register Inventory Services
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 
-// CORS configuration for Next.js frontend
+// CORS configuration for Next.js frontend. Production origins must be explicit.
+var configuredCorsOrigins = Environment.GetEnvironmentVariable("CORS_ORIGINS")
+    ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.SetIsOriginAllowed(origin => true) // Allow localhost, Cloudflare Pages (*.pages.dev), and custom domains
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+        // Localhost is always allowed (safe: no remote origin can spoof it) so local
+        // dev and Docker/docker-compose (which run with ASPNETCORE_ENVIRONMENT=Production) keep working.
+        policy.SetIsOriginAllowed(origin =>
+            origin.StartsWith("http://localhost:") ||
+            origin.StartsWith("http://127.0.0.1:") ||
+            configuredCorsOrigins.Contains(origin));
+
+        policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials();
     });
 });
 
