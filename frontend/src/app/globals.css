@@ -55,3 +55,15 @@ input, select, textarea {
   background: rgba(156, 163, 175, 0.5);
 }
 
+/* Fix native select dark mode — browser option elements don't inherit Tailwind dark: classes */
+.dark select {
+  color-scheme: dark;
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: #334155;
+}
+
+.dark select option {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}

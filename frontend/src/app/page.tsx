@@ -214,14 +214,14 @@ export default function Home() {
   const handleDeleteTransaction = async (tx: StockTransaction) => {
     const isStockIn = tx.type === "StockIn";
     const confirmMsg = isStockIn
-      ? `ต้องการลบรายการรับเข้าสต็อก #${tx.id} (${tx.productName} จำนวน ${tx.quantity} ชิ้น) ใช่หรือไม่?\n\n⚠️ หากล็อตนี้ถูกนำไปตัดขาย (FIFO) แล้ว ระบบจะบล็อกการลบเพื่อรักษาความถูกต้องทางบัญชี`
-      : `ต้องการลบรายการเบิกออก #${tx.id} (${tx.productName} จำนวน ${tx.quantity} ชิ้น) ใช่หรือไม่?\n\n✅ ระบบจะทำการคืนสต็อกกลับเข้าทุกล็อตย่อย FIFO เดิมทันที`;
+      ? `ต้องการลบรายการรับเข้าสต็อก #${tx.id} (${tx.productName} จำนวน ${tx.quantity} ชิ้น) ใช่หรือไม่?\n\n⚠️ หากล็อตนี้ถูกนำไปตัดขาย () แล้ว ระบบจะบล็อกการลบเพื่อรักษาความถูกต้องทางบัญชี`
+      : `ต้องการลบรายการเบิกออก #${tx.id} (${tx.productName} จำนวน ${tx.quantity} ชิ้น) ใช่หรือไม่?\n\n✅ ระบบจะทำการคืนสต็อกกลับเข้าทุกล็อตย่อย  เดิมทันที`;
 
     if (!window.confirm(confirmMsg)) return;
 
     try {
       await api.deleteTransaction(tx.id);
-      showToast(`ลบรายการ #${tx.id} เรียบร้อย (ปรับปรุงยอดสต็อกและล็อต FIFO แล้ว)`);
+      showToast(`ลบรายการ #${tx.id} เรียบร้อย (ปรับปรุงยอดสต็อกและล็อต  แล้ว)`);
       loadData();
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการลบรายการ");
@@ -299,7 +299,7 @@ export default function Home() {
                 <p className="text-xs text-slate-400">
                   {activeTab === "dashboard" && "สรุปมูลค่าคงเหลือจริง มูลค่าต้นทุนที่ตัดออก และการไหลเวียนสินค้า"}
                   {activeTab === "products" && "จัดการสินค้า แก้ไขรหัส ตรวจสอบราคาซื้อจริงรายรอบ และทำรายการด่วน"}
-                  {activeTab === "transactions" && "ตรวจสอบการตัดสต็อกแบบ FIFO แยกตามล็อตจริงเพื่อส่งรายงานบัญชี"}
+                  {activeTab === "transactions" && "ตรวจสอบการตัดสต็อกแบบ  แยกตามล็อตจริงเพื่อส่งรายงานบัญชี"}
                   {activeTab === "scanner" && "พร้อมรับสัญญาณจากหัวอ่านสแกนเนอร์อัตโนมัติ"}
                 </p>
               </div>
@@ -379,7 +379,7 @@ export default function Home() {
                         <option value="all">🌐 ภาพรวมสินค้าทั้งหมด ({products.length} รายการ)</option>
                         {products.map((p) => (
                           <option key={p.id} value={p.id}>
-                            📦 [{p.sku}] {p.name} (คงเหลือ {p.totalQuantityRemaining} ชิ้น)
+                            📦 {p.name} ({p.sku}) — {p.totalQuantityRemaining} ชิ้น
                           </option>
                         ))}
                       </select>
