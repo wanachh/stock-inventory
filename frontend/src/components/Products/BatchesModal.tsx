@@ -53,7 +53,7 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
                 <span className="font-mono text-xs text-slate-500">[{product.sku}]</span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {product.name} • จัดการต้นทุนจริงแบบเข้าก่อน-ออกก่อน (FIFO)
+                {product.name} • จัดการต้นทุนจริงแบบเข้าก่อน-ออกก่อน ()
               </p>
             </div>
           </div>

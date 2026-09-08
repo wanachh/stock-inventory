@@ -219,7 +219,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
               >
                 <ArrowUpRight className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 <div>
-                  <div className="text-xs font-bold">2. รายงานตัดสต็อก FIFO</div>
+                  <div className="text-xs font-bold">2. รายงานตัดสต็อก </div>
                   <div className="text-[10px] text-zinc-500">Stock Out / ต้นทุนที่เบิกออก</div>
                 </div>
               </button>

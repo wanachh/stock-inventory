@@ -3,7 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "../components/Theme/ThemeContext";
 
 export const metadata: Metadata = {
-  title: "StockPulse - ระบบจัดการสต็อกและต้นทุนสินค้า (FIFO Real-Cost)",
+  title: "StockPulse - ระบบจัดการสต็อกและต้นทุนสินค้า ( Real-Cost)",
   description: "ระบบบริหารคลังสินค้าและคำนวณต้นทุนจริงรายรอบ (First-In, First-Out) ตามมาตรฐานบัญชี",
 };
 

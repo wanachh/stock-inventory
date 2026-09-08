@@ -84,7 +84,7 @@ export const api = {
       method: "DELETE",
     }),
 
-  // Stock Movements & FIFO Engine
+  // Stock Movements &  Engine
   previewStockOut: (data: StockOutRequest) =>
     request<StockOutPreviewResponse>("/stock/preview-out", {
       method: "POST",

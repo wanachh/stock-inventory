@@ -47,7 +47,7 @@ public static class StockEndpoints
             }
         })
         .WithName("StockOut")
-        .WithSummary("Issue stock out using FIFO real cost allocation");
+        .WithSummary("Issue stock out using  real cost allocation");
 
         group.MapPost("/preview-out", async (StockOutRequest request, IInventoryService service) =>
         {
@@ -70,7 +70,7 @@ public static class StockEndpoints
             }
         })
         .WithName("PreviewStockOut")
-        .WithSummary("Preview FIFO batch deductions and total cost out before confirming");
+        .WithSummary("Preview  batch deductions and total cost out before confirming");
 
         group.MapPost("/import-excel", async (ExcelImportRequest request, IInventoryService service) =>
         {

@@ -11,12 +11,12 @@ public static class DbInitializer
             return; // Already seeded
         }
 
-        // 1. Product A (User's specific FIFO chat scenario)
+        // 1. Product A (User's specific  chat scenario)
         var prodA = new Product
         {
             Sku = "PRD-A001",
             Barcode = "885000000001",
-            Name = "Product A (ตัวอย่างคำนวณต้นทุน FIFO)",
+            Name = "Product A (ตัวอย่างคำนวณต้นทุน )",
             Category = "Sample",
             MinThreshold = 5,
             CreatedAt = DateTime.UtcNow.AddDays(-10),

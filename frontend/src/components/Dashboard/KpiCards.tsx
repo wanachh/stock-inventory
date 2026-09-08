@@ -93,10 +93,10 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ kpis, onFilterLowStock }) =>
           </div>
         </div>
 
-        {/* Footer info: ต้นทุนขายจริง FIFO */}
+        {/* Footer info: ต้นทุนขายจริง  */}
         <div className="mt-6 border-t border-slate-100 pt-4 dark:border-slate-800">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500 dark:text-slate-400">ต้นทุนตัดจ่าย (FIFO):</span>
+            <span className="text-slate-500 dark:text-slate-400">ต้นทุนตัดจ่าย ():</span>
             <span className="font-extrabold text-rose-600 dark:text-rose-400">
               {formatCurrency(kpis.totalCostOut)}
             </span>

@@ -137,7 +137,7 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
               Stock<span className="text-blue-600 dark:text-blue-400">Pulse</span>
             </h1>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              ระบบจัดการสต็อกและต้นทุนสินค้า FIFO
+              ระบบจัดการสต็อกและต้นทุนสินค้า 
             </p>
 
             {/* Status Pill */}

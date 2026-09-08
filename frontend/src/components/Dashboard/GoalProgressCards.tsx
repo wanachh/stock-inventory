@@ -16,8 +16,8 @@ export const GoalProgressCards: React.FC = () => {
     },
     {
       id: 2,
-      title: "การระบายสต็อกล็อตเก่า (FIFO Turnover)",
-      subtitle: "อัตราการตัดสต็อกตามลำดับ FIFO",
+      title: "การระบายสต็อกล็อตเก่า ( Turnover)",
+      subtitle: "อัตราการตัดสต็อกตามลำดับ ",
       percent: 70,
       ringColor: "#f43f5e",
       bgColor: "bg-rose-50/70 dark:bg-rose-950/30",
@@ -98,7 +98,7 @@ export const GoalProgressCards: React.FC = () => {
       </div>
 
       <p className="text-center text-[10px] text-slate-400">
-        เกณฑ์มาตรฐานคำนวณตามบัญชี FIFO และเวลาหมุนเวียนรอบสินค้า
+        เกณฑ์มาตรฐานคำนวณตามบัญชี  และเวลาหมุนเวียนรอบสินค้า
       </p>
     </div>
   );

@@ -64,7 +64,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
   const [unitCost, setUnitCost] = useState<number | "">("");
   const [reference, setReference] = useState("");
 
-  // FIFO Preview state for Stock Out
+  //  Preview state for Stock Out
   const [preview, setPreview] = useState<StockOutPreviewResponse | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -167,7 +167,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
     setError(null);
   };
 
-  // Live FIFO Preview effect when stocking out
+  // Live  Preview effect when stocking out
   useEffect(() => {
     const qtyNum = Number(quantity);
     if (type !== "StockOut" || !currentProduct || !quantity || qtyNum <= 0 || !Number.isInteger(qtyNum)) {
@@ -199,7 +199,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
         })
         .catch((err) => {
           setPreview(null);
-          setPreviewError(err.message || "ไม่สามารถคำนวณต้นทุน FIFO ได้");
+          setPreviewError(err.message || "ไม่สามารถคำนวณต้นทุน  ได้");
         })
         .finally(() => {
           setPreviewLoading(false);
@@ -777,13 +777,13 @@ export const MovementModal: React.FC<MovementModalProps> = ({
             </div>
           )}
 
-          {/* If Stock Out: LIVE FIFO PREVIEW BOX */}
+          {/* If Stock Out: LIVE  PREVIEW BOX */}
           {type === "StockOut" && (
             <div className="rounded-xl border border-zinc-200 bg-zinc-50/90 p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-zinc-100">
                   <Layers className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  <span>การจัดสรรต้นทุนจริงตามล็อต (FIFO Cost Breakdown)</span>
+                  <span>การจัดสรรต้นทุนจริงตามล็อต ( Cost Breakdown)</span>
                 </div>
                 {previewLoading && (
                   <span className="text-[11px] text-zinc-400">กำลังคำนวณ...</span>

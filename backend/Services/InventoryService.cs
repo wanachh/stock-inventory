@@ -268,7 +268,7 @@ public partial class InventoryService : IInventoryService
             throw new KeyNotFoundException("ไม่พบสินค้าที่ต้องการตัดออก");
         }
 
-        // Active batches ordered FIFO
+        // Active batches ordered 
         var activeBatches = await _db.InventoryBatches
             .Where(b => b.ProductId == product.Id && b.Status == BatchStatus.Active && b.QuantityRemaining > 0)
             .OrderBy(b => b.ReceivedDate)
@@ -414,7 +414,7 @@ public partial class InventoryService : IInventoryService
             throw new KeyNotFoundException("ไม่พบสินค้าที่ต้องการตัดออก");
         }
 
-        // Active batches ordered FIFO
+        // Active batches ordered 
         var batches = await _db.InventoryBatches
             .Where(b => b.ProductId == product.Id && b.Status == BatchStatus.Active && b.QuantityRemaining > 0)
             .OrderBy(b => b.ReceivedDate)
@@ -698,7 +698,7 @@ public partial class InventoryService : IInventoryService
                     throw new InvalidOperationException($"สินค้าคงเหลือไม่เพียงพอสำหรับการปรับจำนวน (มีคงเหลือ {totalAvailable} ชิ้น, ต้องการ {req.Quantity.Value} ชิ้น)");
                 }
 
-                // 3. Re-run FIFO allocation
+                // 3. Re-run  allocation
                 int remainingToDraw = req.Quantity.Value;
                 decimal totalCostOut = 0m;
 

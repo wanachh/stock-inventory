@@ -46,7 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           Hi, <span className="text-blue-600 dark:text-blue-400">{userName}</span>
         </h1>
         <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-          ภาพรวมสถานะคลังสินค้าและมูลค่าต้นทุนจริงรายรอบ (FIFO Real-Cost Channels)
+          ภาพรวมสถานะคลังสินค้าและมูลค่าต้นทุนจริงรายรอบ ( Real-Cost Channels)
         </p>
       </div>
 
