@@ -51,12 +51,19 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Database initialization and seeding
-using (var scope = app.Services.CreateScope())
+// Database initialization and seeding (safely handled with try-catch so server always boots)
+try
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.EnsureCreatedAsync();
     await DbInitializer.SeedAsync(db);
+    Console.WriteLine("--> [Database] Connected and initialized successfully.");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"--> [Database] Startup initialization warning: {ex.Message}");
+    Console.WriteLine($"--> [Database] Details: {ex}");
 }
 
 if (app.Environment.IsDevelopment())
@@ -133,8 +140,15 @@ static string ConvertPostgresUrlToNpgsql(string url)
             Database = database,
             Username = username,
             Password = password,
-            SslMode = Npgsql.SslMode.Require
+            SslMode = Npgsql.SslMode.Require,
+            Multiplexing = false,
         };
+
+        if (port == 6543)
+        {
+            // Supabase transaction pooler recommendation
+            csb.NoResetOnClose = true;
+        }
 
         return csb.ConnectionString;
     }
