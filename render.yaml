@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: stockpulse-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: singapore
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: APP_PASSCODE
+        sync: false
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
