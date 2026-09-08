@@ -5,7 +5,7 @@
       "name": "🚀 Full Stack: Backend + Frontend (F5)",
       "configurations": [
         "Backend (.NET 10 API)",
-        "Frontend (Next.js Chrome)"
+        "Frontend (Next.js Web)"
       ],
       "stopAll": true
     }
@@ -26,24 +26,25 @@
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "DOTNET_CLI_HOME": "/tmp"
-      },
-      "sourceFileMap": {
-        "/views": "${workspaceFolder}/Views"
       }
     },
     {
-      "name": "Frontend (Next.js Chrome)",
+      "name": "Frontend (Next.js Web)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "cd ${workspaceFolder}/frontend && npm run dev",
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "Local:\\s*(https?://\\S+)",
+        "uriFormat": "%s"
+      }
+    },
+    {
+      "name": "Frontend (Google Chrome - หากลง Chrome ไว้)",
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}/frontend",
-      "preLaunchTask": "start-frontend"
-    },
-    {
-      "name": "Frontend (Next.js Server Process)",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "cd ${workspaceFolder}/frontend && npm run dev"
+      "webRoot": "${workspaceFolder}/frontend"
     }
   ]
 }
