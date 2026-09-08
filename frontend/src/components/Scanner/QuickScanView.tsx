@@ -1,0 +1,174 @@
+"use client";
+
+import React, { useState } from "react";
+import { ProductDetail } from "../../types";
+import { api, formatCurrency, formatNumber } from "../../lib/api";
+import { ScanLine, Search, Plus, Minus, Layers, CheckCircle2, AlertCircle } from "lucide-react";
+
+interface QuickScanViewProps {
+  onOpenStockIn: (product: ProductDetail) => void;
+  onOpenStockOut: (product: ProductDetail) => void;
+  onViewBatches: (product: ProductDetail) => void;
+}
+
+export const QuickScanView: React.FC<QuickScanViewProps> = ({
+  onOpenStockIn,
+  onOpenStockOut,
+  onViewBatches,
+}) => {
+  const [code, setCode] = useState("");
+  const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLookup = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!code.trim()) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const p = await api.lookupProduct(code.trim());
+      setProduct(p);
+      setCode("");
+    } catch (err: unknown) {
+      setProduct(null);
+      if (err instanceof Error) setError(err.message);
+      else setError(`ไม่พบสินค้าสำหรับรหัส: ${code.trim()}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-6">
+      {/* Scanner Prompt Box */}
+      <div className="rounded-3xl border-2 border-dashed border-blue-200 bg-gradient-to-b from-blue-50/50 to-white p-8 text-center shadow-sm dark:border-blue-900/40 dark:from-blue-950/20 dark:to-zinc-950">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/25">
+          <ScanLine className="h-8 w-8" />
+        </div>
+        <h2 className="mt-4 text-xl font-bold text-zinc-900 dark:text-zinc-50">
+          เครื่องสแกนบาร์โค้ด & ค้นหารหัส SKU ด่วน
+        </h2>
+        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+          ใช้ปืนยิงบาร์โค้ด USB/Bluetooth ยิงใส่หน้านี้ได้ทันที หรือพิมพ์รหัส SKU แล้วกด Enter
+        </p>
+
+        <form onSubmit={handleLookup} className="mx-auto mt-6 flex max-w-md items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+            <input
+              type="text"
+              data-scanner-input="true"
+              autoFocus
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="ยิงบาร์โค้ด หรือพิมพ์ SKU เช่น PRD-A001..."
+              className="w-full rounded-2xl border border-zinc-200 bg-white py-3 pr-4 pl-10 font-mono text-sm text-zinc-900 shadow-sm focus:border-blue-500 focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-2xl bg-blue-600 px-5 py-3 text-xs font-bold text-white shadow-sm hover:bg-blue-700 active:scale-95 disabled:opacity-50"
+          >
+            {loading ? "กำลังค้นหา..." : "ค้นหา"}
+          </button>
+        </form>
+
+        {error && (
+          <div className="mx-auto mt-4 flex max-w-md items-center justify-center gap-2 rounded-xl bg-rose-50 p-2.5 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+            <AlertCircle className="h-4 w-4" />
+            <span>{error}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Scanned Result Card */}
+      {product && (
+        <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-md dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="flex items-start justify-between border-b border-zinc-100 pb-4 dark:border-zinc-800">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">
+                  {product.sku}
+                </span>
+                {product.barcode && (
+                  <span className="font-mono text-xs text-zinc-500">
+                    [{product.barcode}]
+                  </span>
+                )}
+                <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-medium dark:bg-zinc-800">
+                  {product.category}
+                </span>
+              </div>
+              <h3 className="mt-1.5 text-xl font-bold text-zinc-900 dark:text-zinc-50">
+                {product.name}
+              </h3>
+            </div>
+
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-bold ${
+                product.status === "OutOfStock"
+                  ? "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
+                  : product.status === "LowStock"
+                  ? "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
+                  : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+              }`}
+            >
+              {product.status === "OutOfStock"
+                ? "หมดสต็อก"
+                : product.status === "LowStock"
+                ? "ใกล้หมด"
+                : "มีสินค้า"}
+            </span>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-4 rounded-2xl bg-zinc-50 p-4 text-xs dark:bg-zinc-900/50">
+            <div>
+              <span className="text-zinc-500 dark:text-zinc-400">คงเหลือปัจจุบัน:</span>
+              <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                {formatNumber(product.totalQuantityRemaining)} ชิ้น
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-zinc-500 dark:text-zinc-400">มูลค่าต้นทุนจริงคงเหลือ:</span>
+              <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                {formatCurrency(product.totalValuation)}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
+            <button
+              onClick={() => onViewBatches(product)}
+              className="flex items-center gap-1.5 rounded-xl border border-zinc-200 px-4 py-2.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300"
+            >
+              <Layers className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span>ดูทุกล็อต ({product.activeBatches.length})</span>
+            </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onOpenStockIn(product)}
+                className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 active:scale-95"
+              >
+                <Plus className="h-4 w-4" />
+                <span>รับเข้า (Stock In)</span>
+              </button>
+              <button
+                onClick={() => onOpenStockOut(product)}
+                disabled={product.totalQuantityRemaining === 0}
+                className="flex items-center gap-1.5 rounded-xl bg-rose-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-rose-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Minus className="h-4 w-4" />
+                <span>ตัดออก (Stock Out)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
