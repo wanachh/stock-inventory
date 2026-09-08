@@ -153,6 +153,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+
+  verifyPasscode: (passcode: string): Promise<{ success: boolean; token: string; expiresInDays: number; message: string }> =>
+    request<{ success: boolean; token: string; expiresInDays: number; message: string }>("/auth/verify", {
+      method: "POST",
+      body: JSON.stringify({ passcode }),
+    }),
 };
 
 // Formatting helpers

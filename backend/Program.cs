@@ -168,6 +168,7 @@ app.MapGroup("/api/products").MapProductEndpoints();
 app.MapGroup("/api/stock").MapStockEndpoints();
 app.MapGroup("/api/transactions").MapTransactionEndpoints();
 app.MapGroup("/api/dashboard").MapDashboardEndpoints();
+app.MapGroup("/api/auth").MapAuthEndpoints();
 app.MapAnalyticsEndpoints();
 
 app.Run();

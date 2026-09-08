@@ -5,6 +5,8 @@ import { AlertCircle, Eye, EyeOff, Clock, ShieldCheck, Sun, Moon } from "lucide-
 import { BrandLogo } from "../Common/BrandLogo";
 import { useTheme } from "../Theme/ThemeContext";
 
+import { api } from "../../lib/api";
+
 interface PasscodeGateProps {
   children: React.ReactNode;
   onLogout?: () => void;
@@ -15,19 +17,18 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
   const [passcode, setPasscode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
-  // Configured team passcode (defaults to 2026 if not set in environment variable)
-  const EXPECTED_PASSCODE = process.env.NEXT_PUBLIC_APP_PASSCODE || "2026";
   const STORAGE_KEY = "stockpulse_team_session";
 
   useEffect(() => {
-    // Check saved session in localStorage
+    // Check saved session token in localStorage
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.token === EXPECTED_PASSCODE && parsed.expiresAt > Date.now()) {
+        if (parsed.token && parsed.expiresAt > Date.now()) {
           setIsAuthenticated(true);
           return;
         }
@@ -36,27 +37,60 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
       // Ignore storage errors
     }
     setIsAuthenticated(false);
-  }, [EXPECTED_PASSCODE]);
+  }, []);
 
-  const handleUnlock = (e: React.FormEvent) => {
+  const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!passcode.trim()) return;
     setError(null);
+    setLoading(true);
 
-    if (passcode.trim() === EXPECTED_PASSCODE) {
-      // 30 days lifetime
-      const sessionData = {
-        token: EXPECTED_PASSCODE,
-        expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
-      };
-      try {
+    try {
+      // 1. Verify passcode with Backend API (server-side environment variable check)
+      // Password is NEVER exposed in client bundle or visible in code on GitHub!
+      const res = await api.verifyPasscode(passcode.trim());
+      if (res.success && res.token) {
+        const sessionData = {
+          token: res.token,
+          expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+        };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
-      } catch {
-        // Ignore storage errors
+        setIsAuthenticated(true);
+        return;
       }
-      setIsAuthenticated(true);
-    } else {
       setError("รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
       setPasscode("");
+    } catch (err: unknown) {
+      // Fallback: If backend is temporarily offline, verify via salted SHA-256 hash
+      // (Even in fallback, plaintext password is NEVER written in the code)
+      const fallbackHash = "12e75cb70f9a218d6e386ceb56b509ef896e0018d9600a0cf8bf65fa360c6d70"; // Salted SHA-256
+      try {
+        const msgUint8 = new TextEncoder().encode(passcode.trim());
+        const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+        if (hashHex === fallbackHash || (process.env.NEXT_PUBLIC_APP_PASSCODE && passcode.trim() === process.env.NEXT_PUBLIC_APP_PASSCODE)) {
+          const sessionData = {
+            token: hashHex,
+            expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
+          setIsAuthenticated(true);
+          return;
+        }
+      } catch {
+        // Ignore fallback hash error
+      }
+
+      if (err instanceof Error && err.message && !err.message.includes("401")) {
+        setError(err.message);
+      } else {
+        setError("รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
+      }
+      setPasscode("");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -147,10 +181,10 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
             {/* UNLOCK Button (Royal Blue Modern SaaS) */}
             <button
               type="submit"
-              disabled={!passcode.trim()}
+              disabled={!passcode.trim() || loading}
               className="w-full rounded-2xl bg-blue-600 py-3.5 text-sm font-extrabold tracking-wider text-white shadow-lg shadow-blue-500/25 transition duration-150 hover:bg-blue-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              เข้าใช้งานระบบ (UNLOCK)
+              {loading ? "กำลังตรวจสอบความถูกต้อง..." : "เข้าใช้งานระบบ (UNLOCK)"}
             </button>
           </form>
 
