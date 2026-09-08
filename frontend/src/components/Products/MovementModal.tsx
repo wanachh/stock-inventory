@@ -17,7 +17,13 @@ import {
   PlusCircle,
   ChevronDown,
   Check,
+  Calendar,
 } from "lucide-react";
+
+const getLocalDateTimeString = (d: Date = new Date()) => {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 interface MovementModalProps {
   isOpen: boolean;
@@ -38,6 +44,9 @@ export const MovementModal: React.FC<MovementModalProps> = ({
 }) => {
   const [type, setType] = useState<"StockIn" | "StockOut">(initialType);
   const [selectedProductId, setSelectedProductId] = useState<number | "">("");
+
+  // Transaction Date state (allows backdating)
+  const [transactionDate, setTransactionDate] = useState<string>("");
 
   // Search & Suggestion states
   const [searchQuery, setSearchQuery] = useState("");
@@ -98,6 +107,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
     setQuantity("");
     setUnitCost("");
     setReference("");
+    setTransactionDate(getLocalDateTimeString());
     setPreview(null);
     setPreviewError(null);
     setError(null);
@@ -240,6 +250,8 @@ export const MovementModal: React.FC<MovementModalProps> = ({
           return;
         }
 
+        const dateIso = transactionDate ? new Date(transactionDate).toISOString() : undefined;
+
         await api.createProduct({
           sku: newProductSku.trim().toUpperCase(),
           barcode: newProductBarcode.trim() || undefined,
@@ -249,6 +261,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
           initialQuantity: qty,
           initialUnitCost: cost,
           reference: reference.trim() || "รับเข้าล็อตแรก (สินค้าใหม่)",
+          transactionDate: dateIso,
         });
       } else {
         if (!currentProduct) {
@@ -256,6 +269,8 @@ export const MovementModal: React.FC<MovementModalProps> = ({
           setLoading(false);
           return;
         }
+
+        const dateIso = transactionDate ? new Date(transactionDate).toISOString() : undefined;
 
         if (type === "StockIn") {
           const cost = Number(unitCost);
@@ -270,12 +285,14 @@ export const MovementModal: React.FC<MovementModalProps> = ({
             quantity: qty,
             unitCost: cost,
             reference: reference.trim() || undefined,
+            transactionDate: dateIso,
           });
         } else {
           await api.stockOut({
             productId: currentProduct.id,
             quantity: qty,
             referenceNote: reference.trim() || undefined,
+            transactionDate: dateIso,
           });
         }
       }
@@ -813,6 +830,52 @@ export const MovementModal: React.FC<MovementModalProps> = ({
               )}
             </div>
           )}
+
+          {/* Transaction Date & Time Picker (รองรับการระบุวันที่ย้อนหลัง) */}
+          <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-800/40">
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span>
+                  {type === "StockIn" ? "วันที่และเวลารับเข้าสต็อก" : "วันที่และเวลาเบิก-ตัดจำหน่าย"}
+                </span>
+                <span className="text-rose-500">*</span>
+              </label>
+
+              {/* Quick Preset Buttons */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setTransactionDate(getLocalDateTimeString(new Date()))}
+                  className="rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-bold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 cursor-pointer transition"
+                >
+                  วันนี้
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const y = new Date();
+                    y.setDate(y.getDate() - 1);
+                    setTransactionDate(getLocalDateTimeString(y));
+                  }}
+                  className="rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-bold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 cursor-pointer transition"
+                >
+                  เมื่อวาน
+                </button>
+              </div>
+            </div>
+
+            <input
+              type="datetime-local"
+              value={transactionDate}
+              onChange={(e) => setTransactionDate(e.target.value)}
+              required
+              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-900 shadow-2xs transition hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-600 cursor-pointer"
+            />
+            <p className="mt-1.5 text-[10px] text-slate-400 dark:text-slate-500">
+              💡 สามารถเลือกวันที่ย้อนหลังได้ เพื่อให้บันทึกประวัติการเข้า-ออกและการคำนวณต้นทุนตรงตามวันที่เกิดขึ้นจริง
+            </p>
+          </div>
 
           {/* Reference / Remark Note */}
           <div>

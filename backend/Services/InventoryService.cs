@@ -125,7 +125,13 @@ public partial class InventoryService : IInventoryService
                 throw new ArgumentException("ราคาต้นทุนตั้งต้นต้องไม่ติดลบ");
             }
 
-            var batchNumber = $"LOT-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
+            var effectiveDate = req.TransactionDate.HasValue
+                ? (req.TransactionDate.Value.Kind == DateTimeKind.Unspecified
+                    ? DateTime.SpecifyKind(req.TransactionDate.Value, DateTimeKind.Utc)
+                    : req.TransactionDate.Value.ToUniversalTime())
+                : DateTime.UtcNow;
+
+            var batchNumber = $"LOT-{effectiveDate:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
             var batch = new InventoryBatch
             {
                 ProductId = product.Id,
@@ -133,7 +139,7 @@ public partial class InventoryService : IInventoryService
                 QuantityReceived = req.InitialQuantity.Value,
                 QuantityRemaining = req.InitialQuantity.Value,
                 UnitCost = unitCost,
-                ReceivedDate = DateTime.UtcNow,
+                ReceivedDate = effectiveDate,
                 Reference = req.Reference ?? "Initial Stock",
                 Status = BatchStatus.Active
             };
@@ -147,7 +153,7 @@ public partial class InventoryService : IInventoryService
                 Quantity = req.InitialQuantity.Value,
                 TotalCost = req.InitialQuantity.Value * unitCost,
                 ReferenceNote = req.Reference ?? "Initial Stock Receipt",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = effectiveDate
             };
             _db.StockTransactions.Add(tx);
             await _db.SaveChangesAsync();
@@ -328,9 +334,15 @@ public partial class InventoryService : IInventoryService
             throw new KeyNotFoundException("ไม่พบสินค้าที่ต้องการรับเข้า");
         }
 
+        var effectiveDate = req.TransactionDate.HasValue
+            ? (req.TransactionDate.Value.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(req.TransactionDate.Value, DateTimeKind.Utc)
+                : req.TransactionDate.Value.ToUniversalTime())
+            : DateTime.UtcNow;
+
         var batchNumber = !string.IsNullOrWhiteSpace(req.BatchNumber)
             ? req.BatchNumber.Trim()
-            : $"LOT-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
+            : $"LOT-{effectiveDate:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
 
         var batch = new InventoryBatch
         {
@@ -339,7 +351,7 @@ public partial class InventoryService : IInventoryService
             QuantityReceived = req.Quantity,
             QuantityRemaining = req.Quantity,
             UnitCost = req.UnitCost,
-            ReceivedDate = DateTime.UtcNow,
+            ReceivedDate = effectiveDate,
             Reference = req.Reference,
             Status = BatchStatus.Active
         };
@@ -355,7 +367,7 @@ public partial class InventoryService : IInventoryService
             Quantity = req.Quantity,
             TotalCost = totalCost,
             ReferenceNote = req.Reference,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = effectiveDate
         };
 
         _db.StockTransactions.Add(transaction);
@@ -419,6 +431,12 @@ public partial class InventoryService : IInventoryService
         decimal totalCostOut = 0m;
         var detailDtos = new List<TransactionDetailItemDto>();
 
+        var effectiveDate = req.TransactionDate.HasValue
+            ? (req.TransactionDate.Value.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(req.TransactionDate.Value, DateTimeKind.Utc)
+                : req.TransactionDate.Value.ToUniversalTime())
+            : DateTime.UtcNow;
+
         var transaction = new StockTransaction
         {
             ProductId = product.Id,
@@ -426,7 +444,7 @@ public partial class InventoryService : IInventoryService
             Quantity = req.Quantity,
             TotalCost = 0m,
             ReferenceNote = req.ReferenceNote,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = effectiveDate
         };
 
         _db.StockTransactions.Add(transaction);

@@ -8,7 +8,8 @@ public record CreateProductRequest(
     int? MinThreshold,
     int? InitialQuantity,
     decimal? InitialUnitCost,
-    string? Reference
+    string? Reference,
+    DateTime? TransactionDate = null
 );
 
 public record UpdateProductRequest(
@@ -25,14 +26,16 @@ public record StockInRequest(
     int Quantity,
     decimal UnitCost,
     string? Reference,
-    string? BatchNumber
+    string? BatchNumber,
+    DateTime? TransactionDate = null
 );
 
 public record StockOutRequest(
     int? ProductId,
     string? SkuOrBarcode,
     int Quantity,
-    string? ReferenceNote
+    string? ReferenceNote,
+    DateTime? TransactionDate = null
 );
 
 public record UpdateTransactionRequest(

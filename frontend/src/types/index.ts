@@ -117,6 +117,7 @@ export interface CreateProductRequest {
   initialQuantity?: number;
   initialUnitCost?: number;
   reference?: string;
+  transactionDate?: string;
 }
 
 export interface UpdateProductRequest {
@@ -141,6 +142,7 @@ export interface StockInRequest {
   unitCost: number;
   reference?: string;
   batchNumber?: string;
+  transactionDate?: string;
 }
 
 export interface StockOutRequest {
@@ -148,6 +150,7 @@ export interface StockOutRequest {
   skuOrBarcode?: string;
   quantity: number;
   referenceNote?: string;
+  transactionDate?: string;
 }
 
 export interface VisitorStats {
