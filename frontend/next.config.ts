@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     // Fallback API URL for production builds — overridden by NEXT_PUBLIC_API_URL env var if set
     NEXT_PUBLIC_API_URL:
       process.env.NEXT_PUBLIC_API_URL ||
-      "https://stockpulse-api.onrender.com/api",
+      "https://stockpulse-api-2bt6.onrender.com/api",
   },
 };
 
