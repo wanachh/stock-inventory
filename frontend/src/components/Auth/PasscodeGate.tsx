@@ -132,7 +132,7 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
                     setError(null);
                   }}
                   placeholder="กรอกรหัสทีม..."
-                  className="w-full rounded-xl border border-zinc-300 bg-zinc-50/50 px-4 py-3 pr-10 text-center text-lg font-bold tracking-widest text-zinc-900 shadow-inner transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-100 dark:focus:bg-zinc-800"
+                  className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 pr-10 text-center text-lg font-bold tracking-widest text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-100 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
                   autoFocus
                 />
                 <button

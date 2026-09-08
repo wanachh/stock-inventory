@@ -64,7 +64,7 @@ export const QuickScanView: React.FC<QuickScanViewProps> = ({
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="ยิงบาร์โค้ด หรือพิมพ์ SKU เช่น PRD-A001..."
-              className="w-full rounded-2xl border border-zinc-200 bg-white py-3 pr-4 pl-10 font-mono text-sm text-zinc-900 shadow-sm focus:border-blue-500 focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              className="w-full rounded-2xl border border-zinc-200 bg-white py-3 pr-4 pl-10 font-mono text-sm text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
           </div>
           <button

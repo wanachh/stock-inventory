@@ -255,13 +255,13 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                   }
                 }}
                 placeholder="ยิงบาร์โค้ด หรือพิมพ์ SKU แล้วกด Enter..."
-                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2 pr-3 pl-9 font-mono text-xs text-zinc-900 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pr-3 pl-9 font-mono text-xs text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
               />
             </div>
             <button
               type="button"
               onClick={handleScannerSearch}
-              className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+              className="rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-zinc-700 shadow-2xs transition-all duration-150 hover:bg-zinc-50 hover:border-zinc-300 active:scale-95 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
             >
               ค้นหา
             </button>
@@ -276,7 +276,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
               value={selectedProductId}
               onChange={(e) => setSelectedProductId(Number(e.target.value))}
               required
-              className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             >
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -319,7 +319,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
               }}
               placeholder="เช่น 1, 5, 10 (ห้ามใส่ 0 หรือทศนิยม)"
               required
-              className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-base font-bold text-zinc-900 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-base font-bold text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
           </div>
 
@@ -339,7 +339,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                 }
                 placeholder="เช่น 5.00 หรือ 10.00"
                 required
-                className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-base font-bold text-zinc-900 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-base font-bold text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
               />
               {quantity !== "" && unitCost !== "" && (
                 <div className="mt-1.5 text-xs text-zinc-600 dark:text-zinc-400">
@@ -416,7 +416,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               placeholder={type === "StockIn" ? "เช่น PO-2026-003" : "เช่น ใบเสร็จ #INV-109 หรือ เบิกใช้งาน"}
-              className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
           </div>
 
