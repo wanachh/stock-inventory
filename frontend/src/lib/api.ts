@@ -9,6 +9,7 @@ import {
   StockTransaction,
   UpdateProductRequest,
   UpdateTransactionRequest,
+  VisitorStats,
 } from "../types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api";
@@ -128,6 +129,22 @@ export const api = {
     request<void>(`/transactions/${id}`, {
       method: "DELETE",
     }),
+
+  recordVisit: async (): Promise<VisitorStats> => {
+    try {
+      return await request<VisitorStats>("/analytics/visit", { method: "POST" });
+    } catch {
+      return { totalVisits: 1, todayVisits: 1, activeNow: 1 };
+    }
+  },
+
+  getVisitorStats: async (): Promise<VisitorStats> => {
+    try {
+      return await request<VisitorStats>("/analytics/stats");
+    } catch {
+      return { totalVisits: 1, todayVisits: 1, activeNow: 1 };
+    }
+  },
 };
 
 // Formatting helpers

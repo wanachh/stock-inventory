@@ -149,3 +149,9 @@ export interface StockOutRequest {
   quantity: number;
   referenceNote?: string;
 }
+
+export interface VisitorStats {
+  totalVisits: number;
+  todayVisits: number;
+  activeNow: number;
+}

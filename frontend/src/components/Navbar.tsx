@@ -1,18 +1,21 @@
 "use client";
 
 import React from "react";
-import { Layers, Plus, ScanLine, ArrowDownUp } from "lucide-react";
+import { Layers, Plus, ScanLine, ArrowDownUp, Lock } from "lucide-react";
+import { VisitorBadge } from "./Dashboard/VisitorBadge";
 
 interface NavbarProps {
   onOpenNewProduct: () => void;
   onOpenQuickMovement: () => void;
   scannerActive?: boolean;
+  onLock?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenNewProduct,
   onOpenQuickMovement,
   scannerActive = true,
+  onLock,
 }) => {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-zinc-200 bg-white/95 px-4 backdrop-blur-sm sm:px-6 dark:border-zinc-800 dark:bg-zinc-950/95">
@@ -38,6 +41,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Actions & Scanner Status */}
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Visitor Badge (Live counter like Splitbill) */}
+        <div className="hidden lg:block">
+          <VisitorBadge compact={true} />
+        </div>
+
         {/* Scanner Gun Indicator */}
         <div
           title="พร้อมรับสัญญาณจากเครื่องสแกนบาร์โค้ด / RFID (ยิงได้ทันที)"
@@ -69,6 +77,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           <span className="hidden sm:inline">เพิ่มสินค้า</span>
           <span className="sm:hidden">สินค้า</span>
         </button>
+
+        {/* Lock Screen Button */}
+        {onLock && (
+          <button
+            onClick={onLock}
+            title="ล็อคหน้าจอระบบ (ต้องใส่รหัสทีมใหม่)"
+            className="flex items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+          >
+            <Lock className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </header>
   );

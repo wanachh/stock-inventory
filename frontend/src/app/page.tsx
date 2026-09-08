@@ -18,6 +18,8 @@ import { TransactionJournal } from "../components/Transactions/TransactionJourna
 import { EditTransactionModal } from "../components/Transactions/EditTransactionModal";
 import { QuickScanView } from "../components/Scanner/QuickScanView";
 import { GlobalScannerListener } from "../components/Scanner/GlobalScannerListener";
+import { PasscodeGate } from "../components/Auth/PasscodeGate";
+import { VisitorBadge } from "../components/Dashboard/VisitorBadge";
 import { AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
 
 export default function Home() {
@@ -156,16 +158,27 @@ export default function Home() {
     loadData();
   };
 
-  return (
-    <div className="flex min-h-screen flex-col pb-16 md:pb-0">
-      {/* Global Barcode Scanner Gun Listener */}
-      <GlobalScannerListener onScan={handleHardwareScan} />
+  const handleLock = () => {
+    try {
+      localStorage.removeItem("stockpulse_team_session");
+    } catch {
+      // Ignore
+    }
+    window.location.reload();
+  };
 
-      {/* Top Navbar */}
-      <Navbar
-        onOpenNewProduct={handleOpenNewProduct}
-        onOpenQuickMovement={() => handleOpenStockIn()}
-      />
+  return (
+    <PasscodeGate>
+      <div className="flex min-h-screen flex-col pb-16 md:pb-0">
+        {/* Global Barcode Scanner Gun Listener */}
+        <GlobalScannerListener onScan={handleHardwareScan} />
+
+        {/* Top Navbar */}
+        <Navbar
+          onOpenNewProduct={handleOpenNewProduct}
+          onOpenQuickMovement={() => handleOpenStockIn()}
+          onLock={handleLock}
+        />
 
       {/* Toast banner */}
       {toastMessage && (
@@ -232,6 +245,8 @@ export default function Home() {
           {/* TAB 1: DASHBOARD */}
           {activeTab === "dashboard" && dashboard && (
             <div className="space-y-6">
+              <VisitorBadge />
+
               <KpiCards
                 kpis={dashboard.kpis}
                 onFilterLowStock={() => setActiveTab("products")}
@@ -317,15 +332,16 @@ export default function Home() {
         product={batchesProduct}
       />
 
-      <EditTransactionModal
-        isOpen={isEditTransactionModalOpen}
-        onClose={() => setIsEditTransactionModalOpen(false)}
-        transaction={transactionToEdit}
-        onSuccess={() => {
-          showToast("แก้ไขรายการเคลื่อนไหวสต็อกเรียบร้อย");
-          loadData();
-        }}
-      />
-    </div>
+        <EditTransactionModal
+          isOpen={isEditTransactionModalOpen}
+          onClose={() => setIsEditTransactionModalOpen(false)}
+          transaction={transactionToEdit}
+          onSuccess={() => {
+            showToast("แก้ไขรายการเคลื่อนไหวสต็อกเรียบร้อย");
+            loadData();
+          }}
+        />
+      </div>
+    </PasscodeGate>
   );
 }
