@@ -39,3 +39,5 @@ yarn-error.log*
 *.swo
 .env
 .env*.local
+
+.fake

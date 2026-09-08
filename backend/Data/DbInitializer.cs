@@ -4,14 +4,11 @@ namespace StockInventory.Api.Data;
 
 public static class DbInitializer
 {
-    public static async Task SeedAsync(AppDbContext db)
+    public static Task SeedAsync(AppDbContext db)
     {
-        if (db.Products.Any())
-        {
-            return; // Already seeded
-        }
+        return Task.CompletedTask;
 
-        // 1. Product A (User's specific  chat scenario)
+        /*
         var prodA = new Product
         {
             Sku = "PRD-A001",
@@ -38,7 +35,7 @@ public static class DbInitializer
             Status = BatchStatus.Active
         };
 
-        // Batch 2 for Prod A: 5 units @ ฿10.00
+        return Task.CompletedTask;
         var batchA2 = new InventoryBatch
         {
             ProductId = prodA.Id,
@@ -345,5 +342,6 @@ public static class DbInitializer
         );
 
         await db.SaveChangesAsync();
+        */
     }
 }
