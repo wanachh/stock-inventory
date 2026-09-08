@@ -104,7 +104,11 @@ app.Run();
 
 static string ConvertPostgresUrlToNpgsql(string url)
 {
-    url = url.Trim().Trim('\'', '"');
+    url = url.Trim();
+    if ((url.StartsWith('\'') && url.EndsWith('\'')) || (url.StartsWith('"') && url.EndsWith('"')))
+    {
+        url = url[1..^1].Trim();
+    }
 
     if (url.Contains("Host=") || url.Contains("Server="))
     {
@@ -116,14 +120,23 @@ static string ConvertPostgresUrlToNpgsql(string url)
         var uri = new Uri(url);
         var userInfo = uri.UserInfo.Split(':');
         var username = Uri.UnescapeDataString(userInfo[0]);
-        var rawPassword = userInfo.Length > 1 ? userInfo[1] : "";
-        rawPassword = rawPassword.TrimEnd('\'', '"');
+        var rawPassword = userInfo.Length > 1 ? string.Join(":", userInfo.Skip(1)) : "";
         var password = Uri.UnescapeDataString(rawPassword);
         var host = uri.Host;
         var port = uri.Port > 0 ? uri.Port : 5432;
         var database = uri.AbsolutePath.TrimStart('/');
 
-        return $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
+        var csb = new Npgsql.NpgsqlConnectionStringBuilder
+        {
+            Host = host,
+            Port = port,
+            Database = database,
+            Username = username,
+            Password = password,
+            SslMode = Npgsql.SslMode.Require
+        };
+
+        return csb.ConnectionString;
     }
     catch
     {
