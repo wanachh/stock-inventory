@@ -91,27 +91,27 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-      <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="flex items-center justify-between border-b border-zinc-100 pb-4 dark:border-zinc-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-6 shadow-2xl dark:border-slate-800/80 dark:bg-slate-900">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
           <div>
-            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
               แก้ไขรายการเคลื่อนไหวสต็อก #{transaction.id}
             </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {transaction.productName} ({transaction.sku}) • {isStockIn ? "รับเข้า" : "ตัดออก"}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800"
+            className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {error && (
-          <div className="mt-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300">
+          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300">
             <ShieldAlert className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -120,7 +120,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           {/* Quantity */}
           <div>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
               จำนวนสินค้า (ชิ้น) <span className="text-rose-500">* (จำนวนเต็มเท่านั้น)</span>
             </label>
             <input
@@ -138,14 +138,14 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 setQuantity(val === "" ? "" : parseFloat(val));
               }}
               required
-              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm font-bold text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-900 shadow-2xs transition-all duration-150 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
           </div>
 
           {/* Unit Cost for Stock In */}
           {isStockIn && (
             <div>
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                 ราคาต้นทุนจริงต่อชิ้น (฿) <span className="text-rose-500">*</span>
               </label>
               <input
@@ -157,27 +157,27 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                   setUnitCost(e.target.value === "" ? "" : parseFloat(e.target.value))
                 }
                 required
-                className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm font-bold text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-900 shadow-2xs transition-all duration-150 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
               />
             </div>
           )}
 
           {/* Date & Time */}
           <div>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
               วัน-เวลาทำรายการ (แก้ไขย้อนหลังได้)
             </label>
             <input
               type="datetime-local"
               value={dateStr}
               onChange={(e) => setDateStr(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 shadow-2xs transition-all duration-150 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
           </div>
 
           {/* Reference */}
           <div>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
               เลขที่อ้างอิง / หมายเหตุ
             </label>
             <input
@@ -185,22 +185,22 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               value={referenceNote}
               onChange={(e) => setReferenceNote(e.target.value)}
               placeholder="เช่น บิลขาย #INV-001 หรือ ปรับยอด"
-              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
           </div>
 
-          <div className="mt-6 flex items-center justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+          <div className="mt-6 flex items-center justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300"
+              className="rounded-2xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 cursor-pointer"
             >
               ยกเลิก
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-2xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-blue-500/25 hover:bg-blue-700 active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               <Check className="h-4 w-4" />
               <span>{loading ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}</span>

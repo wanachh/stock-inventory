@@ -291,35 +291,35 @@ export const MovementModal: React.FC<MovementModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-      <div className="w-full max-w-lg rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-3xl border border-slate-200/80 bg-white p-6 shadow-2xl dark:border-slate-800/80 dark:bg-slate-900">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-100 pb-4 dark:border-zinc-800">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
           <div>
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
               บันทึกการเคลื่อนไหวสต็อก (Stock Movement)
             </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               รองรับทั้งการพิมพ์รหัส หรือใช้ปืนยิงบาร์โค้ดสแกน
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800"
+            className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Type Toggle: Stock In vs Stock Out */}
-        <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-zinc-100 p-1.5 dark:bg-zinc-800/80">
+        <div className="mt-4 grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1.5 dark:bg-slate-800/80">
           <button
             type="button"
             onClick={() => handleTypeChange("StockIn")}
-            className={`flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition ${
+            className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition cursor-pointer ${
               type === "StockIn"
                 ? "bg-emerald-600 text-white shadow-xs"
-                : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
             }`}
           >
             <Plus className="h-4 w-4" />
@@ -328,10 +328,10 @@ export const MovementModal: React.FC<MovementModalProps> = ({
           <button
             type="button"
             onClick={() => handleTypeChange("StockOut")}
-            className={`flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition ${
+            className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition cursor-pointer ${
               type === "StockOut"
                 ? "bg-rose-600 text-white shadow-xs"
-                : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
             }`}
           >
             <Minus className="h-4 w-4" />

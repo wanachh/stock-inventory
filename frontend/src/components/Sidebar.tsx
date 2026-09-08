@@ -1,7 +1,16 @@
 "use client";
 
 import React from "react";
-import { LayoutDashboard, Package, ArrowRightLeft, ScanLine } from "lucide-react";
+import {
+  LayoutDashboard,
+  Package,
+  ArrowRightLeft,
+  ScanLine,
+  Layers,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
+import { BrandLogo } from "./Common/BrandLogo";
 
 export type NavTab = "dashboard" | "products" | "transactions" | "scanner";
 
@@ -16,93 +25,86 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onChangeTab,
   lowStockCount = 0,
 }) => {
-  const items = [
+  const navItems = [
     {
       id: "dashboard" as NavTab,
       label: "แดชบอร์ดต้นทุน",
-      sublabel: "Dashboard & KPIs",
+      sublabel: "Dashboard",
       icon: LayoutDashboard,
     },
     {
       id: "products" as NavTab,
       label: "สินค้าและล็อต",
-      sublabel: "Products & Batches",
+      sublabel: "Products",
       icon: Package,
-      badge: lowStockCount > 0 ? `${lowStockCount} เตือน` : undefined,
+      badge: lowStockCount > 0 ? lowStockCount : undefined,
     },
     {
       id: "transactions" as NavTab,
       label: "ประวัติ เข้า-ออก",
-      sublabel: "Transaction Journal",
+      sublabel: "Transactions",
       icon: ArrowRightLeft,
     },
     {
       id: "scanner" as NavTab,
-      label: "ยิงสแกนด่วน",
-      sublabel: "Quick Machine Scan",
+      label: "ยิงสแกนบาร์โค้ด",
+      sublabel: "Scanner",
       icon: ScanLine,
     },
   ];
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-zinc-200 bg-zinc-50/70 p-4 md:block dark:border-zinc-800 dark:bg-zinc-900/40">
-      <div className="space-y-1">
-        {items.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onChangeTab(item.id)}
-              className={`group flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition-all ${
-                isActive
-                  ? "bg-blue-600 text-white shadow-sm shadow-blue-500/25"
-                  : "text-zinc-600 hover:bg-zinc-200/60 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Icon
-                  className={`h-5 w-5 shrink-0 ${
-                    isActive ? "text-white" : "text-zinc-400 group-hover:text-zinc-700 dark:text-zinc-500 dark:group-hover:text-zinc-300"
-                  }`}
-                />
-                <div>
-                  <div className="text-sm font-semibold">{item.label}</div>
-                  <div
-                    className={`text-[11px] ${
-                      isActive ? "text-blue-100" : "text-zinc-400 dark:text-zinc-500"
-                    }`}
-                  >
-                    {item.sublabel}
-                  </div>
-                </div>
-              </div>
-
-              {item.badge && (
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                    isActive
-                      ? "bg-white text-blue-700"
-                      : "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300"
-                  }`}
-                >
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
+    <aside className="sticky top-0 hidden h-screen w-24 shrink-0 flex-col items-center justify-between border-r border-slate-200/80 bg-white/70 py-6 backdrop-blur-md md:flex dark:border-slate-800/80 dark:bg-slate-900/60">
+      {/* Top Brand Logo */}
+      <div className="flex flex-col items-center gap-2">
+        <BrandLogo size="md" />
       </div>
 
-      <div className="mt-8 rounded-xl border border-zinc-200 bg-white p-3.5 dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="flex items-center gap-2 text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-          <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
-          <span>Accounting FIFO Mode</span>
+      {/* Center Nav Dock Items */}
+      <nav className="flex flex-col items-center gap-3">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+
+          return (
+            <div key={item.id} className="relative group">
+              <button
+                type="button"
+                onClick={() => onChangeTab(item.id)}
+                className={`relative flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer ${
+                  isActive
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/35 scale-105"
+                    : "text-slate-400 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                }`}
+              >
+                <Icon className="h-5 w-5" />
+
+                {/* Badge indicator */}
+                {item.badge && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-xs">
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+
+              {/* Tooltip on hover */}
+              <div className="pointer-events-none absolute left-full ml-3.5 top-1/2 -translate-y-1/2 z-50 hidden rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white whitespace-nowrap shadow-xl group-hover:block dark:bg-white dark:text-slate-900 animate-in fade-in zoom-in-95 duration-150">
+                {item.label}
+                <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900 dark:border-r-white" />
+              </div>
+            </div>
+          );
+        })}
+      </nav>
+
+      {/* Bottom Mode Pill */}
+      <div className="flex flex-col items-center gap-3">
+        <div
+          title="FIFO Real-Cost Active"
+          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-emerald-200/80 bg-emerald-50 text-emerald-600 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-400"
+        >
+          <ShieldCheck className="h-4 w-4" />
         </div>
-        <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-          คำนวณต้นทุนตามราคาทุนจริงรายรอบ (First-In, First-Out)
-          ไม่เฉลี่ยราคาเพื่อให้สอดคล้องกับมาตรฐานทางบัญชี
-        </p>
       </div>
     </aside>
   );

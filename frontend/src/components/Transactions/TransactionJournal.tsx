@@ -95,20 +95,20 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
   return (
     <div className="space-y-4">
       {/* Control Bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-slate-800/80 dark:bg-slate-900">
         <div className="relative flex-1">
-          <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="ค้นหาด้วย SKU, ชื่อสินค้า, หรือเลขที่บิลอ้างอิง..."
-            className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pr-10 pl-10 text-sm text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+            className="w-full rounded-2xl border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm("")}
-              className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md px-1.5 py-0.5 text-xs font-semibold text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+              className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md px-1.5 py-0.5 text-xs font-semibold text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
             >
               ล้าง
             </button>
@@ -117,33 +117,33 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
 
         <div className="flex items-center gap-2">
           {/* Type tabs */}
-          <div className="flex rounded-xl bg-zinc-100 p-1 text-xs font-medium dark:bg-zinc-800">
+          <div className="flex rounded-2xl bg-slate-100 p-1 text-xs font-medium dark:bg-slate-800">
             <button
               onClick={() => setTypeFilter("all")}
-              className={`rounded-lg px-3 py-1.5 transition ${
+              className={`rounded-xl px-3 py-1.5 transition cursor-pointer ${
                 typeFilter === "all"
-                  ? "bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-white"
-                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400"
+                  ? "bg-white text-slate-900 shadow-xs dark:bg-slate-700 dark:text-white"
+                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
               ทั้งหมด ({transactions.length})
             </button>
             <button
               onClick={() => setTypeFilter("StockIn")}
-              className={`rounded-lg px-3 py-1.5 transition ${
+              className={`rounded-xl px-3 py-1.5 transition cursor-pointer ${
                 typeFilter === "StockIn"
                   ? "bg-emerald-50 text-emerald-700 shadow-xs dark:bg-emerald-950 dark:text-emerald-300"
-                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400"
+                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
               รับเข้า
             </button>
             <button
               onClick={() => setTypeFilter("StockOut")}
-              className={`rounded-lg px-3 py-1.5 transition ${
+              className={`rounded-xl px-3 py-1.5 transition cursor-pointer ${
                 typeFilter === "StockOut"
                   ? "bg-rose-50 text-rose-700 shadow-xs dark:bg-rose-950 dark:text-rose-300"
-                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400"
+                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
               ตัดออก
@@ -155,7 +155,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
             <button
               onClick={onOpenExcelExport}
               title="ส่งออกรายงาน Excel ตามช่วงวันที่เลือก (เทมเพลตมาตรฐาน)"
-              className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 active:scale-95 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300"
+              className="flex items-center gap-1.5 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 active:scale-95 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300 cursor-pointer"
             >
               <Download className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <span className="hidden sm:inline">รายงาน Excel</span>
@@ -166,7 +166,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
           <button
             onClick={handleExportCsv}
             title="ส่งออกรายงานเป็น CSV สำหรับงานบัญชี"
-            className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer"
           >
             <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             <span className="hidden sm:inline">CSV</span>
@@ -175,9 +175,9 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
       </div>
 
       {/* Transaction Table */}
-      <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50/70 text-xs font-semibold text-zinc-600 uppercase dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-400">
+          <thead className="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-600 uppercase dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
             <tr>
               <th className="px-4 py-3.5">วัน-เวลา</th>
               <th className="px-4 py-3.5">ประเภท</th>
@@ -189,10 +189,10 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
               <th className="px-4 py-3.5 text-right">จัดการ</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-zinc-400">
+                <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
                   ไม่พบรายการเคลื่อนไหว
                 </td>
               </tr>
@@ -203,11 +203,11 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
 
                 return (
                   <React.Fragment key={t.id}>
-                    <tr className="group transition hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40">
+                    <tr className="group transition hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
                       {/* Date */}
-                      <td className="px-4 py-3.5 text-xs text-zinc-500 dark:text-zinc-400">
+                      <td className="px-4 py-3.5 text-xs text-slate-500 dark:text-slate-400">
                         <div className="flex items-center gap-1.5">
-                          <Clock className="h-3.5 w-3.5 text-zinc-400" />
+                          <Clock className="h-3.5 w-3.5 text-slate-400" />
                           <span>{formatDateTime(t.createdAt)}</span>
                         </div>
                       </td>
@@ -232,16 +232,16 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
 
                       {/* Product */}
                       <td className="px-4 py-3.5">
-                        <div className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        <div className="font-semibold text-slate-900 dark:text-slate-100">
                           {t.productName}
                         </div>
-                        <span className="font-mono text-xs text-zinc-400 dark:text-zinc-500">
+                        <span className="font-mono text-xs text-slate-400 dark:text-slate-500">
                           {t.sku}
                         </span>
                       </td>
 
                       {/* Qty */}
-                      <td className="px-4 py-3.5 text-right font-bold text-zinc-900 dark:text-zinc-100">
+                      <td className="px-4 py-3.5 text-right font-bold text-slate-900 dark:text-slate-100">
                         {isStockIn ? "+" : "-"}
                         {formatNumber(t.quantity)} ชิ้น
                       </td>
@@ -258,7 +258,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                       </td>
 
                       {/* Reference Note */}
-                      <td className="px-4 py-3.5 text-xs text-zinc-600 dark:text-zinc-400">
+                      <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-400">
                         {t.referenceNote || "-"}
                       </td>
 
@@ -266,7 +266,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                       <td className="px-4 py-3.5 text-center">
                         <button
                           onClick={() => setExpandedId(isExpanded ? null : t.id)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+                          className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 cursor-pointer"
                         >
                           <Layers className="h-3 w-3" />
                           <span>{t.details.length} ล็อต</span>
@@ -285,7 +285,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                             <button
                               onClick={() => onEditTransaction(t)}
                               title="แก้ไขรายการ (จำนวน, ต้นทุน, หรือหมายเหตุ)"
-                              className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-blue-600 dark:hover:bg-zinc-800 dark:hover:text-blue-400"
+                              className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-blue-600 dark:hover:bg-slate-800 dark:hover:text-blue-400 cursor-pointer"
                             >
                               <Edit2 className="h-4 w-4" />
                             </button>
@@ -294,7 +294,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                             <button
                               onClick={() => onDeleteTransaction(t)}
                               title="ลบ/ยกเลิกรายการนี้ (ระบบจะคืนสต็อก/ปรับปรุงล็อตเดิมให้อัตโนมัติ)"
-                              className="rounded-lg p-1.5 text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+                              className="rounded-xl p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 cursor-pointer"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -305,13 +305,13 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
 
                     {/* Expandable Breakdown Details */}
                     {isExpanded && (
-                      <tr className="bg-zinc-50/80 dark:bg-zinc-900/60">
+                      <tr className="bg-slate-50/80 dark:bg-slate-800/60">
                         <td colSpan={8} className="px-6 py-3">
-                          <div className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
-                            <div className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                          <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-750 dark:bg-slate-850">
+                            <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
                               📋 รายละเอียดการตัด/รับตามล็อตจริง (Batch Breakdown for Accounting):
                             </div>
-                            <div className="mt-2 divide-y divide-zinc-100 text-xs dark:divide-zinc-800">
+                            <div className="mt-2 divide-y divide-slate-100 text-xs dark:divide-slate-800">
                               {t.details.map((d, i) => (
                                 <div
                                   key={i}
@@ -321,11 +321,11 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                                     <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
                                       {d.batchNumber}
                                     </span>
-                                    <span className="text-zinc-500 dark:text-zinc-400">
+                                    <span className="text-slate-500 dark:text-slate-400">
                                       จำนวน {formatNumber(d.quantityDrawn)} ชิ้น @ ทุนจริง {formatCurrency(d.unitCost)}
                                     </span>
                                   </div>
-                                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                                  <span className="font-bold text-slate-900 dark:text-slate-100">
                                     {formatCurrency(d.subtotalCost)}
                                   </span>
                                 </div>

@@ -138,15 +138,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-      <div className="w-full max-w-lg rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-3xl border border-slate-200/80 bg-white p-6 shadow-2xl dark:border-slate-800/80 dark:bg-slate-900">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-100 pb-4 dark:border-zinc-800">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
           <div>
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
               {isEdit ? "แก้ไขข้อมูลสินค้า" : "เพิ่มสินค้าใหม่"}
             </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {isEdit
                 ? "แก้ไขข้อมูลทั่วไปหรือแก้ไขรหัส SKU กรณีพิมพ์ผิด"
                 : "กรอกเฉพาะ SKU และชื่อสินค้าเพื่อเริ่มใช้งานได้ทันที (Quick Win)"}
@@ -154,14 +154,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800"
+            className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {error && (
-          <div className="mt-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300">
+          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300">
             <ShieldAlert className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -171,14 +171,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {/* SKU Field with Auto-Generate */}
           <div>
             <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                 รหัสสินค้า (SKU) <span className="text-rose-500">*</span>
               </label>
               {!isEdit && (
                 <button
                   type="button"
                   onClick={handleAutoGenerateSku}
-                  className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                  className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400 cursor-pointer"
                 >
                   <Wand2 className="h-3 w-3" />
                   <span>สร้างรหัสอัตโนมัติ</span>
@@ -191,7 +191,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               onChange={(e) => setSku(e.target.value.toUpperCase())}
               placeholder="เช่น PRD-2026-001"
               required
-              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 font-mono text-sm uppercase text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 font-mono text-sm uppercase text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
             {isEdit && (
               <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">
@@ -202,7 +202,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
           {/* Product Name */}
           <div>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
               ชื่อสินค้า <span className="text-rose-500">*</span>
             </label>
             <input
@@ -211,26 +211,26 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               onChange={(e) => setName(e.target.value)}
               placeholder="เช่น เมล็ดกาแฟอาราบิก้า หรือ เมาส์ไร้สาย"
               required
-              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
           </div>
 
           {/* Barcode & Category */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                รหัสบาร์โค้ด (Barcode) <span className="text-zinc-400 font-normal">(เว้นว่างได้)</span>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                รหัสบาร์โค้ด (Barcode) <span className="text-slate-400 font-normal">(เว้นว่างได้)</span>
               </label>
               <input
                 type="text"
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
                 placeholder="เช่น 8850123456789"
-                className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm font-mono text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-mono text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                 หมวดหมู่สินค้า
               </label>
               <input
@@ -238,14 +238,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 placeholder="เช่น General, IT, Food"
-                className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
               />
             </div>
           </div>
 
           {/* MinThreshold */}
           <div>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
               เกณฑ์เตือนสต็อกใกล้หมด (Min Threshold)
             </label>
             <input
@@ -259,25 +259,25 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 }
               }}
               onChange={(e) => setMinThreshold(Math.max(0, parseInt(e.target.value) || 0))}
-              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
-            <p className="mt-1 text-[11px] text-zinc-400">
+            <p className="mt-1 text-[11px] text-slate-400">
               ระบบจะแสดงสถานะ &quot;ใกล้หมด (Low Stock)&quot; เมื่อจำนวนคงเหลือ $\le$ ค่านี้
             </p>
           </div>
 
           {/* Initial Stock (Only on Create) */}
           {!isEdit && (
-            <div className="rounded-xl border border-zinc-200 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-              <div className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-800/50">
+              <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                 สต็อกตั้งต้นพร้อมต้นทุนจริง (ทางเลือก)
               </div>
-              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 สามารถกรอกสต็อกล็อตแรกลงไปได้ทันที (ต้องมากกว่า 0) หรือเว้นว่างไว้แล้วมารับเข้าทีหลังก็ได้
               </p>
               <div className="mt-2.5 grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+                  <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
                     จำนวนชิ้นแรกเริ่ม (จำนวนเต็ม &gt; 0)
                   </label>
                   <input
@@ -300,11 +300,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                       }
                     }}
                     placeholder="เช่น 5 (เว้นว่างได้)"
-                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+                    className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-2xs transition-all duration-150 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+                  <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
                     ราคาต้นทุนจริง/ชิ้น (฿)
                   </label>
                   <input
@@ -316,7 +316,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                       setInitialUnitCost(e.target.value === "" ? "" : parseFloat(e.target.value))
                     }
                     placeholder="0.00"
-                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+                    className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-2xs transition-all duration-150 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
                   />
                 </div>
               </div>
@@ -324,18 +324,18 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           )}
 
           {/* Actions */}
-          <div className="mt-6 flex items-center justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+          <div className="mt-6 flex items-center justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="rounded-2xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
             >
               ยกเลิก
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-2xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-blue-500/25 hover:bg-blue-700 active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               <Check className="h-4 w-4" />
               <span>{loading ? "กำลังบันทึก..." : isEdit ? "บันทึกการแก้ไข" : "สร้างสินค้า"}</span>

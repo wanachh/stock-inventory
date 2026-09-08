@@ -15,29 +15,29 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
   onViewAll,
 }) => {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800/80 dark:bg-slate-900">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
             รายการเคลื่อนไหวล่าสุด
           </h3>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             ประวัติการรับเข้าและตัดออกพร้อมต้นทุนจริง
           </p>
         </div>
         {onViewAll && (
           <button
             onClick={onViewAll}
-            className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 cursor-pointer"
           >
             ดูทั้งหมด &rarr;
           </button>
         )}
       </div>
 
-      <div className="mt-4 divide-y divide-zinc-100 dark:divide-zinc-800/60">
+      <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800/60">
         {transactions.length === 0 ? (
-          <p className="py-6 text-center text-xs text-zinc-400">
+          <p className="py-6 text-center text-xs text-slate-400">
             ยังไม่มีประวัติการเคลื่อนไหว
           </p>
         ) : (
@@ -46,11 +46,11 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
             return (
               <div
                 key={tx.id}
-                className="flex items-center justify-between py-3 transition hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40"
+                className="flex items-center justify-between py-3 px-2 rounded-2xl transition hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl ${
                       isStockIn
                         ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
                         : "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
@@ -64,7 +64,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                         {tx.productName}
                       </h4>
                       <span
@@ -77,7 +77,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
                         {isStockIn ? "+ รับเข้า" : "- ตัดออก"}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                       <span className="font-mono">{tx.sku}</span>
                       {tx.referenceNote && (
                         <>
@@ -107,7 +107,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
                     {isStockIn ? "+" : "-"}
                     {formatNumber(tx.quantity)} ชิ้น
                   </div>
-                  <div className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                  <div className="text-xs font-medium text-slate-600 dark:text-slate-400">
                     {formatCurrency(tx.totalCost)}
                   </div>
                 </div>
