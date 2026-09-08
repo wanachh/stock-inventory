@@ -54,13 +54,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-24 shrink-0 flex-col items-center justify-between border-r border-slate-200/80 bg-white/70 py-6 backdrop-blur-md md:flex dark:border-slate-800/80 dark:bg-slate-900/60">
+    <aside className="sticky top-0 hidden h-screen w-20 sm:w-24 shrink-0 flex-col items-center border-r border-slate-200/80 bg-white/70 py-6 backdrop-blur-md md:flex dark:border-slate-800/80 dark:bg-slate-900/60">
       {/* Top Brand Logo */}
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col items-center gap-2 mb-8">
         <BrandLogo size="md" />
       </div>
 
-      {/* Center Nav Dock Items */}
+      {/* Nav Dock Items (Positioned directly under the logo) */}
       <nav className="flex flex-col items-center gap-3">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -98,7 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* Bottom Mode Pill */}
-      <div className="flex flex-col items-center gap-3">
+      <div className="mt-auto flex flex-col items-center gap-3">
         <div
           title="FIFO Real-Cost Active"
           className="flex h-10 w-10 items-center justify-center rounded-2xl border border-emerald-200/80 bg-emerald-50 text-emerald-600 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-400"
