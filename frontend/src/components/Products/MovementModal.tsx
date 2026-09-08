@@ -7,13 +7,15 @@ import {
   X,
   Plus,
   Minus,
-  ArrowDownRight,
-  ArrowUpRight,
   AlertCircle,
   CheckCircle2,
   ScanLine,
   Layers,
-  Receipt,
+  Search,
+  Sparkles,
+  Package,
+  PlusCircle,
+  ChevronDown,
 } from "lucide-react";
 
 interface MovementModalProps {
@@ -35,7 +37,17 @@ export const MovementModal: React.FC<MovementModalProps> = ({
 }) => {
   const [type, setType] = useState<"StockIn" | "StockOut">(initialType);
   const [selectedProductId, setSelectedProductId] = useState<number | "">("");
-  const [scannerCode, setScannerCode] = useState("");
+
+  // Search & Suggestion states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // New Product on-the-fly state (for StockIn)
+  const [isNewProductMode, setIsNewProductMode] = useState(false);
+  const [newProductName, setNewProductName] = useState("");
+  const [newProductSku, setNewProductSku] = useState("");
+  const [newProductBarcode, setNewProductBarcode] = useState("");
+  const [newProductCategory, setNewProductCategory] = useState("General");
 
   const [quantity, setQuantity] = useState<number | "">("");
   const [unitCost, setUnitCost] = useState<number | "">("");
@@ -49,25 +61,94 @@ export const MovementModal: React.FC<MovementModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Debounce ref
+  // Refs
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const comboboxRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Click outside listener to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (comboboxRef.current && !comboboxRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     setType(initialType);
     if (initialProduct) {
       setSelectedProductId(initialProduct.id);
-    } else if (products.length > 0) {
-      setSelectedProductId(products[0].id);
+      setIsDropdownOpen(false);
+    } else {
+      setSelectedProductId("");
+      setIsDropdownOpen(false);
     }
+    setIsNewProductMode(false);
+    setSearchQuery("");
+    setNewProductName("");
+    setNewProductSku("");
+    setNewProductBarcode("");
+    setNewProductCategory("General");
     setQuantity("");
     setUnitCost("");
     setReference("");
     setPreview(null);
     setPreviewError(null);
     setError(null);
-  }, [isOpen, initialProduct, initialType, products]);
+  }, [isOpen, initialProduct, initialType]);
 
   const currentProduct = products.find((p) => p.id === Number(selectedProductId));
+
+  // Filter products for suggestions
+  const filteredProducts = products.filter((p) => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      p.sku.toLowerCase().includes(q) ||
+      p.name.toLowerCase().includes(q) ||
+      (p.barcode && p.barcode.toLowerCase().includes(q)) ||
+      p.category.toLowerCase().includes(q)
+    );
+  });
+
+  // Auto SKU generator
+  const handleAutoSku = () => {
+    const prefix = "PRD";
+    const year = new Date().getFullYear();
+    const random = Math.floor(1000 + Math.random() * 9000);
+    setNewProductSku(`${prefix}-${year}-${random}`);
+  };
+
+  // Start new product mode
+  const handleStartNewProduct = () => {
+    setIsNewProductMode(true);
+    setSelectedProductId("");
+    setIsDropdownOpen(false);
+
+    const typed = searchQuery.trim();
+    setNewProductName(typed);
+
+    if (/^[A-Za-z0-9_-]{3,20}$/.test(typed)) {
+      setNewProductSku(typed.toUpperCase());
+    } else {
+      const prefix = "PRD";
+      const year = new Date().getFullYear();
+      const random = Math.floor(1000 + Math.random() * 9000);
+      setNewProductSku(`${prefix}-${year}-${random}`);
+    }
+  };
+
+  const handleTypeChange = (newType: "StockIn" | "StockOut") => {
+    setType(newType);
+    if (newType === "StockOut" && isNewProductMode) {
+      setIsNewProductMode(false);
+      setSelectedProductId("");
+    }
+    setError(null);
+  };
 
   // Live FIFO Preview effect when stocking out
   useEffect(() => {
@@ -115,25 +196,8 @@ export const MovementModal: React.FC<MovementModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Handle machine scanner input or lookup
-  const handleScannerSearch = async () => {
-    if (!scannerCode.trim()) return;
-    try {
-      const found = await api.lookupProduct(scannerCode.trim());
-      setSelectedProductId(found.id);
-      setScannerCode("");
-      setError(null);
-    } catch {
-      setError(`ไม่พบสินค้าสำหรับรหัส: ${scannerCode.trim()}`);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentProduct) {
-      setError("กรุณาเลือกสินค้า");
-      return;
-    }
 
     const qty = Number(quantity);
     if (quantity === "" || isNaN(qty) || qty <= 0) {
@@ -150,26 +214,63 @@ export const MovementModal: React.FC<MovementModalProps> = ({
     setError(null);
 
     try {
-      if (type === "StockIn") {
-        const cost = Number(unitCost);
-        if (cost < 0 || isNaN(cost)) {
-          setError("กรุณาระบุราคาต้นทุนจริงของรอบนี้");
+      if (isNewProductMode) {
+        if (!newProductName.trim()) {
+          setError("กรุณาระบุชื่อสินค้าใหม่");
+          setLoading(false);
+          return;
+        }
+        if (!newProductSku.trim()) {
+          setError("กรุณาระบุรหัส SKU สำหรับสินค้าใหม่");
           setLoading(false);
           return;
         }
 
-        await api.stockIn({
-          productId: currentProduct.id,
-          quantity: qty,
-          unitCost: cost,
-          reference: reference.trim() || undefined,
+        const cost = Number(unitCost);
+        if (unitCost === "" || isNaN(cost) || cost < 0) {
+          setError("กรุณาระบุราคาต้นทุนจริงต่อชิ้นสำหรับสินค้าใหม่ (ต้องไม่ติดลบ)");
+          setLoading(false);
+          return;
+        }
+
+        await api.createProduct({
+          sku: newProductSku.trim().toUpperCase(),
+          barcode: newProductBarcode.trim() || undefined,
+          name: newProductName.trim(),
+          category: newProductCategory.trim() || "General",
+          minThreshold: 5,
+          initialQuantity: qty,
+          initialUnitCost: cost,
+          reference: reference.trim() || "รับเข้าล็อตแรก (สินค้าใหม่)",
         });
       } else {
-        await api.stockOut({
-          productId: currentProduct.id,
-          quantity: qty,
-          referenceNote: reference.trim() || undefined,
-        });
+        if (!currentProduct) {
+          setError("กรุณาเลือกหรือระบุสินค้าเป้าหมาย");
+          setLoading(false);
+          return;
+        }
+
+        if (type === "StockIn") {
+          const cost = Number(unitCost);
+          if (unitCost === "" || isNaN(cost) || cost < 0) {
+            setError("กรุณาระบุราคาต้นทุนจริงของรอบนี้ (ต้องไม่ติดลบ)");
+            setLoading(false);
+            return;
+          }
+
+          await api.stockIn({
+            productId: currentProduct.id,
+            quantity: qty,
+            unitCost: cost,
+            reference: reference.trim() || undefined,
+          });
+        } else {
+          await api.stockOut({
+            productId: currentProduct.id,
+            quantity: qty,
+            referenceNote: reference.trim() || undefined,
+          });
+        }
       }
 
       onSuccess();
@@ -207,7 +308,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
         <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-zinc-100 p-1.5 dark:bg-zinc-800/80">
           <button
             type="button"
-            onClick={() => setType("StockIn")}
+            onClick={() => handleTypeChange("StockIn")}
             className={`flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition ${
               type === "StockIn"
                 ? "bg-emerald-600 text-white shadow-xs"
@@ -219,7 +320,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => setType("StockOut")}
+            onClick={() => handleTypeChange("StockOut")}
             className={`flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition ${
               type === "StockOut"
                 ? "bg-rose-600 text-white shadow-xs"
@@ -239,58 +340,277 @@ export const MovementModal: React.FC<MovementModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          {/* Quick Scanner Barcode/SKU input */}
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <ScanLine className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-              <input
-                type="text"
-                data-scanner-input="true"
-                value={scannerCode}
-                onChange={(e) => setScannerCode(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleScannerSearch();
-                  }
-                }}
-                placeholder="ยิงบาร์โค้ด หรือพิมพ์ SKU แล้วกด Enter..."
-                className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pr-3 pl-9 font-mono text-xs text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={handleScannerSearch}
-              className="rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-zinc-700 shadow-2xs transition-all duration-150 hover:bg-zinc-50 hover:border-zinc-300 active:scale-95 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-            >
-              ค้นหา
-            </button>
-          </div>
+          {/* Target Product: Smart Combobox with Suggestions or New Product Form */}
+          {isNewProductMode ? (
+            /* NEW PRODUCT ON-THE-FLY FORM */
+            <div className="rounded-2xl border-2 border-blue-200 bg-gradient-to-b from-blue-50/60 to-white p-4 dark:border-blue-900/60 dark:from-blue-950/30 dark:to-zinc-950">
+              <div className="flex items-center justify-between border-b border-blue-100 pb-3 dark:border-blue-900/50">
+                <div className="flex items-center gap-2 text-xs font-bold text-blue-800 dark:text-blue-300">
+                  <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <span>กำลังสร้างสินค้าใหม่พร้อมรับเข้าสต็อก</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNewProductMode(false);
+                    setSelectedProductId("");
+                    setIsDropdownOpen(true);
+                  }}
+                  className="text-xs font-semibold text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                >
+                  ← กลับไปเลือกสินค้าเดิม
+                </button>
+              </div>
 
-          {/* Product Select */}
-          <div>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              เลือกสินค้าเป้าหมาย <span className="text-rose-500">*</span>
-            </label>
-            <select
-              value={selectedProductId}
-              onChange={(e) => setSelectedProductId(Number(e.target.value))}
-              required
-              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
-            >
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  [{p.sku}] {p.name} (คงเหลือ {p.totalQuantityRemaining} ชิ้น)
-                </option>
-              ))}
-            </select>
-            {currentProduct && (
-              <div className="mt-1.5 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
-                <span>สต็อกปัจจุบัน: <strong className="text-zinc-900 dark:text-zinc-100">{currentProduct.totalQuantityRemaining} ชิ้น</strong></span>
+              <div className="mt-3 space-y-3">
+                <div>
+                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    ชื่อสินค้าใหม่ <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newProductName}
+                    onChange={(e) => setNewProductName(e.target.value)}
+                    placeholder="เช่น เมล็ดกาแฟดอยช้าง หรือ ปลั๊กไฟ 3 ตา"
+                    required
+                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                        รหัส SKU <span className="text-rose-500">*</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleAutoSku}
+                        className="text-[11px] font-medium text-blue-600 hover:underline dark:text-blue-400"
+                      >
+                        สร้างรหัสอัตโนมัติ
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      value={newProductSku}
+                      onChange={(e) => setNewProductSku(e.target.value.toUpperCase())}
+                      placeholder="เช่น PRD-2026-001"
+                      required
+                      className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 font-mono text-sm uppercase text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                      รหัสบาร์โค้ด (ถ้ามี)
+                    </label>
+                    <input
+                      type="text"
+                      value={newProductBarcode}
+                      onChange={(e) => setNewProductBarcode(e.target.value)}
+                      placeholder="เช่น 8850123456789"
+                      className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 font-mono text-sm text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    หมวดหมู่สินค้า
+                  </label>
+                  <input
+                    type="text"
+                    value={newProductCategory}
+                    onChange={(e) => setNewProductCategory(e.target.value)}
+                    placeholder="เช่น General, เครื่องดื่ม, IT"
+                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : currentProduct ? (
+            /* SELECTED PRODUCT CARD */
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
+                    <Package className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">
+                        {currentProduct.sku}
+                      </span>
+                      {currentProduct.barcode && (
+                        <span className="font-mono text-[11px] text-zinc-400">
+                          [{currentProduct.barcode}]
+                        </span>
+                      )}
+                      <span className="rounded-md bg-zinc-200/70 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                        {currentProduct.category}
+                      </span>
+                    </div>
+                    <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                      {currentProduct.name}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedProductId("");
+                    setSearchQuery("");
+                    setIsDropdownOpen(true);
+                  }}
+                  className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-2xs transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                >
+                  เปลี่ยนสินค้า
+                </button>
+              </div>
+
+              <div className="mt-2.5 flex items-center justify-between border-t border-zinc-200/60 pt-2 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+                <span>สต็อกคงเหลือปัจจุบัน: <strong className="text-zinc-900 dark:text-zinc-100">{formatNumber(currentProduct.totalQuantityRemaining)} ชิ้น</strong></span>
                 <span>มูลค่าสต็อกปัจจุบัน: <strong className="text-emerald-600 dark:text-emerald-400">{formatCurrency(currentProduct.totalValuation)}</strong></span>
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            /* AUTO-SUGGEST COMBOBOX SEARCH INPUT */
+            <div ref={comboboxRef} className="relative">
+              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                ค้นหาหรือระบุสินค้าเป้าหมาย <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative mt-1">
+                <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  data-scanner-input="true"
+                  autoFocus
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setIsDropdownOpen(true);
+                  }}
+                  onFocus={() => setIsDropdownOpen(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (filteredProducts.length > 0) {
+                        const target = filteredProducts.find(p => p.totalQuantityRemaining > 0) || filteredProducts[0];
+                        setSelectedProductId(target.id);
+                        setIsDropdownOpen(false);
+                        setSearchQuery("");
+                      } else if (type === "StockIn" && searchQuery.trim()) {
+                        handleStartNewProduct();
+                      }
+                    }
+                  }}
+                  placeholder="พิมพ์ชื่อสินค้า, SKU, หรือยิงบาร์โค้ด..."
+                  className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pr-10 pl-10 text-sm text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      searchInputRef.current?.focus();
+                    }}
+                    className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md px-1.5 py-0.5 text-xs font-semibold text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                  >
+                    ล้าง
+                  </button>
+                )}
+              </div>
+
+              {/* Suggestions Dropdown Panel */}
+              {isDropdownOpen && (
+                <div className="absolute z-30 mt-1.5 w-full overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+                  <div className="max-h-60 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
+                    {filteredProducts.length > 0 ? (
+                      filteredProducts.map((p) => {
+                        const isOutOfStock = p.totalQuantityRemaining === 0;
+                        const disabledForOut = type === "StockOut" && isOutOfStock;
+
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            disabled={disabledForOut}
+                            onClick={() => {
+                              setSelectedProductId(p.id);
+                              setIsDropdownOpen(false);
+                              setSearchQuery("");
+                            }}
+                            className={`flex w-full items-center justify-between p-3 text-left transition ${
+                              disabledForOut
+                                ? "cursor-not-allowed opacity-40 bg-zinc-50 dark:bg-zinc-950/40"
+                                : "hover:bg-blue-50/60 dark:hover:bg-zinc-800/80 cursor-pointer"
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">
+                                  {p.sku}
+                                </span>
+                                {p.barcode && (
+                                  <span className="font-mono text-[11px] text-zinc-400">
+                                    [{p.barcode}]
+                                  </span>
+                                )}
+                                <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                                  {p.category}
+                                </span>
+                              </div>
+                              <div className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                                {p.name}
+                              </div>
+                            </div>
+
+                            <div className="text-right">
+                              <div className={`text-xs font-bold ${
+                                isOutOfStock
+                                  ? "text-rose-500"
+                                  : "text-emerald-600 dark:text-emerald-400"
+                              }`}>
+                                {isOutOfStock ? "หมดสต็อก" : `${formatNumber(p.totalQuantityRemaining)} ชิ้น`}
+                              </div>
+                              <div className="text-[10px] text-zinc-400">
+                                {formatCurrency(p.totalValuation)}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className="p-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                        ไม่พบสินค้าที่ตรงกับคำค้นหา
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Create New Product Action in Dropdown (For Stock In) */}
+                  {type === "StockIn" && (
+                    <button
+                      type="button"
+                      onClick={handleStartNewProduct}
+                      className="flex w-full items-center gap-2.5 border-t border-zinc-100 bg-blue-50/70 p-3 text-left text-xs font-bold text-blue-700 transition hover:bg-blue-100 dark:border-zinc-800 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/60"
+                    >
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white shadow-xs">
+                        <Plus className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div>+ สร้างเป็นสินค้าใหม่ {searchQuery.trim() ? `"${searchQuery.trim()}"` : ""}</div>
+                        <div className="text-[11px] font-normal text-blue-600/80 dark:text-blue-400">
+                          เพิ่มสินค้าใหม่ลงระบบและบันทึกรับเข้าสต็อกล็อตแรกทันที
+                        </div>
+                      </div>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Quantity */}
           <div>
@@ -431,10 +751,16 @@ export const MovementModal: React.FC<MovementModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={loading || (type === "StockOut" && !!previewError)}
+              disabled={
+                loading ||
+                (!isNewProductMode && !currentProduct) ||
+                (type === "StockOut" && !!previewError)
+              }
               className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-sm active:scale-95 disabled:opacity-50 ${
                 type === "StockIn"
-                  ? "bg-emerald-600 hover:bg-emerald-700"
+                  ? isNewProductMode
+                    ? "bg-blue-600 hover:bg-blue-700"
+                    : "bg-emerald-600 hover:bg-emerald-700"
                   : "bg-rose-600 hover:bg-rose-700"
               }`}
             >
@@ -442,6 +768,8 @@ export const MovementModal: React.FC<MovementModalProps> = ({
               <span>
                 {loading
                   ? "กำลังบันทึก..."
+                  : isNewProductMode
+                  ? "สร้างสินค้าใหม่ & รับเข้าสต็อก"
                   : type === "StockIn"
                   ? "ยืนยันรับเข้าสต็อก"
                   : "ยืนยันตัดสต็อกออก"}
