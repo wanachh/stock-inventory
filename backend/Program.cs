@@ -14,11 +14,22 @@ builder.Services.Configure<JsonOptions>(options =>
     options.SerializerOptions.PropertyNameCaseInsensitive = true;
 });
 
-// Configure Database (SQLite)
-var dbPath = Path.Combine(builder.Environment.ContentRootPath, "stock.db");
+// Configure Database (PostgreSQL if DATABASE_URL or DefaultConnection is set, otherwise SQLite)
+var postgresUrl = Environment.GetEnvironmentVariable("DATABASE_URL") 
+               ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlite($"Data Source={dbPath}");
+    if (!string.IsNullOrWhiteSpace(postgresUrl) && (postgresUrl.StartsWith("postgres://") || postgresUrl.StartsWith("postgresql://") || postgresUrl.Contains("Host=")))
+    {
+        var npgsqlConn = ConvertPostgresUrlToNpgsql(postgresUrl);
+        options.UseNpgsql(npgsqlConn);
+    }
+    else
+    {
+        var dbPath = Path.Combine(builder.Environment.ContentRootPath, "stock.db");
+        options.UseSqlite($"Data Source={dbPath}");
+    }
 });
 
 // Register Inventory Services
@@ -90,3 +101,28 @@ app.MapGroup("/api/dashboard").MapDashboardEndpoints();
 app.MapAnalyticsEndpoints();
 
 app.Run();
+
+static string ConvertPostgresUrlToNpgsql(string url)
+{
+    if (url.Contains("Host=") || url.Contains("Server="))
+    {
+        return url;
+    }
+
+    try
+    {
+        var uri = new Uri(url);
+        var userInfo = uri.UserInfo.Split(':');
+        var username = userInfo[0];
+        var password = userInfo.Length > 1 ? userInfo[1] : "";
+        var host = uri.Host;
+        var port = uri.Port > 0 ? uri.Port : 5432;
+        var database = uri.AbsolutePath.TrimStart('/');
+
+        return $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
+    }
+    catch
+    {
+        return url;
+    }
+}
