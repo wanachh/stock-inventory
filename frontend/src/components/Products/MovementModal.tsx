@@ -16,6 +16,7 @@ import {
   Package,
   PlusCircle,
   ChevronDown,
+  Check,
 } from "lucide-react";
 
 interface MovementModalProps {
@@ -41,6 +42,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
   // Search & Suggestion states
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [filterTab, setFilterTab] = useState<"all" | "inStock">("all");
 
   // New Product on-the-fly state (for StockIn)
   const [isNewProductMode, setIsNewProductMode] = useState(false);
@@ -88,6 +90,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
     }
     setIsNewProductMode(false);
     setSearchQuery("");
+    setFilterTab("all");
     setNewProductName("");
     setNewProductSku("");
     setNewProductBarcode("");
@@ -101,9 +104,13 @@ export const MovementModal: React.FC<MovementModalProps> = ({
   }, [isOpen, initialProduct, initialType]);
 
   const currentProduct = products.find((p) => p.id === Number(selectedProductId));
+  const inStockCount = products.filter((p) => p.totalQuantityRemaining > 0).length;
 
-  // Filter products for suggestions
+  // Filter products for suggestions (by tab and search query)
   const filteredProducts = products.filter((p) => {
+    if (filterTab === "inStock" && p.totalQuantityRemaining <= 0) {
+      return false;
+    }
     const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
     return (
@@ -428,107 +435,173 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                 </div>
               </div>
             </div>
-          ) : currentProduct ? (
-            /* SELECTED PRODUCT CARD */
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-                    <Package className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">
-                        {currentProduct.sku}
-                      </span>
-                      {currentProduct.barcode && (
-                        <span className="font-mono text-[11px] text-zinc-400">
-                          [{currentProduct.barcode}]
-                        </span>
-                      )}
-                      <span className="rounded-md bg-zinc-200/70 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                        {currentProduct.category}
-                      </span>
-                    </div>
-                    <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                      {currentProduct.name}
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedProductId("");
-                    setSearchQuery("");
-                    setIsDropdownOpen(true);
-                  }}
-                  className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-2xs transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                >
-                  เปลี่ยนสินค้า
-                </button>
-              </div>
-
-              <div className="mt-2.5 flex items-center justify-between border-t border-zinc-200/60 pt-2 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-                <span>สต็อกคงเหลือปัจจุบัน: <strong className="text-zinc-900 dark:text-zinc-100">{formatNumber(currentProduct.totalQuantityRemaining)} ชิ้น</strong></span>
-                <span>มูลค่าสต็อกปัจจุบัน: <strong className="text-emerald-600 dark:text-emerald-400">{formatCurrency(currentProduct.totalValuation)}</strong></span>
-              </div>
-            </div>
           ) : (
-            /* AUTO-SUGGEST COMBOBOX SEARCH INPUT */
+            /* TARGET PRODUCT: GITHUB BRANCH SELECTOR COMBOBOX */
             <div ref={comboboxRef} className="relative">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                ค้นหาหรือระบุสินค้าเป้าหมาย <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative mt-1">
-                <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  data-scanner-input="true"
-                  autoFocus
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setIsDropdownOpen(true);
-                  }}
-                  onFocus={() => setIsDropdownOpen(true)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      if (filteredProducts.length > 0) {
-                        const target = filteredProducts.find(p => p.totalQuantityRemaining > 0) || filteredProducts[0];
-                        setSelectedProductId(target.id);
-                        setIsDropdownOpen(false);
-                        setSearchQuery("");
-                      } else if (type === "StockIn" && searchQuery.trim()) {
-                        handleStartNewProduct();
-                      }
-                    }
-                  }}
-                  placeholder="พิมพ์ชื่อสินค้า, SKU, หรือยิงบาร์โค้ด..."
-                  className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pr-10 pl-10 text-sm text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
-                />
-                {searchQuery && (
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  เลือกสินค้าเป้าหมาย <span className="text-rose-500">*</span>
+                </label>
+                {type === "StockIn" && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setSearchQuery("");
-                      searchInputRef.current?.focus();
-                    }}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md px-1.5 py-0.5 text-xs font-semibold text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                    onClick={handleStartNewProduct}
+                    className="text-[11px] font-semibold text-blue-600 hover:underline dark:text-blue-400 cursor-pointer"
                   >
-                    ล้าง
+                    + สร้างสินค้าใหม่
                   </button>
                 )}
               </div>
 
-              {/* Suggestions Dropdown Panel */}
+              {/* GitHub Branch Selector Trigger Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !isDropdownOpen;
+                  setIsDropdownOpen(next);
+                  if (next) {
+                    setTimeout(() => searchInputRef.current?.focus(), 50);
+                  }
+                }}
+                className="mt-1 flex w-full items-center justify-between rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-left text-sm text-zinc-900 shadow-2xs transition hover:border-zinc-300 hover:bg-zinc-50/50 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600 dark:hover:bg-zinc-800/60 cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5 truncate">
+                  <Package className="h-4 w-4 shrink-0 text-zinc-400" />
+                  {currentProduct ? (
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">
+                        {currentProduct.sku}
+                      </span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                        {currentProduct.name}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-zinc-400">คลิกเพื่อเลือกสินค้า หรือพิมพ์ค้นหา...</span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {currentProduct && (
+                    <span
+                      className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
+                        currentProduct.totalQuantityRemaining > 0
+                          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
+                          : "bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"
+                      }`}
+                    >
+                      {currentProduct.totalQuantityRemaining > 0
+                        ? `${formatNumber(currentProduct.totalQuantityRemaining)} ชิ้น`
+                        : "หมดสต็อก"}
+                    </span>
+                  )}
+                  <ChevronDown
+                    className={`h-4 w-4 text-zinc-400 transition-transform duration-200 ${
+                      isDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
+              </button>
+
+              {/* Selected Product Quick Info strip */}
+              {currentProduct && !isDropdownOpen && (
+                <div className="mt-1.5 flex items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/80 px-3 py-1.5 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-400">
+                  <div className="flex items-center gap-2 truncate">
+                    <span>
+                      หมวดหมู่: <strong className="text-zinc-800 dark:text-zinc-200">{currentProduct.category}</strong>
+                    </span>
+                    {currentProduct.barcode && (
+                      <span className="truncate">
+                        • บาร์โค้ด: <strong className="font-mono text-zinc-800 dark:text-zinc-200">[{currentProduct.barcode}]</strong>
+                      </span>
+                    )}
+                  </div>
+                  <span className="shrink-0 pl-2">
+                    มูลค่าสต็อก: <strong className="text-emerald-600 dark:text-emerald-400">{formatCurrency(currentProduct.totalValuation)}</strong>
+                  </span>
+                </div>
+              )}
+
+              {/* GITHUB BRANCH SELECTOR POPOVER DROPDOWN */}
               {isDropdownOpen && (
-                <div className="absolute z-30 mt-1.5 w-full overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
-                  <div className="max-h-60 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
+                <div className="absolute top-full left-0 z-40 mt-1.5 w-full overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 animate-in fade-in zoom-in-95 duration-100">
+                  {/* Search Input Box */}
+                  <div className="border-b border-zinc-100 p-2.5 dark:border-zinc-800">
+                    <div className="relative">
+                      <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        data-scanner-input="true"
+                        autoFocus
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (filteredProducts.length > 0) {
+                              const target =
+                                filteredProducts.find((p) => p.totalQuantityRemaining > 0) ||
+                                filteredProducts[0];
+                              setSelectedProductId(target.id);
+                              setIsDropdownOpen(false);
+                              setSearchQuery("");
+                            } else if (type === "StockIn" && searchQuery.trim()) {
+                              handleStartNewProduct();
+                            }
+                          } else if (e.key === "Escape") {
+                            setIsDropdownOpen(false);
+                          }
+                        }}
+                        placeholder="ค้นหาชื่อสินค้า, SKU, หรือยิงบาร์โค้ด..."
+                        className="w-full rounded-lg border border-zinc-300 bg-white py-1.5 pr-8 pl-9 text-xs text-zinc-900 placeholder:text-zinc-400 transition hover:border-zinc-400 focus:border-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500"
+                      />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSearchQuery("");
+                            searchInputRef.current?.focus();
+                          }}
+                          className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* GitHub Tabs: Branches / Tags equivalent */}
+                  <div className="flex items-center gap-5 border-b border-zinc-200 px-3 pt-1.5 text-xs dark:border-zinc-800">
+                    <button
+                      type="button"
+                      onClick={() => setFilterTab("all")}
+                      className={`-mb-[1px] pb-2 font-bold transition border-b-2 cursor-pointer ${
+                        filterTab === "all"
+                          ? "border-blue-600 text-zinc-900 dark:text-zinc-100"
+                          : "border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 font-medium"
+                      }`}
+                    >
+                      สินค้าทั้งหมด ({products.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFilterTab("inStock")}
+                      className={`-mb-[1px] pb-2 font-bold transition border-b-2 cursor-pointer ${
+                        filterTab === "inStock"
+                          ? "border-blue-600 text-zinc-900 dark:text-zinc-100"
+                          : "border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 font-medium"
+                      }`}
+                    >
+                      มีในสต็อก ({inStockCount})
+                    </button>
+                  </div>
+
+                  {/* Product List with Checkmark on Selected Item */}
+                  <div className="max-h-60 overflow-y-auto divide-y divide-zinc-100 py-1 dark:divide-zinc-800/60">
                     {filteredProducts.length > 0 ? (
                       filteredProducts.map((p) => {
+                        const isSelected = p.id === Number(selectedProductId);
                         const isOutOfStock = p.totalQuantityRemaining === 0;
                         const disabledForOut = type === "StockOut" && isOutOfStock;
 
@@ -542,70 +615,85 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                               setIsDropdownOpen(false);
                               setSearchQuery("");
                             }}
-                            className={`flex w-full items-center justify-between p-3 text-left transition ${
-                              disabledForOut
-                                ? "cursor-not-allowed opacity-40 bg-zinc-50 dark:bg-zinc-950/40"
-                                : "hover:bg-blue-50/60 dark:hover:bg-zinc-800/80 cursor-pointer"
+                            className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs transition ${
+                              isSelected
+                                ? "bg-blue-50/80 font-medium text-blue-900 dark:bg-blue-950/40 dark:text-blue-100"
+                                : disabledForOut
+                                ? "cursor-not-allowed bg-zinc-50/50 opacity-40 dark:bg-zinc-900/30"
+                                : "cursor-pointer text-zinc-800 hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-850"
                             }`}
                           >
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">
+                            <div className="flex items-center gap-2.5 truncate">
+                              {/* Checkmark slot: checkmark if selected, empty spacer if not */}
+                              <div className="flex h-4 w-4 shrink-0 items-center justify-center">
+                                {isSelected && (
+                                  <Check className="h-3.5 w-3.5 stroke-[2.5] text-blue-600 dark:text-blue-400" />
+                                )}
+                              </div>
+
+                              <Package
+                                className={`h-3.5 w-3.5 shrink-0 ${
+                                  isSelected
+                                    ? "text-blue-600 dark:text-blue-400"
+                                    : "text-zinc-400 dark:text-zinc-500"
+                                }`}
+                              />
+
+                              <div className="flex items-center gap-2 truncate">
+                                <span className="font-mono text-[11px] font-bold text-blue-600 dark:text-blue-400">
                                   {p.sku}
                                 </span>
+                                <span className="truncate font-medium">{p.name}</span>
                                 {p.barcode && (
-                                  <span className="font-mono text-[11px] text-zinc-400">
+                                  <span className="font-mono text-[10px] text-zinc-400">
                                     [{p.barcode}]
                                   </span>
                                 )}
-                                <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                                <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
                                   {p.category}
                                 </span>
                               </div>
-                              <div className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                                {p.name}
-                              </div>
                             </div>
 
-                            <div className="text-right">
-                              <div className={`text-xs font-bold ${
-                                isOutOfStock
-                                  ? "text-rose-500"
-                                  : "text-emerald-600 dark:text-emerald-400"
-                              }`}>
-                                {isOutOfStock ? "หมดสต็อก" : `${formatNumber(p.totalQuantityRemaining)} ชิ้น`}
-                              </div>
-                              <div className="text-[10px] text-zinc-400">
-                                {formatCurrency(p.totalValuation)}
-                              </div>
+                            <div className="shrink-0 pl-2 text-right">
+                              <span
+                                className={`text-[11px] font-semibold ${
+                                  isOutOfStock
+                                    ? "text-rose-500"
+                                    : "text-emerald-600 dark:text-emerald-400"
+                                }`}
+                              >
+                                {isOutOfStock
+                                  ? "หมดสต็อก"
+                                  : `${formatNumber(p.totalQuantityRemaining)} ชิ้น`}
+                              </span>
                             </div>
                           </button>
                         );
                       })
                     ) : (
                       <div className="p-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
-                        ไม่พบสินค้าที่ตรงกับคำค้นหา
+                        {searchQuery.trim()
+                          ? `ไม่พบสินค้าที่ตรงกับคำค้นหา "${searchQuery.trim()}"`
+                          : "ไม่มีสินค้าในแท็บนี้"}
                       </div>
                     )}
                   </div>
 
-                  {/* Create New Product Action in Dropdown (For Stock In) */}
+                  {/* Bottom Pinned Footer: GitHub style '+ New branch' -> '+ สร้างเป็นสินค้าใหม่ "[ชื่อที่พิมพ์]"' */}
                   {type === "StockIn" && (
-                    <button
-                      type="button"
-                      onClick={handleStartNewProduct}
-                      className="flex w-full items-center gap-2.5 border-t border-zinc-100 bg-blue-50/70 p-3 text-left text-xs font-bold text-blue-700 transition hover:bg-blue-100 dark:border-zinc-800 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/60"
-                    >
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white shadow-xs">
-                        <Plus className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <div>+ สร้างเป็นสินค้าใหม่ {searchQuery.trim() ? `"${searchQuery.trim()}"` : ""}</div>
-                        <div className="text-[11px] font-normal text-blue-600/80 dark:text-blue-400">
-                          เพิ่มสินค้าใหม่ลงระบบและบันทึกรับเข้าสต็อกล็อตแรกทันที
-                        </div>
-                      </div>
-                    </button>
+                    <div className="border-t border-zinc-200 bg-zinc-50/70 p-1.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+                      <button
+                        type="button"
+                        onClick={handleStartNewProduct}
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-50/80 dark:text-blue-400 dark:hover:bg-blue-950/50 cursor-pointer"
+                      >
+                        <Plus className="h-4 w-4 stroke-[2.5]" />
+                        <span>
+                          + สร้างเป็นสินค้าใหม่ {searchQuery.trim() ? `"${searchQuery.trim()}"` : ""}
+                        </span>
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
