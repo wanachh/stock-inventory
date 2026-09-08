@@ -21,4 +21,5 @@ public interface IInventoryService
     Task<StockTransactionDto> UpdateTransactionAsync(int id, UpdateTransactionRequest req);
     Task<bool> DeleteTransactionAsync(int id);
     Task<DashboardSummaryResponse> GetDashboardSummaryAsync();
+    Task<ExcelImportResult> ImportExcelAsync(ExcelImportRequest req);
 }

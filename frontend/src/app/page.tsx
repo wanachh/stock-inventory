@@ -16,6 +16,8 @@ import { BatchesModal } from "../components/Products/BatchesModal";
 import { MovementModal } from "../components/Products/MovementModal";
 import { TransactionJournal } from "../components/Transactions/TransactionJournal";
 import { EditTransactionModal } from "../components/Transactions/EditTransactionModal";
+import { ExcelImportModal } from "../components/Excel/ExcelImportModal";
+import { ExcelExportModal } from "../components/Excel/ExcelExportModal";
 import { QuickScanView } from "../components/Scanner/QuickScanView";
 import { GlobalScannerListener } from "../components/Scanner/GlobalScannerListener";
 import { PasscodeGate } from "../components/Auth/PasscodeGate";
@@ -45,6 +47,9 @@ export default function Home() {
 
   const [isEditTransactionModalOpen, setIsEditTransactionModalOpen] = useState(false);
   const [transactionToEdit, setTransactionToEdit] = useState<StockTransaction | null>(null);
+
+  const [isExcelImportOpen, setIsExcelImportOpen] = useState(false);
+  const [isExcelExportOpen, setIsExcelExportOpen] = useState(false);
 
   // Toast notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -177,6 +182,8 @@ export default function Home() {
         <Navbar
           onOpenNewProduct={handleOpenNewProduct}
           onOpenQuickMovement={() => handleOpenStockIn()}
+          onOpenExcelImport={() => setIsExcelImportOpen(true)}
+          onOpenExcelExport={() => setIsExcelExportOpen(true)}
           onLock={handleLock}
         />
 
@@ -277,6 +284,8 @@ export default function Home() {
               onOpenStockOut={handleOpenStockOut}
               onViewBatches={handleViewBatches}
               onEditProduct={handleOpenEditProduct}
+              onOpenExcelImport={() => setIsExcelImportOpen(true)}
+              onOpenExcelExport={() => setIsExcelExportOpen(true)}
             />
           )}
 
@@ -287,6 +296,7 @@ export default function Home() {
               onRefresh={loadData}
               onEditTransaction={handleOpenEditTransaction}
               onDeleteTransaction={handleDeleteTransaction}
+              onOpenExcelExport={() => setIsExcelExportOpen(true)}
             />
           )}
 
@@ -340,6 +350,22 @@ export default function Home() {
             showToast("แก้ไขรายการเคลื่อนไหวสต็อกเรียบร้อย");
             loadData();
           }}
+        />
+
+        <ExcelImportModal
+          isOpen={isExcelImportOpen}
+          onClose={() => setIsExcelImportOpen(false)}
+          onSuccess={() => {
+            showToast("นำเข้าข้อมูลสต็อกและสินค้าจาก Excel เรียบร้อย");
+            loadData();
+          }}
+        />
+
+        <ExcelExportModal
+          isOpen={isExcelExportOpen}
+          onClose={() => setIsExcelExportOpen(false)}
+          products={products}
+          transactions={transactions}
         />
       </div>
     </PasscodeGate>

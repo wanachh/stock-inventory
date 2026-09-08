@@ -13,6 +13,8 @@ import {
   AlertCircle,
   Barcode,
   Package,
+  Upload,
+  Download,
 } from "lucide-react";
 
 interface ProductTableProps {
@@ -21,6 +23,8 @@ interface ProductTableProps {
   onOpenStockOut: (product: ProductDetail) => void;
   onViewBatches: (product: ProductDetail) => void;
   onEditProduct: (product: ProductDetail) => void;
+  onOpenExcelImport?: () => void;
+  onOpenExcelExport?: () => void;
   initialSearch?: string;
   initialStatusFilter?: string;
 }
@@ -31,6 +35,8 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   onOpenStockOut,
   onViewBatches,
   onEditProduct,
+  onOpenExcelImport,
+  onOpenExcelExport,
   initialSearch = "",
   initialStatusFilter = "all",
 }) => {
@@ -157,6 +163,30 @@ export const ProductTable: React.FC<ProductTableProps> = ({
             >
               หมด
             </button>
+          </div>
+
+          {/* Excel Action Buttons */}
+          <div className="flex items-center gap-1.5">
+            {onOpenExcelImport && (
+              <button
+                type="button"
+                onClick={onOpenExcelImport}
+                className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 shadow-xs transition hover:bg-emerald-100 dark:border-emerald-800/40 dark:bg-emerald-950/40 dark:text-emerald-300"
+              >
+                <Upload className="h-3.5 w-3.5" />
+                <span>นำเข้า Excel</span>
+              </button>
+            )}
+            {onOpenExcelExport && (
+              <button
+                type="button"
+                onClick={onOpenExcelExport}
+                className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 shadow-xs transition hover:bg-blue-100 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span>ส่งออก Excel</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

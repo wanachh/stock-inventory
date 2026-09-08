@@ -10,6 +10,8 @@ import {
   UpdateProductRequest,
   UpdateTransactionRequest,
   VisitorStats,
+  ExcelImportRequest,
+  ExcelImportResult,
 } from "../types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5200/api";
@@ -145,6 +147,12 @@ export const api = {
       return { totalVisits: 1, todayVisits: 1, activeNow: 1 };
     }
   },
+
+  importExcel: (data: ExcelImportRequest): Promise<ExcelImportResult> =>
+    request<ExcelImportResult>("/stock/import-excel", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };
 
 // Formatting helpers

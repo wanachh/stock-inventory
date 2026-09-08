@@ -23,6 +23,7 @@ interface TransactionJournalProps {
   onRefresh?: () => void;
   onEditTransaction?: (transaction: StockTransaction) => void;
   onDeleteTransaction?: (transaction: StockTransaction) => void;
+  onOpenExcelExport?: () => void;
 }
 
 export const TransactionJournal: React.FC<TransactionJournalProps> = ({
@@ -30,6 +31,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
   onRefresh,
   onEditTransaction,
   onDeleteTransaction,
+  onOpenExcelExport,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -140,6 +142,18 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
             </button>
           </div>
 
+          {/* Export Excel Report */}
+          {onOpenExcelExport && (
+            <button
+              onClick={onOpenExcelExport}
+              title="ส่งออกรายงาน Excel ตามช่วงวันที่เลือก (เทมเพลตมาตรฐาน)"
+              className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 active:scale-95 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300"
+            >
+              <Download className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="hidden sm:inline">รายงาน Excel</span>
+            </button>
+          )}
+
           {/* Export CSV */}
           <button
             onClick={handleExportCsv}
@@ -147,7 +161,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
             className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
           >
             <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-            <span className="hidden sm:inline">Export CSV</span>
+            <span className="hidden sm:inline">CSV</span>
           </button>
         </div>
       </div>

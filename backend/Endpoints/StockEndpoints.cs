@@ -72,6 +72,25 @@ public static class StockEndpoints
         .WithName("PreviewStockOut")
         .WithSummary("Preview FIFO batch deductions and total cost out before confirming");
 
+        group.MapPost("/import-excel", async (ExcelImportRequest request, IInventoryService service) =>
+        {
+            try
+            {
+                var result = await service.ImportExcelAsync(request);
+                return Results.Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { error = $"เกิดข้อผิดพลาดในการนำเข้า Excel: {ex.Message}" });
+            }
+        })
+        .WithName("ImportExcel")
+        .WithSummary("Bulk import products and stock in batches from Excel");
+
         return group;
     }
 }

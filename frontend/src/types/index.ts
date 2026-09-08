@@ -155,3 +155,29 @@ export interface VisitorStats {
   todayVisits: number;
   activeNow: number;
 }
+
+export interface ExcelImportItem {
+  lineNumber?: number;
+  sku: string;
+  barcode?: string | null;
+  brand?: string | null;
+  quantity: number;
+  priceBeforeVat: number;
+  vat?: number | null;
+  priceAfterVat?: number | null;
+  receivedDate?: string | null;
+}
+
+export interface ExcelImportRequest {
+  items: ExcelImportItem[];
+  usePriceAfterVatAsCost?: boolean;
+}
+
+export interface ExcelImportResult {
+  totalProcessed: number;
+  createdProductsCount: number;
+  stockInBatchesCount: number;
+  totalUnits: number;
+  totalValue: number;
+  messages: string[];
+}

@@ -151,3 +151,29 @@ public record DashboardSummaryResponse(
     List<StockTransactionDto> RecentTransactions,
     List<DailyMovementSummary> MovementTrend
 );
+
+public record ExcelImportItem(
+    int? LineNumber,
+    string Sku,
+    string? Barcode,
+    string? Brand,
+    int Quantity,
+    decimal PriceBeforeVat,
+    decimal? Vat,
+    decimal? PriceAfterVat,
+    DateTime? ReceivedDate
+);
+
+public record ExcelImportRequest(
+    List<ExcelImportItem> Items,
+    bool UsePriceAfterVatAsCost = false
+);
+
+public record ExcelImportResult(
+    int TotalProcessed,
+    int CreatedProductsCount,
+    int StockInBatchesCount,
+    int TotalUnits,
+    decimal TotalValue,
+    List<string> Messages
+);

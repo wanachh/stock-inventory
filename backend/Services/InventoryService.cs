@@ -959,4 +959,127 @@ public partial class InventoryService : IInventoryService
             batchDtos
         );
     }
+
+    public async Task<ExcelImportResult> ImportExcelAsync(ExcelImportRequest req)
+    {
+        if (req.Items == null || req.Items.Count == 0)
+        {
+            throw new ArgumentException("ไม่พบรายการข้อมูลในไฟล์ Excel สำหรับนำเข้า");
+        }
+
+        var messages = new List<string>();
+        int createdProducts = 0;
+        int stockInBatches = 0;
+        int totalUnits = 0;
+        decimal totalValue = 0m;
+
+        foreach (var item in req.Items)
+        {
+            if (string.IsNullOrWhiteSpace(item.Sku))
+            {
+                continue;
+            }
+
+            if (item.Quantity <= 0)
+            {
+                throw new ArgumentException($"แถวที่ {item.LineNumber ?? 0} (SKU: {item.Sku}): จำนวนสินค้าต้องมากกว่า 0 ชิ้น");
+            }
+
+            var cleanSku = item.Sku.Trim();
+            var cleanBarcode = string.IsNullOrWhiteSpace(item.Barcode) ? null : item.Barcode.Trim();
+            var cleanBrand = string.IsNullOrWhiteSpace(item.Brand) ? cleanSku : item.Brand.Trim();
+
+            decimal unitCost = item.PriceBeforeVat;
+            if (req.UsePriceAfterVatAsCost && item.PriceAfterVat.HasValue && item.PriceAfterVat.Value > 0)
+            {
+                unitCost = item.PriceAfterVat.Value;
+            }
+            if (unitCost < 0)
+            {
+                unitCost = 0;
+            }
+
+            var product = await _db.Products.FirstOrDefaultAsync(p => p.Sku.ToLower() == cleanSku.ToLower());
+            if (product == null)
+            {
+                product = new Product
+                {
+                    Sku = cleanSku,
+                    Barcode = cleanBarcode,
+                    Name = cleanBrand,
+                    Category = cleanBrand,
+                    MinThreshold = 5,
+                    CreatedAt = item.ReceivedDate ?? DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _db.Products.Add(product);
+                await _db.SaveChangesAsync();
+                createdProducts++;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(product.Barcode) && !string.IsNullOrEmpty(cleanBarcode))
+                {
+                    product.Barcode = cleanBarcode;
+                    product.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+
+            var importDate = item.ReceivedDate ?? DateTime.UtcNow;
+            var batchNumber = $"LOT-{importDate:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
+
+            var batch = new InventoryBatch
+            {
+                ProductId = product.Id,
+                BatchNumber = batchNumber,
+                QuantityReceived = item.Quantity,
+                QuantityRemaining = item.Quantity,
+                UnitCost = unitCost,
+                ReceivedDate = importDate,
+                Reference = $"Excel Import{(item.LineNumber.HasValue ? $" #{item.LineNumber}" : "")}",
+                Status = BatchStatus.Active
+            };
+            _db.InventoryBatches.Add(batch);
+            await _db.SaveChangesAsync();
+
+            var lineCost = item.Quantity * unitCost;
+            var transaction = new StockTransaction
+            {
+                ProductId = product.Id,
+                Type = TransactionType.StockIn,
+                Quantity = item.Quantity,
+                TotalCost = lineCost,
+                ReferenceNote = $"นำเข้าจาก Excel แถว {item.LineNumber ?? 0} (ก่อน VAT: ฿{item.PriceBeforeVat:N2}, หลัง VAT: ฿{(item.PriceAfterVat ?? item.PriceBeforeVat * 1.07m):N2})",
+                CreatedAt = importDate
+            };
+            _db.StockTransactions.Add(transaction);
+            await _db.SaveChangesAsync();
+
+            var detail = new TransactionBatchDetail
+            {
+                StockTransactionId = transaction.Id,
+                InventoryBatchId = batch.Id,
+                QuantityDrawn = item.Quantity,
+                UnitCost = unitCost,
+                SubtotalCost = lineCost
+            };
+            _db.TransactionBatchDetails.Add(detail);
+            await _db.SaveChangesAsync();
+
+            stockInBatches++;
+            totalUnits += item.Quantity;
+            totalValue += lineCost;
+        }
+
+        messages.Add($"นำเข้าข้อมูลเรียบร้อย: เพิ่มสินค้าใหม่ {createdProducts} รายการ, บันทึกรับเข้าสต็อก {stockInBatches} ล็อต (รวม {totalUnits} ชิ้น, มูลค่า ฿{totalValue:N2})");
+
+        return new ExcelImportResult(
+            req.Items.Count,
+            createdProducts,
+            stockInBatches,
+            totalUnits,
+            totalValue,
+            messages
+        );
+    }
 }
