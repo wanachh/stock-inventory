@@ -75,8 +75,9 @@ jobs:
           node-version: 24
 
       - name: Build Frontend Export
-        env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        # NEXT_PUBLIC_API_URL comes from the committed frontend/.env.production file (it's a
+        # public URL, not a secret). Do not override it with an unconfigured secrets.* value here,
+        # since an empty secret would blank out the correct committed value and fail the build.
         run: |
           cd frontend
           npm ci
