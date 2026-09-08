@@ -100,6 +100,11 @@ export const QuickScanView: React.FC<QuickScanViewProps> = ({
                     [{product.barcode}]
                   </span>
                 )}
+                {product.brand && (
+                  <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                    {product.brand}
+                  </span>
+                )}
                 <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium dark:bg-slate-800">
                   {product.category}
                 </span>

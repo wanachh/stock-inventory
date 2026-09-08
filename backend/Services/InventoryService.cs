@@ -102,6 +102,7 @@ public partial class InventoryService : IInventoryService
             Sku = sku,
             Barcode = string.IsNullOrWhiteSpace(req.Barcode) ? null : req.Barcode.Trim(),
             Name = req.Name.Trim(),
+            Brand = string.IsNullOrWhiteSpace(req.Brand) ? null : req.Brand.Trim(),
             Category = string.IsNullOrWhiteSpace(req.Category) ? "General" : req.Category.Trim(),
             MinThreshold = req.MinThreshold ?? 5,
             CreatedAt = DateTime.UtcNow,
@@ -214,6 +215,7 @@ public partial class InventoryService : IInventoryService
         }
 
         product.Name = req.Name.Trim();
+        product.Brand = string.IsNullOrWhiteSpace(req.Brand) ? null : req.Brand.Trim();
         product.Category = string.IsNullOrWhiteSpace(req.Category) ? "General" : req.Category.Trim();
         product.MinThreshold = req.MinThreshold ?? product.MinThreshold;
         product.UpdatedAt = DateTime.UtcNow;
@@ -851,6 +853,7 @@ public partial class InventoryService : IInventoryService
                 p.Id,
                 p.Sku,
                 p.Name,
+                p.Brand,
                 p.Category,
                 p.TotalQuantityRemaining,
                 p.TotalValuation
@@ -967,6 +970,7 @@ public partial class InventoryService : IInventoryService
             product.Sku,
             product.Barcode,
             product.Name,
+            product.Brand,
             product.Category,
             product.MinThreshold,
             totalQty,
@@ -1025,6 +1029,7 @@ public partial class InventoryService : IInventoryService
                     Sku = cleanSku,
                     Barcode = cleanBarcode,
                     Name = cleanBrand,
+                    Brand = cleanBrand,
                     Category = cleanBrand,
                     MinThreshold = 5,
                     CreatedAt = item.ReceivedDate ?? DateTime.UtcNow,

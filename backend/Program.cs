@@ -74,11 +74,13 @@ CREATE TABLE IF NOT EXISTS "Products" (
     "Sku" character varying(64) NOT NULL,
     "Barcode" character varying(64),
     "Name" character varying(200) NOT NULL,
+    "Brand" character varying(150),
     "Category" character varying(100) DEFAULT 'General' NOT NULL,
     "MinThreshold" integer NOT NULL DEFAULT 5,
     "CreatedAt" timestamp with time zone NOT NULL,
     "UpdatedAt" timestamp with time zone
 );
+ALTER TABLE "Products" ADD COLUMN IF NOT EXISTS "Brand" character varying(150);
 CREATE UNIQUE INDEX IF NOT EXISTS "IX_Products_Sku" ON "Products" ("Sku");
 CREATE INDEX IF NOT EXISTS "IX_Products_Barcode" ON "Products" ("Barcode");
 

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { CreateProductRequest, DashboardSummary, ProductDetail, StockTransaction, DashboardKpis, DailyMovementSummary, UpdateProductRequest } from "../types";
-import { api } from "../lib/api";
+import { api, API_BASE } from "../lib/api";
 import { Navbar } from "../components/Navbar";
 import { Sidebar, NavTab } from "../components/Sidebar";
 import { MobileNav } from "../components/MobileNav";
@@ -343,7 +343,7 @@ export default function Home() {
                   <AlertTriangle className="h-5 w-5 shrink-0 text-rose-600" />
                   <span>
                     <strong>เกิดข้อผิดพลาดในการเชื่อมต่อ Backend:</strong> {error}
-                    <span className="ml-1 text-[11px] opacity-80">(ตรวจสอบว่า .NET 10 API รันอยู่ที่ http://localhost:5200)</span>
+                    <span className="ml-1 text-[11px] opacity-80">(ตรวจสอบว่า .NET 10 API รันอยู่ที่ {API_BASE})</span>
                   </span>
                 </div>
                 <button

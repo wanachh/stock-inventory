@@ -4,6 +4,7 @@ public record CreateProductRequest(
     string Sku,
     string? Barcode,
     string Name,
+    string? Brand,
     string? Category,
     int? MinThreshold,
     int? InitialQuantity,
@@ -16,6 +17,7 @@ public record UpdateProductRequest(
     string Sku,
     string? Barcode,
     string Name,
+    string? Brand,
     string? Category,
     int? MinThreshold
 );
@@ -82,6 +84,7 @@ public record ProductDetailDto(
     string Sku,
     string? Barcode,
     string Name,
+    string? Brand,
     string Category,
     int MinThreshold,
     int TotalQuantityRemaining,
@@ -133,6 +136,7 @@ public record TopValuedProduct(
     int Id,
     string Sku,
     string Name,
+    string? Brand,
     string Category,
     int QuantityRemaining,
     decimal TotalValuation

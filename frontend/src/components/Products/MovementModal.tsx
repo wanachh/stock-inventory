@@ -60,6 +60,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
   const [newProductName, setNewProductName] = useState("");
   const [newProductSku, setNewProductSku] = useState("");
   const [newProductBarcode, setNewProductBarcode] = useState("");
+  const [newProductBrand, setNewProductBrand] = useState("");
   const [newProductCategory, setNewProductCategory] = useState("General");
 
   const [quantity, setQuantity] = useState<number | "">("");
@@ -105,6 +106,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
     setNewProductName("");
     setNewProductSku("");
     setNewProductBarcode("");
+    setNewProductBrand("");
     setNewProductCategory("General");
     setQuantity("");
     setUnitCost("");
@@ -213,6 +215,16 @@ export const MovementModal: React.FC<MovementModalProps> = ({
     };
   }, [type, selectedProductId, quantity, currentProduct]);
 
+  // Escape key always closes the modal, even if content overflows the viewport
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -259,6 +271,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
           barcode: newProductBarcode.trim() || undefined,
           name: newProductName.trim(),
           category: newProductCategory.trim() || "General",
+          brand: newProductBrand.trim() || undefined,
           minThreshold: 5,
           initialQuantity: qty,
           initialUnitCost: cost,
@@ -310,10 +323,16 @@ export const MovementModal: React.FC<MovementModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-3xl border border-slate-200/80 bg-white p-6 shadow-2xl dark:border-slate-800/80 dark:bg-slate-900">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-3xl border border-slate-200/80 bg-white shadow-2xl dark:border-slate-800/80 dark:bg-slate-900"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header (always visible, not part of the scrollable area) */}
+        <div className="flex items-center justify-between border-b border-slate-100 p-6 pb-4 dark:border-slate-800">
           <div>
             <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
               {t("shell.movement")} (Stock Movement)
@@ -331,7 +350,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
         </div>
 
         {/* Type Toggle: Stock In vs Stock Out */}
-        <div className="mt-4 grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1.5 dark:bg-slate-800/80">
+        <div className="mx-6 mt-4 grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1.5 dark:bg-slate-800/80">
           <button
             type="button"
             onClick={() => handleTypeChange("StockIn")}
@@ -359,13 +378,14 @@ export const MovementModal: React.FC<MovementModalProps> = ({
         </div>
 
         {error && (
-          <div className="mt-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300">
+          <div className="mx-6 mt-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
           {/* Target Product: Smart Combobox with Suggestions or New Product Form */}
           {isNewProductMode ? (
             /* NEW PRODUCT ON-THE-FLY FORM */
@@ -438,6 +458,19 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                       className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 font-mono text-sm text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    แบรนด์สินค้า (ถ้ามี)
+                  </label>
+                  <input
+                    type="text"
+                    value={newProductBrand}
+                    onChange={(e) => setNewProductBrand(e.target.value)}
+                    placeholder="เช่น Doi Chang, Logitech"
+                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                  />
                 </div>
 
                 <div>
@@ -526,6 +559,11 @@ export const MovementModal: React.FC<MovementModalProps> = ({
               {currentProduct && !isDropdownOpen && (
                 <div className="mt-1.5 flex items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/80 px-3 py-1.5 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-400">
                   <div className="flex items-center gap-2 truncate">
+                    {currentProduct.brand && (
+                      <span className="truncate">
+                        แบรนด์: <strong className="text-zinc-800 dark:text-zinc-200">{currentProduct.brand}</strong>
+                      </span>
+                    )}
                     <span>
                       หมวดหมู่: <strong className="text-zinc-800 dark:text-zinc-200">{currentProduct.category}</strong>
                     </span>
@@ -666,6 +704,11 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                                 {p.barcode && (
                                   <span className="font-mono text-[10px] text-zinc-400">
                                     [{p.barcode}]
+                                  </span>
+                                )}
+                                {p.brand && (
+                                  <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                                    {p.brand}
                                   </span>
                                 )}
                                 <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
@@ -893,8 +936,9 @@ export const MovementModal: React.FC<MovementModalProps> = ({
             />
           </div>
 
-          {/* Actions */}
-          <div className="mt-6 flex items-center justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+          {/* Actions - always visible, outside the scrollable area */}
+        </div>
+          <div className="flex items-center justify-end gap-2 border-t border-zinc-100 px-6 py-4 dark:border-zinc-800">
             <button
               type="button"
               onClick={onClose}

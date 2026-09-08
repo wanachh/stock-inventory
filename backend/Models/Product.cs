@@ -6,6 +6,7 @@ public class Product
     public required string Sku { get; set; }
     public string? Barcode { get; set; }
     public required string Name { get; set; }
+    public string? Brand { get; set; }
     public string Category { get; set; } = "General";
     public int MinThreshold { get; set; } = 5;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

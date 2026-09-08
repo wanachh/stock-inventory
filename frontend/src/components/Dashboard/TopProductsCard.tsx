@@ -50,6 +50,12 @@ export const TopProductsCard: React.FC<TopProductsCardProps> = ({
                   </h4>
                   <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                     <span className="font-mono">{p.sku}</span>
+                    {p.brand && (
+                      <>
+                        <span>•</span>
+                        <span>{p.brand}</span>
+                      </>
+                    )}
                     <span>•</span>
                     <span className="flex items-center gap-1">
                       <Tag className="h-3 w-3" />

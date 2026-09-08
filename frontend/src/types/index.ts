@@ -16,6 +16,7 @@ export interface ProductDetail {
   sku: string;
   barcode?: string | null;
   name: string;
+  brand?: string | null;
   category: string;
   minThreshold: number;
   totalQuantityRemaining: number;
@@ -86,6 +87,7 @@ export interface TopValuedProduct {
   id: number;
   sku: string;
   name: string;
+  brand?: string | null;
   category: string;
   quantityRemaining: number;
   totalValuation: number;
@@ -112,6 +114,7 @@ export interface CreateProductRequest {
   sku: string;
   barcode?: string | null;
   name: string;
+  brand?: string | null;
   category?: string;
   minThreshold?: number;
   initialQuantity?: number;
@@ -124,6 +127,7 @@ export interface UpdateProductRequest {
   sku: string;
   barcode?: string | null;
   name: string;
+  brand?: string | null;
   category?: string;
   minThreshold?: number;
 }

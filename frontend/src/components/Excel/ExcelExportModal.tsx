@@ -93,7 +93,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
             exportData.push({
               sku: prod.sku,
               barcode: prod.barcode,
-              brand: prod.name,
+              brand: prod.brand || prod.name,
               quantity: batch.quantityRemaining,
               priceBeforeVat: preVat,
               vat: vat,
@@ -105,7 +105,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
           exportData.push({
             sku: prod.sku,
             barcode: prod.barcode,
-            brand: prod.name,
+            brand: prod.brand || prod.name,
             quantity: prod.totalQuantityRemaining,
             priceBeforeVat: 0,
             vat: 0,

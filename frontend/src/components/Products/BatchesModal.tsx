@@ -53,6 +53,11 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
                   {t("product.batches")}
                 </h3>
                 <span className="font-mono text-xs text-slate-500">[{product.sku}]</span>
+                {product.brand && (
+                  <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                    {product.brand}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {product.name} • จัดการต้นทุนจริงแบบเข้าก่อน-ออกก่อน ()

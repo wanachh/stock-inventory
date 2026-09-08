@@ -39,8 +39,15 @@ the variable is missing instead of silently deploying a frontend that calls loca
 The backend accepts a comma-separated `CORS_ORIGINS` value in production, for example:
 
 ```text
-CORS_ORIGINS=https://stockpulse.pages.dev,https://inventory.example.com
+CORS_ORIGINS=https://stock-inventory.pages.dev,https://inventory.example.com
 ```
+
+`localhost`/`127.0.0.1` origins are always allowed by the backend regardless of this
+setting, so local dev and Docker Compose keep working without configuration. Any
+deployed frontend domain (Cloudflare Pages URL and/or custom domain) must be added
+to `CORS_ORIGINS` on the Render service, or API requests will be silently blocked
+by the browser (fetch fails with "Load failed" / "Failed to fetch") even though the
+backend itself is healthy.
 
 Set `NEXT_PUBLIC_API_URL` in the frontend build environment and `CORS_ORIGINS` in
 the Render backend environment. `DATABASE_URL` remains the production PostgreSQL

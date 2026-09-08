@@ -243,6 +243,11 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                         {p.name}
                       </div>
                       <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        {p.brand && (
+                          <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                            {p.brand}
+                          </span>
+                        )}
                         <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium dark:bg-slate-800">
                           {p.category}
                         </span>
@@ -359,6 +364,11 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                       <span className="font-mono text-xs font-bold text-slate-900 dark:text-slate-100">
                         {p.sku}
                       </span>
+                      {p.brand && (
+                        <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                          {p.brand}
+                        </span>
+                      )}
                       <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium dark:bg-slate-800">
                         {p.category}
                       </span>

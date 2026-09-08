@@ -20,7 +20,7 @@ if (!configuredApiUrl && process.env.NODE_ENV === "production") {
 }
 
 const apiUrl = configuredApiUrl || "http://localhost:5200";
-const API_BASE = apiUrl.replace(/\/+$/, "").endsWith("/api")
+export const API_BASE = apiUrl.replace(/\/+$/, "").endsWith("/api")
   ? apiUrl.replace(/\/+$/, "")
   : `${apiUrl.replace(/\/+$/, "")}/api`;
 

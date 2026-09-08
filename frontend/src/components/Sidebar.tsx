@@ -48,12 +48,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       sublabel: "Transactions",
       icon: ArrowRightLeft,
     },
-    {
-      id: "scanner" as NavTab,
-      label: t("nav.scanner"),
-      sublabel: "Scanner",
-      icon: ScanLine,
-    },
+    // {
+    //   id: "scanner" as NavTab,
+    //   label: t("nav.scanner"),
+    //   sublabel: "Scanner",
+    //   icon: ScanLine,
+    // },
   ];
 
   return (

@@ -27,6 +27,7 @@ public class AppDbContext : DbContext
             entity.Property(p => p.Sku).HasMaxLength(64).IsRequired();
             entity.Property(p => p.Barcode).HasMaxLength(64);
             entity.Property(p => p.Name).HasMaxLength(200).IsRequired();
+            entity.Property(p => p.Brand).HasMaxLength(150);
             entity.Property(p => p.Category).HasMaxLength(100).HasDefaultValue("General");
         });
 

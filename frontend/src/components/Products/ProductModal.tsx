@@ -26,6 +26,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [sku, setSku] = useState("");
   const [barcode, setBarcode] = useState("");
   const [name, setName] = useState("");
+  const [brand, setBrand] = useState("");
   const [category, setCategory] = useState("General");
   const [minThreshold, setMinThreshold] = useState(5);
 
@@ -36,19 +37,28 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Auto-generate machine-friendly SKU (e.g. PRD-2026-XXXX)
+  const generateRandomSku = () => {
+    const randomChars = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `PRD-${new Date().getFullYear()}-${randomChars}`;
+  };
+
   useEffect(() => {
     if (productToEdit) {
       setSku(productToEdit.sku);
       setBarcode(productToEdit.barcode || "");
       setName(productToEdit.name);
+      setBrand(productToEdit.brand || "");
       setCategory(productToEdit.category || "General");
       setMinThreshold(productToEdit.minThreshold || 5);
       setInitialQuantity("");
       setInitialUnitCost("");
     } else {
-      setSku("");
+      // Pre-fill a random SKU so the user can edit it later instead of starting blank
+      setSku(generateRandomSku());
       setBarcode("");
       setName("");
+      setBrand("");
       setCategory("General");
       setMinThreshold(5);
       setInitialQuantity("");
@@ -57,12 +67,20 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     setError(null);
   }, [productToEdit, isOpen]);
 
+  // Escape key always closes the modal, even if content overflows the viewport
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
-  // Auto-generate machine-friendly SKU (e.g. PRD-2026-XXXX)
   const handleAutoGenerateSku = () => {
-    const randomChars = Math.random().toString(36).substring(2, 6).toUpperCase();
-    setSku(`PRD-${new Date().getFullYear()}-${randomChars}`);
+    setSku(generateRandomSku());
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -116,6 +134,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           sku: cleanSku,
           barcode: barcode.trim() || null,
           name: name.trim(),
+          brand: brand.trim() || null,
           category: category.trim() || "General",
           minThreshold: Number(minThreshold) || 5,
         });
@@ -124,6 +143,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           sku: cleanSku,
           barcode: barcode.trim() || null,
           name: name.trim(),
+          brand: brand.trim() || null,
           category: category.trim() || "General",
           minThreshold: Number(minThreshold) || 5,
           initialQuantity: initialQuantity !== "" ? Number(initialQuantity) : undefined,
@@ -140,10 +160,16 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-3xl border border-slate-200/80 bg-white p-6 shadow-2xl dark:border-slate-800/80 dark:bg-slate-900">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-3xl border border-slate-200/80 bg-white shadow-2xl dark:border-slate-800/80 dark:bg-slate-900"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header (always visible, not part of the scrollable area) */}
+        <div className="flex items-center justify-between border-b border-slate-100 p-6 pb-4 dark:border-slate-800">
           <div>
             <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
               {isEdit ? t("product.edit") : t("shell.newProduct")}
@@ -163,13 +189,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         </div>
 
         {error && (
-          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300">
+          <div className="mx-6 mt-4 flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300">
             <ShieldAlert className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
           {/* SKU Field with Auto-Generate */}
           <div>
             <div className="flex items-center justify-between">
@@ -213,6 +240,20 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               onChange={(e) => setName(e.target.value)}
               placeholder="เช่น เมล็ดกาแฟอาราบิก้า หรือ เมาส์ไร้สาย"
               required
+              className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+            />
+          </div>
+
+          {/* Brand */}
+          <div>
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              แบรนด์สินค้า (Brand) <span className="text-slate-400 font-normal">(เว้นว่างได้)</span>
+            </label>
+            <input
+              type="text"
+              value={brand}
+              onChange={(e) => setBrand(e.target.value)}
+              placeholder="เช่น Doi Chang, Logitech"
               className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
           </div>
@@ -324,9 +365,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               </div>
             </div>
           )}
+        </div>
 
-          {/* Actions */}
-          <div className="mt-6 flex items-center justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
+          {/* Actions (always visible, outside the scrollable area) */}
+          <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-6 py-4 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
