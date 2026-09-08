@@ -59,6 +59,24 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontend");
 
+// Friendly error handling for invalid JSON numbers (e.g. 10.3 for int) and bad requests
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (BadHttpRequestException)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new
+        {
+            error = "ข้อมูลไม่ถูกต้อง: จำนวนสินค้า (Quantity) ต้องเป็นจำนวนเต็มบวกเท่านั้น (เช่น 1, 2, 3...) ไม่สามารถระบุเป็นทศนิยมหรือค่าว่างได้"
+        });
+    }
+});
+
 // Root status check
 app.MapGet("/", () => Results.Ok(new
 {

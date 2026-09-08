@@ -71,9 +71,14 @@ export const MovementModal: React.FC<MovementModalProps> = ({
 
   // Live FIFO Preview effect when stocking out
   useEffect(() => {
-    if (type !== "StockOut" || !currentProduct || !quantity || Number(quantity) <= 0) {
+    const qtyNum = Number(quantity);
+    if (type !== "StockOut" || !currentProduct || !quantity || qtyNum <= 0 || !Number.isInteger(qtyNum)) {
       setPreview(null);
-      setPreviewError(null);
+      if (quantity !== "" && (!Number.isInteger(qtyNum) || qtyNum <= 0)) {
+        setPreviewError("จำนวนสินค้าต้องเป็นจำนวนเต็มบวกมากกว่า 0 ชิ้น (ไม่สามารถใส่ทศนิยมหรือ 0 ได้)");
+      } else {
+        setPreviewError(null);
+      }
       return;
     }
 
@@ -88,7 +93,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
       api
         .previewStockOut({
           productId: currentProduct.id,
-          quantity: Number(quantity),
+          quantity: qtyNum,
         })
         .then((res) => {
           setPreview(res);
@@ -131,8 +136,13 @@ export const MovementModal: React.FC<MovementModalProps> = ({
     }
 
     const qty = Number(quantity);
-    if (!qty || qty <= 0) {
-      setError("กรุณาระบุจำนวนที่มากกว่า 0");
+    if (quantity === "" || isNaN(qty) || qty <= 0) {
+      setError("จำนวนสินค้าต้องมากกว่า 0 ชิ้น (ไม่สามารถระบุ 0 หรือติดลบได้)");
+      return;
+    }
+
+    if (!Number.isInteger(qty)) {
+      setError(`จำนวนสินค้าต้องเป็นจำนวนเต็มเท่านั้น (เช่น 1, 2, 3...) ไม่สามารถระบุเป็นทศนิยมอย่าง ${quantity} ชิ้นได้`);
       return;
     }
 
@@ -286,14 +296,28 @@ export const MovementModal: React.FC<MovementModalProps> = ({
           <div>
             <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
               {type === "StockIn" ? "จำนวนที่รับเข้า (ชิ้น)" : "จำนวนที่ต้องการตัดออก (ชิ้น)"}{" "}
-              <span className="text-rose-500">*</span>
+              <span className="text-rose-500">* (จำนวนเต็มเท่านั้น)</span>
             </label>
             <input
               type="number"
               min={1}
+              step={1}
               value={quantity}
-              onChange={(e) => setQuantity(e.target.value === "" ? "" : parseInt(e.target.value))}
-              placeholder="เช่น 10"
+              onKeyDown={(e) => {
+                if (e.key === "." || e.key === "," || e.key === "e" || e.key === "E" || e.key === "-") {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "") {
+                  setQuantity("");
+                } else {
+                  const parsed = parseFloat(val);
+                  setQuantity(isNaN(parsed) ? "" : parsed);
+                }
+              }}
+              placeholder="เช่น 1, 5, 10 (ห้ามใส่ 0 หรือทศนิยม)"
               required
               className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-base font-bold text-zinc-900 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
             />

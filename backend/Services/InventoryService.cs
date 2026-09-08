@@ -111,10 +111,20 @@ public partial class InventoryService : IInventoryService
         _db.Products.Add(product);
         await _db.SaveChangesAsync();
 
-        // If initial quantity and cost provided, create initial batch and transaction
-        if (req.InitialQuantity.HasValue && req.InitialQuantity.Value > 0)
+        // If initial quantity provided, strictly validate > 0 and unit cost
+        if (req.InitialQuantity.HasValue)
         {
+            if (req.InitialQuantity.Value <= 0)
+            {
+                throw new ArgumentException("หากต้องการระบุสต็อกตั้งต้น จำนวนสินค้าต้องมากกว่า 0 ชิ้น (หากยังไม่มีสินค้า ให้เว้นว่างไว้ ไม่สามารถใส่ 0 ได้)");
+            }
+
             var unitCost = req.InitialUnitCost ?? 0m;
+            if (unitCost < 0)
+            {
+                throw new ArgumentException("ราคาต้นทุนตั้งต้นต้องไม่ติดลบ");
+            }
+
             var batchNumber = $"LOT-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
             var batch = new InventoryBatch
             {
@@ -243,13 +253,13 @@ public partial class InventoryService : IInventoryService
     {
         if (quantity <= 0)
         {
-            throw new ArgumentException("Quantity to stock out must be greater than zero.");
+            throw new ArgumentException("จำนวนสินค้าที่ต้องการตัดออกต้องเป็นจำนวนเต็มบวกมากกว่า 0 ชิ้น (ไม่สามารถตัดออก 0 หรือติดลบได้)");
         }
 
         var product = await FindProductAsync(productId, skuOrBarcode);
         if (product == null)
         {
-            throw new KeyNotFoundException("Product not found.");
+            throw new KeyNotFoundException("ไม่พบสินค้าที่ต้องการตัดออก");
         }
 
         // Active batches ordered FIFO
@@ -263,7 +273,7 @@ public partial class InventoryService : IInventoryService
         var totalAvailable = activeBatches.Sum(b => b.QuantityRemaining);
         if (totalAvailable < quantity)
         {
-            throw new InvalidOperationException($"Insufficient stock. Available: {totalAvailable}, Requested: {quantity}.");
+            throw new InvalidOperationException($"สินค้าคงเหลือไม่เพียงพอ (มีอยู่ {totalAvailable} ชิ้น, ต้องการตัดออก {quantity} ชิ้น)");
         }
 
         var allocated = new List<StockOutPreviewItem>();
@@ -305,17 +315,17 @@ public partial class InventoryService : IInventoryService
     {
         if (req.Quantity <= 0)
         {
-            throw new ArgumentException("Quantity must be greater than zero.");
+            throw new ArgumentException("จำนวนสินค้าที่รับเข้าต้องเป็นจำนวนเต็มบวกมากกว่า 0 ชิ้น (ไม่สามารถรับเข้า 0 หรือติดลบได้)");
         }
         if (req.UnitCost < 0)
         {
-            throw new ArgumentException("Unit cost cannot be negative.");
+            throw new ArgumentException("ราคาต้นทุนต่อชิ้นต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป (ไม่สามารถติดลบได้)");
         }
 
         var product = await FindProductAsync(req.ProductId, req.SkuOrBarcode);
         if (product == null)
         {
-            throw new KeyNotFoundException("Product not found.");
+            throw new KeyNotFoundException("ไม่พบสินค้าที่ต้องการรับเข้า");
         }
 
         var batchNumber = !string.IsNullOrWhiteSpace(req.BatchNumber)
@@ -383,13 +393,13 @@ public partial class InventoryService : IInventoryService
     {
         if (req.Quantity <= 0)
         {
-            throw new ArgumentException("Quantity must be greater than zero.");
+            throw new ArgumentException("จำนวนสินค้าที่ต้องการตัดออกต้องเป็นจำนวนเต็มบวกมากกว่า 0 ชิ้น (ไม่สามารถตัดออก 0 หรือติดลบได้)");
         }
 
         var product = await FindProductAsync(req.ProductId, req.SkuOrBarcode);
         if (product == null)
         {
-            throw new KeyNotFoundException("Product not found.");
+            throw new KeyNotFoundException("ไม่พบสินค้าที่ต้องการตัดออก");
         }
 
         // Active batches ordered FIFO
@@ -402,7 +412,7 @@ public partial class InventoryService : IInventoryService
         int available = batches.Sum(b => b.QuantityRemaining);
         if (available < req.Quantity)
         {
-            throw new InvalidOperationException($"Insufficient inventory. Requested: {req.Quantity}, Available: {available}.");
+            throw new InvalidOperationException($"สินค้าคงเหลือไม่เพียงพอสำหรับการตัดออก (มีอยู่ {available} ชิ้น, ต้องการตัด {req.Quantity} ชิ้น)");
         }
 
         int remainingToDraw = req.Quantity;

@@ -84,6 +84,29 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       return;
     }
 
+    const minThreshNum = Number(minThreshold);
+    if (isNaN(minThreshNum) || minThreshNum < 0 || !Number.isInteger(minThreshNum)) {
+      setError("เกณฑ์เตือนสต็อกใกล้หมด (Min Threshold) ต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป");
+      return;
+    }
+
+    // Strict validation for initial quantity
+    if (!isEdit && initialQuantity !== "") {
+      const initQty = Number(initialQuantity);
+      if (isNaN(initQty) || initQty <= 0) {
+        setError("หากต้องการระบุสต็อกตั้งต้น จำนวนสินค้าต้องมากกว่า 0 ชิ้น (หากยังไม่มีสินค้า ให้เว้นว่างไว้ ไม่สามารถใส่ 0 หรือติดลบได้)");
+        return;
+      }
+      if (!Number.isInteger(initQty)) {
+        setError(`จำนวนสินค้าตั้งต้นต้องเป็นจำนวนเต็มเท่านั้น (เช่น 1, 2, 3...) ไม่สามารถระบุเป็นทศนิยมอย่าง ${initialQuantity} ได้`);
+        return;
+      }
+      if (initialUnitCost === "" || isNaN(Number(initialUnitCost)) || Number(initialUnitCost) < 0) {
+        setError("กรุณาระบุราคาต้นทุนจริงต่อชิ้นสำหรับสต็อกตั้งต้น (ต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป)");
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       if (isEdit && productToEdit) {
@@ -228,7 +251,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <input
               type="number"
               min={0}
+              step={1}
               value={minThreshold}
+              onKeyDown={(e) => {
+                if (e.key === "." || e.key === "," || e.key === "e" || e.key === "E" || e.key === "-") {
+                  e.preventDefault();
+                }
+              }}
               onChange={(e) => setMinThreshold(Math.max(0, parseInt(e.target.value) || 0))}
               className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
             />
@@ -244,21 +273,33 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 สต็อกตั้งต้นพร้อมต้นทุนจริง (ทางเลือก)
               </div>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                สามารถกรอกสต็อกล็อตแรกลงไปได้ทันที หรือเว้นว่างไว้แล้วมารับเข้าทีหลังก็ได้
+                สามารถกรอกสต็อกล็อตแรกลงไปได้ทันที (ต้องมากกว่า 0) หรือเว้นว่างไว้แล้วมารับเข้าทีหลังก็ได้
               </p>
               <div className="mt-2.5 grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
-                    จำนวนชิ้นแรกเริ่ม
+                    จำนวนชิ้นแรกเริ่ม (จำนวนเต็ม &gt; 0)
                   </label>
                   <input
                     type="number"
-                    min={0}
+                    min={1}
+                    step={1}
                     value={initialQuantity}
-                    onChange={(e) =>
-                      setInitialQuantity(e.target.value === "" ? "" : parseInt(e.target.value))
-                    }
-                    placeholder="0"
+                    onKeyDown={(e) => {
+                      if (e.key === "." || e.key === "," || e.key === "e" || e.key === "E" || e.key === "-") {
+                        e.preventDefault();
+                      }
+                    }}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "") {
+                        setInitialQuantity("");
+                      } else {
+                        const parsed = parseFloat(val);
+                        setInitialQuantity(isNaN(parsed) ? "" : parsed);
+                      }
+                    }}
+                    placeholder="เช่น 5 (เว้นว่างได้)"
                     className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                   />
                 </div>

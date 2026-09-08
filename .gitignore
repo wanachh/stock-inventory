@@ -4,6 +4,10 @@ obj/
 *.user
 *.suo
 .vs/
+.local/
+Library/
+backend/.local/
+backend/Library/
 
 # VS Code (Keep debug and task launch configurations tracked)
 .vscode/*
