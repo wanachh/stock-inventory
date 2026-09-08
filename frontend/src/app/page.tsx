@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { DashboardSummary, ProductDetail, StockTransaction, DashboardKpis, DailyMovementSummary } from "../types";
 import { api } from "../lib/api";
 import { Navbar } from "../components/Navbar";
@@ -31,8 +31,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Selected product filter on dashboard ("all" or number productId)
-  const [selectedProductId, setSelectedProductId] = useState<number | "all">("all");
+  // Multi-select product filter on dashboard (empty Set = all products)
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
 
   // Data states
   const [dashboard, setDashboard] = useState<DashboardSummary | null>(null);
@@ -88,11 +90,34 @@ export default function Home() {
     loadData();
   }, [loadData]);
 
-  // Derived filtered state for Dashboard (per-product or global all)
-  const activeProduct = useMemo(() => {
-    if (selectedProductId === "all") return null;
-    return products.find((p) => p.id === selectedProductId) || null;
-  }, [selectedProductId, products]);
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setIsFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Toggle a single product in the multi-select set
+  const toggleProduct = (id: number) => {
+    setSelectedProductIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // Derived: filtered products list (empty = all)
+  const activeProducts = useMemo<ProductDetail[]>(() => {
+    if (selectedProductIds.size === 0) return products;
+    return products.filter((p) => selectedProductIds.has(p.id));
+  }, [selectedProductIds, products]);
+
+  const isFiltered = selectedProductIds.size > 0;
 
   const activeKpis = useMemo<DashboardKpis>(() => {
     if (!dashboard) {
@@ -106,36 +131,33 @@ export default function Home() {
         lowStockProductCount: 0,
       };
     }
-    if (!activeProduct) {
-      return dashboard.kpis;
-    }
+    if (!isFiltered) return dashboard.kpis;
 
-    const prodTxs = transactions.filter((t) => t.productId === activeProduct.id);
-    const inTxs = prodTxs.filter((t) => t.type === "StockIn");
-    const outTxs = prodTxs.filter((t) => t.type === "StockOut");
+    const filteredTxs = transactions.filter((t) => selectedProductIds.has(t.productId));
+    const inTxs = filteredTxs.filter((t) => t.type === "StockIn");
+    const outTxs = filteredTxs.filter((t) => t.type === "StockOut");
 
     return {
-      totalRemainingItems: activeProduct.totalQuantityRemaining,
-      totalRemainingValuation: activeProduct.totalValuation,
-      totalItemsOut: outTxs.reduce((sum, t) => sum + t.quantity, 0),
-      totalCostOut: outTxs.reduce((sum, t) => sum + t.totalCost, 0),
-      totalItemsIn: inTxs.reduce((sum, t) => sum + t.quantity, 0),
-      totalCostIn: inTxs.reduce((sum, t) => sum + t.totalCost, 0),
-      lowStockProductCount:
-        activeProduct.totalQuantityRemaining <= activeProduct.minThreshold ? 1 : 0,
+      totalRemainingItems: activeProducts.reduce((s, p) => s + p.totalQuantityRemaining, 0),
+      totalRemainingValuation: activeProducts.reduce((s, p) => s + p.totalValuation, 0),
+      totalItemsOut: outTxs.reduce((s, t) => s + t.quantity, 0),
+      totalCostOut: outTxs.reduce((s, t) => s + t.totalCost, 0),
+      totalItemsIn: inTxs.reduce((s, t) => s + t.quantity, 0),
+      totalCostIn: inTxs.reduce((s, t) => s + t.totalCost, 0),
+      lowStockProductCount: activeProducts.filter(
+        (p) => p.totalQuantityRemaining <= p.minThreshold
+      ).length,
     };
-  }, [dashboard, activeProduct, transactions]);
+  }, [dashboard, isFiltered, activeProducts, transactions, selectedProductIds]);
 
   const activeMovementTrend = useMemo<DailyMovementSummary[]>(() => {
     if (!dashboard) return [];
-    if (!activeProduct) {
-      return dashboard.movementTrend;
-    }
+    if (!isFiltered) return dashboard.movementTrend;
 
-    const prodTxs = transactions.filter((t) => t.productId === activeProduct.id);
+    const filteredTxs = transactions.filter((t) => selectedProductIds.has(t.productId));
 
     return dashboard.movementTrend.map((daySummary) => {
-      const dayTxs = prodTxs.filter((t) => {
+      const dayTxs = filteredTxs.filter((t) => {
         const d = new Date(t.createdAt);
         const enDate = d.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
         return (
@@ -149,21 +171,19 @@ export default function Home() {
 
       return {
         date: daySummary.date,
-        inQuantity: dayIn.reduce((sum, t) => sum + t.quantity, 0),
-        inCost: dayIn.reduce((sum, t) => sum + t.totalCost, 0),
-        outQuantity: dayOut.reduce((sum, t) => sum + t.quantity, 0),
-        outCost: dayOut.reduce((sum, t) => sum + t.totalCost, 0),
+        inQuantity: dayIn.reduce((s, t) => s + t.quantity, 0),
+        inCost: dayIn.reduce((s, t) => s + t.totalCost, 0),
+        outQuantity: dayOut.reduce((s, t) => s + t.quantity, 0),
+        outCost: dayOut.reduce((s, t) => s + t.totalCost, 0),
       };
     });
-  }, [dashboard, activeProduct, transactions]);
+  }, [dashboard, isFiltered, transactions, selectedProductIds]);
 
   const activeTransactions = useMemo<StockTransaction[]>(() => {
     if (!dashboard) return [];
-    if (!activeProduct) {
-      return dashboard.recentTransactions;
-    }
-    return transactions.filter((t) => t.productId === activeProduct.id).slice(0, 10);
-  }, [dashboard, activeProduct, transactions]);
+    if (!isFiltered) return dashboard.recentTransactions;
+    return transactions.filter((t) => selectedProductIds.has(t.productId)).slice(0, 10);
+  }, [dashboard, isFiltered, transactions, selectedProductIds]);
 
   // Handle hardware scanner gun trigger
   const handleHardwareScan = async (code: string) => {
@@ -336,67 +356,144 @@ export default function Home() {
             {/* TAB 1: DASHBOARD (Matching the reference design widgets) */}
             {activeTab === "dashboard" && dashboard && (
               <div className="space-y-6">
-                {/* 0. Contextual Product Selector Bar (ภาพรวมทั้งคลัง vs เลือกดูรายตัว) */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white p-3.5 sm:px-5 sm:py-3.5 shadow-xs dark:border-slate-800/80 dark:bg-slate-900">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 shrink-0">
-                      <Filter className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200">
-                          มุมมองข้อมูล (View Mode):
-                        </span>
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
-                            activeProduct
+                {/* 0. Contextual Product Filter Bar */}
+                <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800/80 dark:bg-slate-900">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3.5">
+                    {/* Left: label */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 shrink-0">
+                        <Filter className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200">
+                            กรองตามสินค้า
+                          </span>
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                            isFiltered
                               ? "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
                               : "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300"
-                          }`}
-                        >
-                          {activeProduct ? "กรองดูรายสินค้า" : "ภาพรวมทั้งคลัง"}
-                        </span>
+                          }`}>
+                            {isFiltered ? `${selectedProductIds.size} สินค้า` : "ทั้งหมด"}
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
+                          {isFiltered
+                            ? `แสดงข้อมูลเฉพาะ ${selectedProductIds.size} สินค้าที่เลือก`
+                            : `แสดงภาพรวมสินค้าทั้งหมด ${products.length} รายการ`}
+                        </p>
                       </div>
-                      <p className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
-                        {activeProduct
-                          ? `แสดงข้อมูลเฉพาะ: [${activeProduct.sku}] ${activeProduct.name} (เกณฑ์แจ้งเตือน: ${activeProduct.minThreshold} ชิ้น)`
-                          : `วิเคราะห์และสรุปยอดสต็อกสะสมจากสินค้าทั้งหมด ${products.length} รายการ`}
-                      </p>
+                    </div>
+
+                    {/* Right: dropdown trigger + clear */}
+                    <div className="flex items-center gap-2" ref={filterRef}>
+                      {/* Custom multi-select dropdown */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setIsFilterOpen((v) => !v)}
+                          className="flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-bold text-slate-700 hover:border-blue-400 hover:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-750 transition cursor-pointer"
+                        >
+                          <span>
+                            {isFiltered ? `${selectedProductIds.size} รายการที่เลือก` : "🌐 เลือกสินค้า"}
+                          </span>
+                          <svg className={`h-3.5 w-3.5 text-slate-400 transition-transform ${isFilterOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+
+                        {/* Dropdown panel */}
+                        {isFilterOpen && (
+                          <div className="absolute right-0 top-10 z-50 w-72 rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900 overflow-hidden">
+                            {/* Header */}
+                            <div className="flex items-center justify-between border-b border-slate-100 px-3.5 py-2.5 dark:border-slate-800">
+                              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">เลือกสินค้าที่ต้องการ</span>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedProductIds(new Set())}
+                                className="text-[11px] font-bold text-blue-500 hover:text-blue-700 dark:text-blue-400 cursor-pointer"
+                              >
+                                ล้างทั้งหมด
+                              </button>
+                            </div>
+
+                            {/* Product list */}
+                            <div className="max-h-60 overflow-y-auto py-1">
+                              {products.map((p) => {
+                                const checked = selectedProductIds.has(p.id);
+                                return (
+                                  <button
+                                    key={p.id}
+                                    type="button"
+                                    onClick={() => toggleProduct(p.id)}
+                                    className={`flex w-full items-center gap-3 px-3.5 py-2 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer ${checked ? "bg-blue-50/60 dark:bg-blue-950/30" : ""}`}
+                                  >
+                                    {/* Checkbox */}
+                                    <div className={`flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded border-2 transition ${checked ? "border-blue-500 bg-blue-500" : "border-slate-300 dark:border-slate-600"}`}>
+                                      {checked && (
+                                        <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                      )}
+                                    </div>
+                                    {/* Product info */}
+                                    <div className="min-w-0 flex-1">
+                                      <p className="truncate text-xs font-semibold text-slate-800 dark:text-slate-200">{p.name}</p>
+                                      <p className="text-[10px] text-slate-400">{p.sku} · คงเหลือ {p.totalQuantityRemaining} ชิ้น</p>
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="border-t border-slate-100 px-3.5 py-2 dark:border-slate-800">
+                              <button
+                                type="button"
+                                onClick={() => setIsFilterOpen(false)}
+                                className="w-full rounded-lg bg-blue-500 py-1.5 text-xs font-bold text-white hover:bg-blue-600 transition cursor-pointer"
+                              >
+                                ยืนยัน ({isFiltered ? `${selectedProductIds.size} รายการ` : "ทั้งหมด"})
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Clear filter button */}
+                      {isFiltered && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedProductIds(new Set())}
+                          className="flex h-9 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 text-xs font-bold text-rose-700 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300 cursor-pointer transition"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                          ล้าง
+                        </button>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    {/* Product Select Dropdown */}
-                    <div className="relative w-full sm:w-auto">
-                      <select
-                        value={selectedProductId}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setSelectedProductId(val === "all" ? "all" : Number(val));
-                        }}
-                        className="h-10 w-full sm:w-80 rounded-xl border border-slate-200 bg-slate-50 px-3.5 pr-8 text-xs font-bold text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 cursor-pointer"
-                      >
-                        <option value="all">🌐 ภาพรวมสินค้าทั้งหมด ({products.length} รายการ)</option>
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            📦 {p.name} ({p.sku}) — {p.totalQuantityRemaining} ชิ้น
-                          </option>
-                        ))}
-                      </select>
+                  {/* Selected pills row */}
+                  {isFiltered && (
+                    <div className="flex flex-wrap gap-1.5 border-t border-slate-100 px-4 py-2.5 dark:border-slate-800">
+                      {Array.from(selectedProductIds).map((id) => {
+                        const p = products.find((x) => x.id === id);
+                        if (!p) return null;
+                        return (
+                          <span
+                            key={id}
+                            className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300"
+                          >
+                            {p.name}
+                            <button type="button" onClick={() => toggleProduct(id)} className="ml-0.5 cursor-pointer text-blue-400 hover:text-blue-700 dark:hover:text-blue-200">
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        );
+                      })}
                     </div>
-
-                    {/* Reset to All Button */}
-                    {selectedProductId !== "all" && (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedProductId("all")}
-                        className="flex h-10 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 text-xs font-bold text-rose-700 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300 cursor-pointer shrink-0 transition"
-                      >
-                        <X className="h-4 w-4" />
-                        <span>ดูภาพรวม</span>
-                      </button>
-                    )}
-                  </div>
+                  )}
                 </div>
 
                 {/* 1. Top KPI Row: Hero Blue, Sells, Revenue, Activity */}
@@ -410,7 +507,13 @@ export default function Home() {
                   <div className="xl:col-span-2">
                     <MovementChart
                       data={activeMovementTrend}
-                      productName={activeProduct ? `[${activeProduct.sku}] ${activeProduct.name}` : undefined}
+                      productName={
+                        isFiltered
+                          ? selectedProductIds.size === 1
+                            ? (() => { const p = products.find(x => selectedProductIds.has(x.id)); return p ? `${p.name}` : undefined; })()
+                            : `${selectedProductIds.size} สินค้าที่เลือก`
+                          : undefined
+                      }
                     />
                   </div>
                   <div>
@@ -429,7 +532,7 @@ export default function Home() {
                       onSelectProduct={(sku) => {
                         const found = products.find((p) => p.sku === sku);
                         if (found) {
-                          setSelectedProductId(found.id);
+                          setSelectedProductIds(new Set([found.id]));
                           window.scrollTo({ top: 0, behavior: "smooth" });
                         } else {
                           setActiveTab("products");
