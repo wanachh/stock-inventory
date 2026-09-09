@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Users, Eye, Activity } from "lucide-react";
 import { api, formatNumber } from "../../lib/api";
 import { VisitorStats } from "../../types";
 
 export const VisitorBadge: React.FC<{ compact?: boolean }> = ({ compact = false }) => {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<VisitorStats | null>(null);
 
   useEffect(() => {
@@ -30,12 +32,12 @@ export const VisitorBadge: React.FC<{ compact?: boolean }> = ({ compact = false 
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
           </span>
-          <span>{stats.activeNow} ออนไลน์</span>
+          <span>{stats.activeNow} {t("dashboard.online")}</span>
         </span>
         <span className="text-zinc-300 dark:text-zinc-700">•</span>
         <span className="flex items-center gap-1">
           <Eye className="h-3 w-3 text-zinc-400" />
-          <span>{formatNumber(stats.totalVisits)} ครั้ง</span>
+          <span>{formatNumber(stats.totalVisits)} {t("dashboard.times")}</span>
         </span>
       </div>
     );
@@ -49,7 +51,7 @@ export const VisitorBadge: React.FC<{ compact?: boolean }> = ({ compact = false 
         </div>
         <div>
           <div className="text-[11px] font-semibold text-zinc-500 uppercase dark:text-zinc-400">
-            สถิติผู้เข้าชมเว็บไซต์ (Visitor Live Counter)
+            {t("dashboard.visitorTitle")}
           </div>
           <div className="flex items-center gap-4 text-xs font-bold text-zinc-800 dark:text-zinc-200">
             <span className="flex items-center gap-1.5">
@@ -57,21 +59,21 @@ export const VisitorBadge: React.FC<{ compact?: boolean }> = ({ compact = false 
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
               </span>
-              <span>กำลังออนไลน์: {stats.activeNow} คน</span>
+              <span>{t("dashboard.visitorOnline")} {stats.activeNow}</span>
             </span>
 
             <span className="text-zinc-300 dark:text-zinc-700">|</span>
 
             <span className="flex items-center gap-1 text-zinc-600 dark:text-zinc-400">
               <Users className="h-3.5 w-3.5 text-indigo-500" />
-              <span>วันนี้: {formatNumber(stats.todayVisits)} คน</span>
+              <span>{t("dashboard.visitorToday")} {formatNumber(stats.todayVisits)}</span>
             </span>
 
             <span className="text-zinc-300 dark:text-zinc-700">|</span>
 
             <span className="flex items-center gap-1 text-zinc-600 dark:text-zinc-400">
               <Eye className="h-3.5 w-3.5 text-blue-500" />
-              <span>ยอดดูสะสม: {formatNumber(stats.totalVisits)} ครั้ง</span>
+              <span>{t("dashboard.visitorTotal")} {formatNumber(stats.totalVisits)} {t("dashboard.times")}</span>
             </span>
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { TopValuedProduct } from "../../types";
 import { formatCurrency, formatNumber } from "../../lib/api";
 import { DollarSign, Tag } from "lucide-react";
@@ -14,15 +15,17 @@ export const TopProductsCard: React.FC<TopProductsCardProps> = ({
   products,
   onSelectProduct,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800/80 dark:bg-slate-900">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-            สินค้ามูลค่าคงเหลือสูงสุด
+            {t("dashboard.topTitle")}
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            จัดอันดับตามมูลค่าต้นทุนจริงค้างสต็อก
+            {t("dashboard.topSubtitle")}
           </p>
         </div>
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
@@ -32,7 +35,7 @@ export const TopProductsCard: React.FC<TopProductsCardProps> = ({
 
       <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800/60">
         {products.length === 0 ? (
-          <p className="py-6 text-center text-xs text-slate-400">ยังไม่มีข้อมูลสินค้า</p>
+          <p className="py-6 text-center text-xs text-slate-400">{t("dashboard.noData")}</p>
         ) : (
           products.map((p, idx) => (
             <div
@@ -70,7 +73,7 @@ export const TopProductsCard: React.FC<TopProductsCardProps> = ({
                   {formatCurrency(p.totalValuation)}
                 </div>
                 <div className="text-xs text-slate-500 dark:text-slate-400">
-                  คงเหลือ {formatNumber(p.quantityRemaining)} ชิ้น
+                  {t("dashboard.topRemaining", { count: formatNumber(p.quantityRemaining) })}
                 </div>
               </div>
             </div>

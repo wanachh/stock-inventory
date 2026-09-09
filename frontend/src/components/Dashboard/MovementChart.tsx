@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { DailyMovementSummary } from "../../types";
 import { formatCurrency, formatNumber } from "../../lib/api";
 import {
@@ -18,6 +19,7 @@ interface MovementChartProps {
 }
 
 export const MovementChart: React.FC<MovementChartProps> = ({ data, productName }) => {
+  const { t } = useTranslation();
   const [metric, setMetric] = useState<"quantity" | "cost">("quantity");
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -26,13 +28,13 @@ export const MovementChart: React.FC<MovementChartProps> = ({ data, productName 
     data && data.length > 0
       ? data
       : [
-          { date: "02 ก.ย.", inQuantity: 20, outQuantity: 12, inCost: 2000, outCost: 1200 },
-          { date: "03 ก.ย.", inQuantity: 35, outQuantity: 28, inCost: 3500, outCost: 2800 },
-          { date: "04 ก.ย.", inQuantity: 15, outQuantity: 40, inCost: 1500, outCost: 4000 },
-          { date: "05 ก.ย.", inQuantity: 50, outQuantity: 25, inCost: 5000, outCost: 2500 },
-          { date: "06 ก.ย.", inQuantity: 80, outQuantity: 55, inCost: 8000, outCost: 5500 },
-          { date: "07 ก.ย.", inQuantity: 30, outQuantity: 65, inCost: 3000, outCost: 6500 },
-          { date: "08 ก.ย.", inQuantity: 75, outQuantity: 22, inCost: 7500, outCost: 2200 },
+          { date: "02 Sep", inQuantity: 20, outQuantity: 12, inCost: 2000, outCost: 1200 },
+          { date: "03 Sep", inQuantity: 35, outQuantity: 28, inCost: 3500, outCost: 2800 },
+          { date: "04 Sep", inQuantity: 15, outQuantity: 40, inCost: 1500, outCost: 4000 },
+          { date: "05 Sep", inQuantity: 50, outQuantity: 25, inCost: 5000, outCost: 2500 },
+          { date: "06 Sep", inQuantity: 80, outQuantity: 55, inCost: 8000, outCost: 5500 },
+          { date: "07 Sep", inQuantity: 30, outQuantity: 65, inCost: 3000, outCost: 6500 },
+          { date: "08 Sep", inQuantity: 75, outQuantity: 22, inCost: 7500, outCost: 2200 },
         ];
 
   // Quick-glance totals for executive summary
@@ -67,18 +69,18 @@ export const MovementChart: React.FC<MovementChartProps> = ({ data, productName 
             </div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
               {productName
-                ? `ความเคลื่อนไหวสต็อก: ${productName}`
-                : "ความเคลื่อนไหวสต็อก (Stock Movement Flow)"}
+                ? t("dashboard.chartTitleProduct", { name: productName })
+                : t("dashboard.chartTitle")}
             </h3>
           </div>
           <p className="mt-1 text-xs text-slate-400 dark:text-slate-400">
             {productName
-              ? `เปรียบเทียบยอดรับเข้าและยอดตัดจ่ายรายวันของ "${productName}"`
-              : "เปรียบเทียบยอดรับเข้าและยอดตัดจ่ายรายวัน (กวาดตาดูเพื่อวางแผนสต็อก)"}
+              ? t("dashboard.chartSubtitleProduct", { name: productName })
+              : t("dashboard.chartSubtitle")}
           </p>
         </div>
 
-        {/* Metric Switcher (ชิ้น vs บาท) */}
+        {/* Metric Switcher */}
         <div className="flex items-center rounded-2xl bg-slate-100 p-1 text-xs font-bold dark:bg-slate-800">
           <button
             type="button"
@@ -89,7 +91,7 @@ export const MovementChart: React.FC<MovementChartProps> = ({ data, productName 
                 : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
-            จำนวน (ชิ้น)
+            {t("dashboard.chartQuantity")}
           </button>
           <button
             type="button"
@@ -100,12 +102,12 @@ export const MovementChart: React.FC<MovementChartProps> = ({ data, productName 
                 : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
-            ต้นทุนจริง (฿)
+            {t("dashboard.chartCost")}
           </button>
         </div>
       </div>
 
-      {/* 2. Executive Quick-Glance Summary Pills (กวาดตาปุ๊บรู้เลย!) */}
+      {/* 2. Executive Quick-Glance Summary Pills */}
       <div className="mt-4 flex flex-wrap items-center gap-2.5 sm:gap-4 border-b border-slate-100 pb-4 dark:border-slate-800/80">
         {/* Total In */}
         <div className="flex items-center gap-2 rounded-2xl bg-blue-50/80 px-3.5 py-1.5 dark:bg-blue-950/40">
@@ -113,10 +115,10 @@ export const MovementChart: React.FC<MovementChartProps> = ({ data, productName 
             <ArrowDownRight className="h-3.5 w-3.5" />
           </div>
           <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-            รับเข้าสะสม:
+            {t("dashboard.chartIn")}
           </span>
           <span className="text-xs font-black text-blue-700 dark:text-blue-400">
-            {metric === "quantity" ? `+${formatNumber(totalIn)} ชิ้น` : formatCurrency(totalIn)}
+            {metric === "quantity" ? `+${formatNumber(totalIn)} ${t("dashboard.chartPieces")}` : formatCurrency(totalIn)}
           </span>
         </div>
 
@@ -126,17 +128,17 @@ export const MovementChart: React.FC<MovementChartProps> = ({ data, productName 
             <ArrowUpRight className="h-3.5 w-3.5" />
           </div>
           <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-            ตัดออกสะสม:
+            {t("dashboard.chartOut")}
           </span>
           <span className="text-xs font-black text-rose-700 dark:text-rose-400">
-            {metric === "quantity" ? `-${formatNumber(totalOut)} ชิ้น` : formatCurrency(totalOut)}
+            {metric === "quantity" ? `-${formatNumber(totalOut)} ${t("dashboard.chartPieces")}` : formatCurrency(totalOut)}
           </span>
         </div>
 
-        {/* Net Flow */}
+        {/* Last 7 days label */}
         <div className="ml-auto hidden sm:flex items-center gap-1.5 text-xs font-medium text-slate-400 dark:text-slate-400">
           <Calendar className="h-3.5 w-3.5" />
-          <span>รอบ 7 วันล่าสุด</span>
+          <span>{t("dashboard.chartLast7")}</span>
         </div>
       </div>
 
