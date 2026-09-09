@@ -247,7 +247,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {/* Brand */}
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              {t("product.brandLabel")} <span className="text-slate-400 font-normal">({t("common.optional")})</span>
+              {t("product.brandLabel")}
             </label>
             <input
               type="text"

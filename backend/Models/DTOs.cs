@@ -113,7 +113,8 @@ public record StockTransactionDto(
     decimal TotalCost,
     string? ReferenceNote,
     DateTime CreatedAt,
-    List<TransactionDetailItemDto> Details
+    List<TransactionDetailItemDto> Details,
+    string? Brand = null
 );
 
 public record DashboardKpis(

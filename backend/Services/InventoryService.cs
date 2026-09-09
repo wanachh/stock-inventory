@@ -399,7 +399,8 @@ public partial class InventoryService : IInventoryService
             transaction.TotalCost,
             transaction.ReferenceNote,
             transaction.CreatedAt,
-            [new TransactionDetailItemDto(batch.Id, batch.BatchNumber, req.Quantity, req.UnitCost, totalCost)]
+            [new TransactionDetailItemDto(batch.Id, batch.BatchNumber, req.Quantity, req.UnitCost, totalCost)],
+            product.Brand
         );
     }
 
@@ -502,7 +503,8 @@ public partial class InventoryService : IInventoryService
             transaction.TotalCost,
             transaction.ReferenceNote,
             transaction.CreatedAt,
-            detailDtos
+            detailDtos,
+            product.Brand
         );
     }
 
@@ -550,7 +552,8 @@ public partial class InventoryService : IInventoryService
                 d.QuantityDrawn,
                 d.UnitCost,
                 d.SubtotalCost
-            )).ToList()
+            )).ToList(),
+            t.Product?.Brand
         )).ToList();
     }
 
@@ -581,7 +584,8 @@ public partial class InventoryService : IInventoryService
                 d.QuantityDrawn,
                 d.UnitCost,
                 d.SubtotalCost
-            )).ToList()
+            )).ToList(),
+            t.Product?.Brand
         );
     }
 
@@ -879,7 +883,8 @@ public partial class InventoryService : IInventoryService
                     d.QuantityDrawn,
                     d.UnitCost,
                     d.SubtotalCost
-                )).ToList()
+                )).ToList(),
+                t.Product?.Brand
             ))
             .ToList();
 

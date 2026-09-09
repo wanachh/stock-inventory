@@ -40,6 +40,7 @@ export interface StockTransaction {
   productId: number;
   sku: string;
   productName: string;
+  brand?: string | null;
   type: "StockIn" | "StockOut";
   quantity: number;
   totalCost: number;

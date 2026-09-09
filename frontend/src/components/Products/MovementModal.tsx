@@ -462,7 +462,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
 
                 <div>
                   <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    {t("product.brandLabel")} ({t("common.optional")})
+                    {t("product.brandLabel")}
                   </label>
                   <input
                     type="text"

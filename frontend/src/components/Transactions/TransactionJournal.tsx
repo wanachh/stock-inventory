@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { StockTransaction } from "../../types";
+import { StockTransaction, ProductDetail } from "../../types";
 import { formatCurrency, formatDateTime, formatNumber } from "../../lib/api";
 import {
   ArrowDownRight,
@@ -21,6 +21,7 @@ import {
 
 interface TransactionJournalProps {
   transactions: StockTransaction[];
+  products?: ProductDetail[];
   onRefresh?: () => void;
   onEditTransaction?: (transaction: StockTransaction) => void;
   onDeleteTransaction?: (transaction: StockTransaction) => void;
@@ -30,6 +31,7 @@ interface TransactionJournalProps {
 
 export const TransactionJournal: React.FC<TransactionJournalProps> = ({
   transactions,
+  products,
   onRefresh,
   onEditTransaction,
   onDeleteTransaction,
@@ -41,13 +43,25 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
   const [typeFilter, setTypeFilter] = useState("all");
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
+  const brandMap = useMemo(() => {
+    const map = new Map<number, string>();
+    if (products) {
+      products.forEach((p) => {
+        if (p.brand) map.set(p.id, p.brand);
+      });
+    }
+    return map;
+  }, [products]);
+
   const filtered = useMemo(() => {
     return transactions.filter((t) => {
+      const brand = t.brand || brandMap.get(t.productId) || "";
       if (searchTerm) {
         const s = searchTerm.toLowerCase();
         const match =
           t.productName.toLowerCase().includes(s) ||
           t.sku.toLowerCase().includes(s) ||
+          brand.toLowerCase().includes(s) ||
           (t.referenceNote && t.referenceNote.toLowerCase().includes(s));
         if (!match) return false;
       }
@@ -58,7 +72,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
 
       return true;
     });
-  }, [transactions, searchTerm, typeFilter]);
+  }, [transactions, searchTerm, typeFilter, brandMap]);
 
   return (
     <div className="space-y-4">
@@ -150,6 +164,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
             <tr>
               <th className="px-4 py-3.5">{translate("transaction.date")}</th>
               <th className="px-4 py-3.5">{translate("transaction.type")}</th>
+              <th className="px-4 py-3.5">{translate("common.brand")}</th>
               <th className="px-4 py-3.5">{translate("transaction.product")}</th>
               <th className="px-4 py-3.5 text-right">{translate("transaction.quantity")}</th>
               <th className="px-4 py-3.5 text-right">{translate("transaction.cost")}</th>
@@ -161,7 +176,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
+                <td colSpan={9} className="px-4 py-12 text-center text-slate-400">
                   {translate("transaction.empty")}
                 </td>
               </tr>
@@ -169,6 +184,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
               filtered.map((t) => {
                 const isStockIn = t.type === "StockIn";
                 const isExpanded = expandedId === t.id;
+                const brand = t.brand || brandMap.get(t.productId);
 
                 return (
                   <React.Fragment key={t.id}>
@@ -197,6 +213,17 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                           )}
                           <span>{isStockIn ? translate("transaction.in") : translate("transaction.out")}</span>
                         </span>
+                      </td>
+
+                      {/* Brand */}
+                      <td className="px-4 py-3.5">
+                        {brand ? (
+                          <span className="inline-flex items-center rounded-lg bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 dark:border dark:border-blue-800/40">
+                            {brand}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400 dark:text-slate-500">-</span>
+                        )}
                       </td>
 
                       {/* Product */}
@@ -275,7 +302,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                     {/* Expandable Breakdown Details */}
                     {isExpanded && (
                       <tr className="bg-slate-50/80 dark:bg-slate-800/60">
-                        <td colSpan={8} className="px-6 py-3">
+                        <td colSpan={9} className="px-6 py-3">
                           <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-750 dark:bg-slate-850">
                             <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
                               {translate("transaction.batchBreakdownTitle")}

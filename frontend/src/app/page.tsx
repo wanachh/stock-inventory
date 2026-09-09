@@ -555,6 +555,7 @@ export default function Home() {
           {activeTab === "transactions" && (
             <TransactionJournal
               transactions={transactions}
+              products={products}
               onRefresh={loadData}
               onEditTransaction={handleOpenEditTransaction}
               onDeleteTransaction={handleDeleteTransaction}

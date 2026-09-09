@@ -199,6 +199,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
           <thead className="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-600 uppercase dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
             <tr>
               <th className="px-4 py-3.5">SKU / Barcode</th>
+              <th className="px-4 py-3.5">{t("common.brand")}</th>
               <th className="px-4 py-3.5">{t("product.nameCategory")}</th>
               <th className="px-4 py-3.5 text-center">{t("product.status")}</th>
               <th className="px-4 py-3.5 text-right">{t("product.quantity")}</th>
@@ -210,7 +211,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
+                <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
                   {t("product.notFound")}
                 </td>
               </tr>
@@ -237,17 +238,23 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                       )}
                     </td>
 
+                    {/* Brand */}
+                    <td className="px-4 py-3.5 align-top">
+                      {p.brand ? (
+                        <span className="inline-flex items-center rounded-lg bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 dark:border dark:border-blue-800/40">
+                          {p.brand}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400 dark:text-slate-500">-</span>
+                      )}
+                    </td>
+
                     {/* Name & Category */}
                     <td className="px-4 py-3.5 align-top">
                       <div className="font-medium text-slate-900 dark:text-slate-100">
                         {p.name}
                       </div>
                       <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                        {p.brand && (
-                          <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
-                            {p.brand}
-                          </span>
-                        )}
                         <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium dark:bg-slate-800">
                           {p.category}
                         </span>
