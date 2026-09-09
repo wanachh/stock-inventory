@@ -177,7 +177,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
     if (type !== "StockOut" || !currentProduct || !quantity || qtyNum <= 0 || !Number.isInteger(qtyNum)) {
       setPreview(null);
       if (quantity !== "" && (!Number.isInteger(qtyNum) || qtyNum <= 0)) {
-        setPreviewError("จำนวนสินค้าต้องเป็นจำนวนเต็มบวกมากกว่า 0 ชิ้น (ไม่สามารถใส่ทศนิยมหรือ 0 ได้)");
+        setPreviewError(t("movement.qtyErrorPositive"));
       } else {
         setPreviewError(null);
       }
@@ -203,7 +203,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
         })
         .catch((err) => {
           setPreview(null);
-          setPreviewError(err.message || "ไม่สามารถคำนวณต้นทุน  ได้");
+          setPreviewError(err.message || t("movement.fifoCalcError"));
         })
         .finally(() => {
           setPreviewLoading(false);
@@ -232,12 +232,12 @@ export const MovementModal: React.FC<MovementModalProps> = ({
 
     const qty = Number(quantity);
     if (quantity === "" || isNaN(qty) || qty <= 0) {
-      setError("จำนวนสินค้าต้องมากกว่า 0 ชิ้น (ไม่สามารถระบุ 0 หรือติดลบได้)");
+      setError(t("movement.qtyErrorPositive"));
       return;
     }
 
     if (!Number.isInteger(qty)) {
-      setError(`จำนวนสินค้าต้องเป็นจำนวนเต็มเท่านั้น (เช่น 1, 2, 3...) ไม่สามารถระบุเป็นทศนิยมอย่าง ${quantity} ชิ้นได้`);
+      setError(t("movement.qtyErrorInt", { qty: quantity }));
       return;
     }
 
@@ -247,19 +247,19 @@ export const MovementModal: React.FC<MovementModalProps> = ({
     try {
       if (isNewProductMode) {
         if (!newProductName.trim()) {
-          setError("กรุณาระบุชื่อสินค้าใหม่");
+          setError(t("movement.newNameError"));
           setLoading(false);
           return;
         }
         if (!newProductSku.trim()) {
-          setError("กรุณาระบุรหัส SKU สำหรับสินค้าใหม่");
+          setError(t("movement.newSkuError"));
           setLoading(false);
           return;
         }
 
         const cost = Number(unitCost);
         if (unitCost === "" || isNaN(cost) || cost < 0) {
-          setError("กรุณาระบุราคาต้นทุนจริงต่อชิ้นสำหรับสินค้าใหม่ (ต้องไม่ติดลบ)");
+          setError(t("movement.newCostError"));
           setLoading(false);
           return;
         }
@@ -275,12 +275,12 @@ export const MovementModal: React.FC<MovementModalProps> = ({
           minThreshold: 5,
           initialQuantity: qty,
           initialUnitCost: cost,
-          reference: reference.trim() || "รับเข้าล็อตแรก (สินค้าใหม่)",
+          reference: reference.trim() || t("movement.defaultRefNewProduct"),
           transactionDate: dateIso,
         });
       } else {
         if (!currentProduct) {
-          setError("กรุณาเลือกหรือระบุสินค้าเป้าหมาย");
+          setError(t("movement.targetProductError"));
           setLoading(false);
           return;
         }
@@ -290,7 +290,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
         if (type === "StockIn") {
           const cost = Number(unitCost);
           if (unitCost === "" || isNaN(cost) || cost < 0) {
-            setError("กรุณาระบุราคาต้นทุนจริงของรอบนี้ (ต้องไม่ติดลบ)");
+            setError(t("movement.costErrorRequired"));
             setLoading(false);
             return;
           }
@@ -316,7 +316,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
       onClose();
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
-      else setError("เกิดข้อผิดพลาดในการทำรายการ");
+      else setError(t("movement.generalError"));
     } finally {
       setLoading(false);
     }
@@ -335,10 +335,10 @@ export const MovementModal: React.FC<MovementModalProps> = ({
         <div className="flex items-center justify-between border-b border-slate-100 p-6 pb-4 dark:border-slate-800">
           <div>
             <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
-              {t("shell.movement")} (Stock Movement)
+              {t("movement.modalTitle")}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              รองรับทั้งการพิมพ์รหัส หรือใช้ปืนยิงบาร์โค้ดสแกน
+              {t("movement.modalDesc")}
             </p>
           </div>
           <button
@@ -404,20 +404,20 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                   }}
                   className="text-xs font-semibold text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
                 >
-                  ← กลับไปเลือกสินค้าเดิม
+                  {t("movement.backToSelect")}
                 </button>
               </div>
 
               <div className="mt-3 space-y-3">
                 <div>
                   <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    ชื่อสินค้าใหม่ <span className="text-rose-500">*</span>
+                    {t("product.nameLabel")} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={newProductName}
                     onChange={(e) => setNewProductName(e.target.value)}
-                    placeholder="เช่น เมล็ดกาแฟดอยช้าง หรือ ปลั๊กไฟ 3 ตา"
+                    placeholder={t("product.namePlaceholder")}
                     required
                     className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
                   />
@@ -427,34 +427,34 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                   <div>
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                        รหัส SKU <span className="text-rose-500">*</span>
+                        {t("product.skuLabel")} <span className="text-rose-500">*</span>
                       </label>
                       <button
                         type="button"
                         onClick={handleAutoSku}
                         className="text-[11px] font-medium text-blue-600 hover:underline dark:text-blue-400"
                       >
-                        สร้างรหัสอัตโนมัติ
+                        {t("product.autoSku")}
                       </button>
                     </div>
                     <input
                       type="text"
                       value={newProductSku}
                       onChange={(e) => setNewProductSku(e.target.value.toUpperCase())}
-                      placeholder="เช่น PRD-2026-001"
+                      placeholder={t("product.skuPlaceholder")}
                       required
                       className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 font-mono text-sm uppercase text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
                     />
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                      รหัสบาร์โค้ด (ถ้ามี)
+                      {t("product.barcodeLabel")} ({t("common.optional")})
                     </label>
                     <input
                       type="text"
                       value={newProductBarcode}
                       onChange={(e) => setNewProductBarcode(e.target.value)}
-                      placeholder="เช่น 8850123456789"
+                      placeholder={t("product.barcodePlaceholder")}
                       className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 font-mono text-sm text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
                     />
                   </div>
@@ -462,26 +462,26 @@ export const MovementModal: React.FC<MovementModalProps> = ({
 
                 <div>
                   <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    แบรนด์สินค้า (ถ้ามี)
+                    {t("product.brandLabel")} ({t("common.optional")})
                   </label>
                   <input
                     type="text"
                     value={newProductBrand}
                     onChange={(e) => setNewProductBrand(e.target.value)}
-                    placeholder="เช่น Doi Chang, Logitech"
+                    placeholder={t("product.brandPlaceholder")}
                     className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
                   />
                 </div>
 
                 <div>
                   <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    หมวดหมู่สินค้า
+                    {t("product.categoryLabel")}
                   </label>
                   <input
                     type="text"
                     value={newProductCategory}
                     onChange={(e) => setNewProductCategory(e.target.value)}
-                    placeholder="เช่น General, เครื่องดื่ม, IT"
+                    placeholder={t("product.categoryPlaceholder")}
                     className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
                   />
                 </div>
@@ -492,7 +492,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
             <div ref={comboboxRef} className="relative">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  เลือกสินค้าเป้าหมาย <span className="text-rose-500">*</span>
+                  {t("movement.selectProductTitle")} <span className="text-rose-500">*</span>
                 </label>
                 {type === "StockIn" && (
                   <button
@@ -500,7 +500,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                     onClick={handleStartNewProduct}
                     className="text-[11px] font-semibold text-blue-600 hover:underline dark:text-blue-400 cursor-pointer"
                   >
-                    + สร้างสินค้าใหม่
+                    {t("movement.createNewProductBtn")}
                   </button>
                 )}
               </div>
@@ -543,8 +543,8 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                       }`}
                     >
                       {currentProduct.totalQuantityRemaining > 0
-                        ? `${formatNumber(currentProduct.totalQuantityRemaining)} ชิ้น`
-                        : "หมดสต็อก"}
+                        ? `${formatNumber(currentProduct.totalQuantityRemaining)} ${t("common.pieces")}`
+                        : t("product.out")}
                     </span>
                   )}
                   <ChevronDown
@@ -561,20 +561,20 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                   <div className="flex items-center gap-2 truncate">
                     {currentProduct.brand && (
                       <span className="truncate">
-                        แบรนด์: <strong className="text-zinc-800 dark:text-zinc-200">{currentProduct.brand}</strong>
+                        {t("movement.brandInfo")} <strong className="text-zinc-800 dark:text-zinc-200">{currentProduct.brand}</strong>
                       </span>
                     )}
                     <span>
-                      หมวดหมู่: <strong className="text-zinc-800 dark:text-zinc-200">{currentProduct.category}</strong>
+                      {t("movement.categoryInfo")} <strong className="text-zinc-800 dark:text-zinc-200">{currentProduct.category}</strong>
                     </span>
                     {currentProduct.barcode && (
                       <span className="truncate">
-                        • บาร์โค้ด: <strong className="font-mono text-zinc-800 dark:text-zinc-200">[{currentProduct.barcode}]</strong>
+                        • {t("movement.barcodeInfo")} <strong className="font-mono text-zinc-800 dark:text-zinc-200">[{currentProduct.barcode}]</strong>
                       </span>
                     )}
                   </div>
                   <span className="shrink-0 pl-2">
-                    มูลค่าสต็อก: <strong className="text-emerald-600 dark:text-emerald-400">{formatCurrency(currentProduct.totalValuation)}</strong>
+                    {t("movement.stockValuation")} <strong className="text-emerald-600 dark:text-emerald-400">{formatCurrency(currentProduct.totalValuation)}</strong>
                   </span>
                 </div>
               )}
@@ -610,7 +610,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                             setIsDropdownOpen(false);
                           }
                         }}
-                        placeholder="ค้นหาชื่อสินค้า, SKU, หรือยิงบาร์โค้ด..."
+                        placeholder={t("movement.searchProductPlaceholder")}
                         className="w-full rounded-lg border border-zinc-300 bg-white py-1.5 pr-8 pl-9 text-xs text-zinc-900 placeholder:text-zinc-400 transition hover:border-zinc-400 focus:border-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500"
                       />
                       {searchQuery && (
@@ -684,7 +684,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                               {/* Checkmark slot: checkmark if selected, empty spacer if not */}
                               <div className="flex h-4 w-4 shrink-0 items-center justify-center">
                                 {isSelected && (
-                                  <Check className="h-3.5 w-3.5 stroke-[2.5] text-blue-600 dark:text-blue-400" />
+                                   <Check className="h-3.5 w-3.5 stroke-[2.5] text-blue-600 dark:text-blue-400" />
                                 )}
                               </div>
 
@@ -726,8 +726,8 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                                 }`}
                               >
                                 {isOutOfStock
-                                  ? "หมดสต็อก"
-                                  : `${formatNumber(p.totalQuantityRemaining)} ชิ้น`}
+                                  ? t("product.out")
+                                  : `${formatNumber(p.totalQuantityRemaining)} ${t("common.pieces")}`}
                               </span>
                             </div>
                           </button>
@@ -736,13 +736,13 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                     ) : (
                       <div className="p-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
                         {searchQuery.trim()
-                          ? `ไม่พบสินค้าที่ตรงกับคำค้นหา "${searchQuery.trim()}"`
-                          : "ไม่มีสินค้าในแท็บนี้"}
+                          ? t("movement.notFoundProduct", { query: searchQuery.trim() })
+                          : t("movement.noProductsTab")}
                       </div>
                     )}
                   </div>
 
-                  {/* Bottom Pinned Footer: GitHub style '+ New branch' -> '+ สร้างเป็นสินค้าใหม่ "[ชื่อที่พิมพ์]"' */}
+                  {/* Bottom Pinned Footer */}
                   {type === "StockIn" && (
                     <div className="border-t border-zinc-200 bg-zinc-50/70 p-1.5 dark:border-zinc-800 dark:bg-zinc-900/60">
                       <button
@@ -752,7 +752,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                       >
                         <Plus className="h-4 w-4 stroke-[2.5]" />
                         <span>
-                          + สร้างเป็นสินค้าใหม่ {searchQuery.trim() ? `"${searchQuery.trim()}"` : ""}
+                          {t("movement.createNewProductWithQuery", { query: searchQuery.trim() ? `"${searchQuery.trim()}"` : "" })}
                         </span>
                       </button>
                     </div>
@@ -765,8 +765,8 @@ export const MovementModal: React.FC<MovementModalProps> = ({
           {/* Quantity */}
           <div>
             <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              {type === "StockIn" ? "จำนวนที่รับเข้า (ชิ้น)" : "จำนวนที่ต้องการตัดออก (ชิ้น)"}{" "}
-              <span className="text-rose-500">* (จำนวนเต็มเท่านั้น)</span>
+              {type === "StockIn" ? t("movement.qtyLabelIn") : t("movement.qtyLabelOut")}{" "}
+              <span className="text-rose-500">{t("movement.qtyRequiredNote")}</span>
             </label>
             <input
               type="number"
@@ -787,7 +787,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                   setQuantity(isNaN(parsed) ? "" : parsed);
                 }
               }}
-              placeholder="เช่น 1, 5, 10 (ห้ามใส่ 0 หรือทศนิยม)"
+              placeholder={t("movement.qtyPlaceholder")}
               required
               className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-base font-bold text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
@@ -797,7 +797,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
           {type === "StockIn" && (
             <div>
               <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                ราคาต้นทุนจริงของรอบนี้ต่อชิ้น (฿) <span className="text-rose-500">*</span>
+                {t("movement.costLabel")} <span className="text-rose-500">*</span>
               </label>
               <input
                 type="number"
@@ -807,13 +807,13 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                 onChange={(e) =>
                   setUnitCost(e.target.value === "" ? "" : parseFloat(e.target.value))
                 }
-                placeholder="เช่น 5.00 หรือ 10.00"
+                placeholder={t("movement.costPlaceholder")}
                 required
                 className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-base font-bold text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
               />
               {quantity !== "" && unitCost !== "" && (
                 <div className="mt-1.5 text-xs text-zinc-600 dark:text-zinc-400">
-                  รวมมูลค่าเงินซื้อเข้ารอบนี้:{" "}
+                  {t("movement.totalBuyValue")}{" "}
                   <strong className="text-emerald-600 dark:text-emerald-400">
                     {formatCurrency(Number(quantity) * Number(unitCost))}
                   </strong>
@@ -822,16 +822,16 @@ export const MovementModal: React.FC<MovementModalProps> = ({
             </div>
           )}
 
-          {/* If Stock Out: LIVE  PREVIEW BOX */}
+          {/* If Stock Out: LIVE FIFO PREVIEW BOX */}
           {type === "StockOut" && (
             <div className="rounded-xl border border-zinc-200 bg-zinc-50/90 p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-zinc-100">
                   <Layers className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  <span>การจัดสรรต้นทุนจริงตามล็อต ( Cost Breakdown)</span>
+                  <span>{t("movement.fifoBreakdownTitle")}</span>
                 </div>
                 {previewLoading && (
-                  <span className="text-[11px] text-zinc-400">กำลังคำนวณ...</span>
+                  <span className="text-[11px] text-zinc-400">{t("movement.calculating")}</span>
                 )}
               </div>
 
@@ -849,7 +849,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                             {item.batchNumber}
                           </span>
                           <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                            ตัดจำนวน {item.quantityToDraw} ชิ้น @ ทุนจริง {formatCurrency(item.unitCost)}
+                            {t("movement.fifoDraw", { qty: item.quantityToDraw, cost: formatCurrency(item.unitCost) })}
                           </div>
                         </div>
                         <div className="font-bold text-zinc-900 dark:text-zinc-100">
@@ -861,7 +861,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
 
                   <div className="flex items-center justify-between border-t border-zinc-200/80 pt-2 text-xs dark:border-zinc-800">
                     <span className="font-medium text-zinc-600 dark:text-zinc-400">
-                      ต้นทุนสินค้าที่ตัดออกรวม (Cost Out):
+                      {t("movement.totalCostOut")}
                     </span>
                     <span className="text-sm font-bold text-rose-600 dark:text-rose-400">
                       {formatCurrency(preview.totalCostOut)}
@@ -870,19 +870,19 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                 </div>
               ) : (
                 <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                  กรอกจำนวนที่ต้องการตัดออก เพื่อดูว่าระบบจะดึงจากล็อตไหนบ้างที่ราคาทุนจริงเท่าไหร่
+                  {t("movement.fifoHint")}
                 </p>
               )}
             </div>
           )}
 
-          {/* Transaction Date & Time Picker (รองรับการระบุวันที่ย้อนหลัง) */}
+          {/* Transaction Date & Time Picker */}
           <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-800/40">
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
                 <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <span>
-                  {type === "StockIn" ? "วันที่และเวลารับเข้าสต็อก" : "วันที่และเวลาเบิก-ตัดจำหน่าย"}
+                  {type === "StockIn" ? t("movement.dateLabelIn") : t("movement.dateLabelOut")}
                 </span>
                 <span className="text-rose-500">*</span>
               </label>
@@ -894,7 +894,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                   onClick={() => setTransactionDate(getLocalDateTimeString(new Date()))}
                   className="rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-bold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 cursor-pointer transition"
                 >
-                  วันนี้
+                  {t("common.today")}
                 </button>
                 <button
                   type="button"
@@ -905,7 +905,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                   }}
                   className="rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-bold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 cursor-pointer transition"
                 >
-                  เมื่อวาน
+                  {t("common.yesterday")}
                 </button>
               </div>
             </div>
@@ -918,20 +918,20 @@ export const MovementModal: React.FC<MovementModalProps> = ({
               className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-900 shadow-2xs transition hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-600 cursor-pointer"
             />
             <p className="mt-1.5 text-[10px] text-slate-400 dark:text-slate-500">
-              💡 สามารถเลือกวันที่ย้อนหลังได้ เพื่อให้บันทึกประวัติการเข้า-ออกและการคำนวณต้นทุนตรงตามวันที่เกิดขึ้นจริง
+              {t("movement.dateHint")}
             </p>
           </div>
 
           {/* Reference / Remark Note */}
           <div>
             <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              เลขที่อ้างอิง / หมายเหตุ (เช่น เลขที่ PO, บิลขาย, หรือวัตถุประสงค์การเบิก)
+              {t("movement.refLabel")}
             </label>
             <input
               type="text"
               value={reference}
               onChange={(e) => setReference(e.target.value)}
-              placeholder={type === "StockIn" ? "เช่น PO-2026-003" : "เช่น ใบเสร็จ #INV-109 หรือ เบิกใช้งาน"}
+              placeholder={type === "StockIn" ? t("movement.refPlaceholderIn") : t("movement.refPlaceholderOut")}
               className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-2xs transition-all duration-150 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
           </div>
@@ -966,10 +966,10 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                 {loading
                   ? t("common.loading")
                   : isNewProductMode
-                  ? "สร้างสินค้าใหม่ & รับเข้าสต็อก"
+                  ? t("movement.submitNewProduct")
                   : type === "StockIn"
-                  ? "ยืนยันรับเข้าสต็อก"
-                  : t("transaction.out")}
+                  ? t("movement.submitStockIn")
+                  : t("movement.submitStockOut")}
               </span>
             </button>
           </div>

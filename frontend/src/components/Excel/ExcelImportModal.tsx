@@ -58,13 +58,13 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
     try {
       const res = await parseExcelFile(f);
       if (res.items.length === 0) {
-        setError("ไม่พบแถวข้อมูลในไฟล์ หรือรูปแบบคอลัมน์ไม่ตรงกับเทมเพลต");
+        setError(t("excel.rowFormatError"));
         setParseResult(null);
       } else {
         setParseResult(res);
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการอ่านไฟล์ Excel");
+      setError(err instanceof Error ? err.message : t("excel.readingError"));
       setParseResult(null);
     } finally {
       setLoading(false);
@@ -73,7 +73,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
 
   const handleConfirmImport = async () => {
     if (!parseResult || parseResult.validRows === 0) {
-      setError("ไม่มีรายการที่ถูกต้องสำหรับนำเข้า");
+      setError(t("excel.noValidRows"));
       return;
     }
 
@@ -90,7 +90,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการบันทึกข้อมูลเข้าสู่ระบบ");
+      setError(err instanceof Error ? err.message : t("excel.saveError"));
     } finally {
       setImporting(false);
     }
@@ -117,7 +117,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                 {t("shell.importExcel")} (.xlsx / .csv)
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                รองรับเทมเพลตคอลัมน์: ลำดับ, SKU, barcode, Brand, จำนวน, ราคาก่อนแวท, แวท, หลังแวท
+                {t("excel.importDesc")}
               </p>
             </div>
           </div>
@@ -160,14 +160,14 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                 <Download className="h-7 w-7" />
               </div>
               <h3 className="mt-4 text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                ลากไฟล์ Excel (.xlsx, .csv) มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์
+                {t("excel.dropZoneTitle")}
               </h3>
               <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                ระบบจะตรวจสอบความถูกต้องของจำนวน (ห้าม 0, ห้ามทศนิยม) และคำนวณภาษี VAT ให้อัตโนมัติ
+                {t("excel.dropZoneHint")}
               </p>
               <div className="mt-4 flex items-center gap-1.5 rounded-full bg-zinc-100 px-3 py-1 text-[11px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                 <Info className="h-3.5 w-3.5 text-blue-500" />
-                <span>หากไม่มีคอลัมน์วันที่ ระบบจะใช้วันที่นำเข้าปัจจุบันโดยอัตโนมัติ</span>
+                <span>{t("excel.autoDateHint")}</span>
               </div>
             </div>
           )}
@@ -196,37 +196,37 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
               {/* Summary KPIs */}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">รายการทั้งหมด</div>
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">{t("excel.statTotalRows")}</div>
                   <div className="mt-0.5 text-lg font-bold text-zinc-900 dark:text-zinc-50">
-                    {parseResult.totalRows} แถว
+                    {parseResult.totalRows} {t("common.items")}
                   </div>
                   <div className="text-[10px] text-emerald-600 dark:text-emerald-400">
-                    ✓ ถูกต้อง {parseResult.validRows} | ✗ ผิด {parseResult.invalidRows}
+                    ✓ {t("excel.statValid")} {parseResult.validRows} | ✗ {t("excel.statInvalid")} {parseResult.invalidRows}
                   </div>
                 </div>
 
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">จำนวนชิ้นรวม</div>
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">{t("excel.statUnits")}</div>
                   <div className="mt-0.5 text-lg font-bold text-zinc-900 dark:text-zinc-50">
-                    {formatNumber(parseResult.totalUnits)} ชิ้น
+                    {formatNumber(parseResult.totalUnits)} {t("common.pieces")}
                   </div>
-                  <div className="text-[10px] text-zinc-400">จำนวนเต็มบวก</div>
+                  <div className="text-[10px] text-zinc-400">{t("excel.intPositive")}</div>
                 </div>
 
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">มูลค่ารวม (ก่อน VAT)</div>
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">{t("excel.statPreVat")}</div>
                   <div className="mt-0.5 text-lg font-bold text-blue-600 dark:text-blue-400">
                     {formatCurrency(parseResult.totalValueBeforeVat)}
                   </div>
-                  <div className="text-[10px] text-zinc-400">ต้นทุนฐานบัญชี</div>
+                  <div className="text-[10px] text-zinc-400">{t("excel.baseCost")}</div>
                 </div>
 
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">มูลค่ารวม (หลัง VAT)</div>
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">{t("excel.statPostVat")}</div>
                   <div className="mt-0.5 text-lg font-bold text-emerald-600 dark:text-emerald-400">
                     {formatCurrency(parseResult.totalValueAfterVat)}
                   </div>
-                  <div className="text-[10px] text-zinc-400">รวม VAT 7% แล้ว</div>
+                  <div className="text-[10px] text-zinc-400">{t("excel.vatIncluded")}</div>
                 </div>
               </div>
 
@@ -234,7 +234,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
               <div className="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-3 text-xs sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800 dark:bg-zinc-900/80">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-zinc-800 dark:text-zinc-200">
-                    ราคาที่ใช้บันทึกเป็นต้นทุนสต็อก (Unit Cost):
+                    {t("excel.unitCostSetting")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -247,7 +247,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                         : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                     }`}
                   >
-                    ใช้ราคาก่อนแวท (แนะนำ)
+                    {t("excel.usePreVat")}
                   </button>
                   <button
                     type="button"
@@ -258,7 +258,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                         : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                     }`}
                   >
-                    ใช้ราคาหลังแวท
+                    {t("excel.usePostVat")}
                   </button>
                 </div>
               </div>
@@ -268,15 +268,15 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                 <table className="w-full text-left text-xs">
                   <thead className="border-b border-zinc-200 bg-zinc-100/75 text-[11px] font-semibold text-zinc-600 uppercase dark:border-zinc-800 dark:bg-zinc-900/75 dark:text-zinc-400">
                     <tr>
-                      <th className="px-3 py-2.5">สถานะ</th>
-                      <th className="px-3 py-2.5">ลำดับ</th>
-                      <th className="px-3 py-2.5">SKU</th>
-                      <th className="px-3 py-2.5">Barcode</th>
-                      <th className="px-3 py-2.5">Brand</th>
-                      <th className="px-3 py-2.5 text-right">จำนวน</th>
-                      <th className="px-3 py-2.5 text-right">ราคาก่อนแวท</th>
-                      <th className="px-3 py-2.5 text-right">แวท</th>
-                      <th className="px-3 py-2.5 text-right">หลังแวท</th>
+                      <th className="px-3 py-2.5">{t("excel.colStatus")}</th>
+                      <th className="px-3 py-2.5">{t("excel.colSeq")}</th>
+                      <th className="px-3 py-2.5">{t("excel.colSku")}</th>
+                      <th className="px-3 py-2.5">{t("excel.colBarcode")}</th>
+                      <th className="px-3 py-2.5">{t("excel.colBrand")}</th>
+                      <th className="px-3 py-2.5 text-right">{t("excel.colQty")}</th>
+                      <th className="px-3 py-2.5 text-right">{t("excel.colPreVat")}</th>
+                      <th className="px-3 py-2.5 text-right">{t("excel.colVat")}</th>
+                      <th className="px-3 py-2.5 text-right">{t("excel.colPostVat")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -293,7 +293,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                           {row.isValid ? (
                             <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
                               <CheckCircle2 className="h-3 w-3" />
-                              <span>ผ่าน</span>
+                              <span>{t("common.pass")}</span>
                             </span>
                           ) : (
                             <span
@@ -370,7 +370,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                   </>
                 ) : (
                   <>
-                    <span>ยืนยันนำเข้า {parseResult.validRows} รายการ</span>
+                    <span>{t("excel.confirmImport", { count: parseResult.validRows })}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </>
                 )}

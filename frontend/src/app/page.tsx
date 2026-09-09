@@ -80,7 +80,7 @@ export default function Home() {
       setTransactions(txsRes);
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
-      else setError("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ .NET API ได้");
+      else setError(t("page.connectionError"));
     } finally {
       setLoading(false);
     }
@@ -192,9 +192,9 @@ export default function Home() {
       setMovementProduct(found);
       setMovementType("StockOut"); // Default to Stock Out on quick scan
       setIsMovementModalOpen(true);
-      showToast(`สแกนพบ: [${found.sku}] ${found.name}`);
+      showToast(t("page.scanFound", { sku: found.sku, name: found.name }));
     } catch {
-      showToast(`⚠️ สแกนรหัส "${code}" ไม่พบในระบบ`);
+      showToast(t("page.scanNotFound", { code }));
     }
   };
 
@@ -234,34 +234,34 @@ export default function Home() {
   const handleDeleteTransaction = async (tx: StockTransaction) => {
     const isStockIn = tx.type === "StockIn";
     const confirmMsg = isStockIn
-      ? `ต้องการลบรายการรับเข้าสต็อก #${tx.id} (${tx.productName} จำนวน ${tx.quantity} ชิ้น) ใช่หรือไม่?\n\n⚠️ หากล็อตนี้ถูกนำไปตัดขาย () แล้ว ระบบจะบล็อกการลบเพื่อรักษาความถูกต้องทางบัญชี`
-      : `ต้องการลบรายการเบิกออก #${tx.id} (${tx.productName} จำนวน ${tx.quantity} ชิ้น) ใช่หรือไม่?\n\n✅ ระบบจะทำการคืนสต็อกกลับเข้าทุกล็อตย่อย  เดิมทันที`;
+      ? t("page.confirmDeleteStockIn", { id: tx.id, productName: tx.productName, quantity: tx.quantity })
+      : t("page.confirmDeleteStockOut", { id: tx.id, productName: tx.productName, quantity: tx.quantity });
 
     if (!window.confirm(confirmMsg)) return;
 
     try {
       await api.deleteTransaction(tx.id);
-      showToast(`ลบรายการ #${tx.id} เรียบร้อย (ปรับปรุงยอดสต็อกและล็อต  แล้ว)`);
+      showToast(t("page.toastTxDeleted", { id: tx.id }));
       loadData();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการลบรายการ");
+      alert(err instanceof Error ? err.message : t("page.alertDeleteError"));
     }
   };
 
   const handleProductCreated = async (data: CreateProductRequest) => {
     await api.createProduct(data);
-    showToast("สร้างสินค้าใหม่เรียบร้อย");
+    showToast(t("page.toastProductCreated"));
     loadData();
   };
 
   const handleProductUpdated = async (id: number, data: UpdateProductRequest) => {
     await api.updateProduct(id, data);
-    showToast("อัปเดตข้อมูลสินค้าเรียบร้อย");
+    showToast(t("page.toastProductUpdated"));
     loadData();
   };
 
   const handleMovementSuccess = () => {
-    showToast("บันทึกการเคลื่อนไหวสต็อกเรียบร้อย");
+    showToast(t("page.toastMovementSaved"));
     loadData();
   };
 
@@ -340,15 +340,15 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 shrink-0 text-rose-600" />
                   <span>
-                    <strong>เกิดข้อผิดพลาดในการเชื่อมต่อ Backend:</strong> {error}
-                    <span className="ml-1 text-[11px] opacity-80">(ตรวจสอบว่า .NET 10 API รันอยู่ที่ {API_BASE})</span>
+                    <strong>{t("page.backendError")}</strong> {error}
+                    <span className="ml-1 text-[11px] opacity-80">{t("page.backendErrorCheck", { api: API_BASE })}</span>
                   </span>
                 </div>
                 <button
                   onClick={loadData}
                   className="rounded-xl bg-rose-600 px-3 py-1 text-white font-semibold hover:bg-rose-700 cursor-pointer"
                 >
-                  ลองใหม่
+                  {t("page.retry")}
                 </button>
               </div>
             )}
@@ -509,7 +509,7 @@ export default function Home() {
                     isFiltered
                       ? selectedProductIds.size === 1
                         ? (() => { const p = products.find(x => selectedProductIds.has(x.id)); return p ? `${p.name}` : undefined; })()
-                        : `${selectedProductIds.size} สินค้าที่เลือก`
+                        : t("page.selectedProductsCount", { count: selectedProductIds.size })
                       : undefined
                   }
                 />
@@ -609,7 +609,7 @@ export default function Home() {
           onClose={() => setIsEditTransactionModalOpen(false)}
           transaction={transactionToEdit}
           onSuccess={() => {
-            showToast("แก้ไขรายการเคลื่อนไหวสต็อกเรียบร้อย");
+            showToast(t("page.toastTxUpdated"));
             loadData();
           }}
         />
@@ -618,7 +618,7 @@ export default function Home() {
           isOpen={isExcelImportOpen}
           onClose={() => setIsExcelImportOpen(false)}
           onSuccess={() => {
-            showToast("นำเข้าข้อมูลสต็อกและสินค้าจาก Excel เรียบร้อย");
+            showToast(t("page.toastImportSuccess"));
             loadData();
           }}
         />

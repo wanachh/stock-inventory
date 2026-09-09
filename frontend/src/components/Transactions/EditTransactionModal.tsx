@@ -64,11 +64,11 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
     const qty = Number(quantity);
     if (quantity === "" || isNaN(qty) || qty <= 0) {
-      setError("จำนวนสินค้าต้องเป็นจำนวนเต็มบวกมากกว่า 0 ชิ้น (ไม่สามารถใส่ 0 หรือติดลบได้)");
+      setError(t("transaction.editQtyErrorPos"));
       return;
     }
     if (!Number.isInteger(qty)) {
-      setError("จำนวนสินค้าต้องเป็นจำนวนเต็มเท่านั้น ไม่สามารถมีทศนิยมได้");
+      setError(t("transaction.editQtyErrorInt"));
       return;
     }
 
@@ -76,7 +76,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
     if (isStockIn) {
       costNum = Number(unitCost);
       if (unitCost === "" || isNaN(costNum) || costNum < 0) {
-        setError("ราคาต้นทุนต่อชิ้นต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป");
+        setError(t("transaction.editCostError"));
         return;
       }
     }
@@ -96,7 +96,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
       onClose();
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
-      else setError("เกิดข้อผิดพลาดในการแก้ไขรายการ");
+      else setError(t("transaction.editGeneralError"));
     } finally {
       setLoading(false);
     }
@@ -114,10 +114,10 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
           <div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-              แก้ไขรายการเคลื่อนไหวสต็อก #{transaction.id}
+              {t("transaction.editModalTitle", { id: transaction.id })}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {transaction.productName} ({transaction.sku}) • {isStockIn ? "รับเข้า" : "ตัดออก"}
+              {transaction.productName} ({transaction.sku}) • {isStockIn ? t("transaction.in") : t("transaction.out")}
             </p>
           </div>
           <button
@@ -139,7 +139,8 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
           {/* Quantity */}
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              จำนวนสินค้า (ชิ้น) <span className="text-rose-500">* (จำนวนเต็มเท่านั้น)</span>
+              {t("transaction.editQtyLabel")}{" "}
+              <span className="text-rose-500">{t("movement.qtyRequiredNote")}</span>
             </label>
             <input
               type="number"
@@ -164,7 +165,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
           {isStockIn && (
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                ราคาต้นทุนจริงต่อชิ้น (฿) <span className="text-rose-500">*</span>
+                {t("transaction.editCostLabel")} <span className="text-rose-500">*</span>
               </label>
               <input
                 type="number"
@@ -183,7 +184,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
           {/* Date & Time */}
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              วัน-เวลาทำรายการ (แก้ไขย้อนหลังได้)
+              {t("transaction.editDateLabel")}
             </label>
             <input
               type="datetime-local"
@@ -196,13 +197,13 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
           {/* Reference */}
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              เลขที่อ้างอิง / หมายเหตุ
+              {t("transaction.editRefLabel")}
             </label>
             <input
               type="text"
               value={referenceNote}
               onChange={(e) => setReferenceNote(e.target.value)}
-              placeholder="เช่น บิลขาย #INV-001 หรือ ปรับยอด"
+              placeholder={t("transaction.editRefPlaceholder")}
               className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
           </div>

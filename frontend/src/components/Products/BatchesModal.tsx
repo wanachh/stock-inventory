@@ -50,7 +50,7 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-50">
-                  {t("product.batches")}
+                  {t("product.batchesModalTitle")}
                 </h3>
                 <span className="font-mono text-xs text-slate-500">[{product.sku}]</span>
                 {product.brand && (
@@ -60,7 +60,7 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
                 )}
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {product.name} • จัดการต้นทุนจริงแบบเข้าก่อน-ออกก่อน ()
+                {t("product.batchesModalDesc", { name: product.name })}
               </p>
             </div>
           </div>
@@ -146,10 +146,10 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
 
                       <div className="text-right">
                         <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                          ต้นทุนจริง {formatCurrency(b.unitCost)} / ชิ้น
+                          {t("product.batchUnitCost", { cost: formatCurrency(b.unitCost) })}
                         </div>
                         <div className="text-xs text-slate-500 dark:text-slate-400">
-                          มูลค่าล็อตคงเหลือ {formatCurrency(b.totalBatchValue)}
+                          {t("product.batchValuation", { cost: formatCurrency(b.totalBatchValue) })}
                         </div>
                       </div>
                     </div>
@@ -158,10 +158,10 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
                     <div className="mt-3">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-slate-500 dark:text-slate-400">
-                          คงเหลือ: <strong className="text-slate-900 dark:text-slate-100">{b.quantityRemaining}</strong> / {b.quantityReceived} ชิ้น
+                          {t("product.batchRemaining", { rem: b.quantityRemaining, rec: b.quantityReceived })}
                         </span>
                         <span className="text-[11px] text-slate-400">
-                          ตัดไปแล้ว {percentUsed}%
+                          {t("product.batchUsed", { percent: percentUsed })}
                         </span>
                       </div>
                       <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">

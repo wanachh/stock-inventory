@@ -90,23 +90,23 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     // Validation
     const cleanSku = sku.trim().toUpperCase();
     if (!cleanSku) {
-      setError("กรุณาระบุรหัส SKU");
+      setError(t("product.skuErrorRequired"));
       return;
     }
     const skuRegex = /^[A-Za-z0-9_\-\.]{2,50}$/;
     if (!skuRegex.test(cleanSku)) {
-      setError("รหัส SKU ต้องเป็นตัวอักษรภาษาอังกฤษ ตัวเลข ขีดกลาง (-) หรือขีดล่าง (_) ความยาว 2-50 ตัวอักษร");
+      setError(t("product.skuErrorFormat"));
       return;
     }
 
     if (!name.trim()) {
-      setError("กรุณากรอกชื่อสินค้า");
+      setError(t("product.nameErrorRequired"));
       return;
     }
 
     const minThreshNum = Number(minThreshold);
     if (isNaN(minThreshNum) || minThreshNum < 0 || !Number.isInteger(minThreshNum)) {
-      setError("เกณฑ์เตือนสต็อกใกล้หมด (Min Threshold) ต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป");
+      setError(t("product.thresholdError"));
       return;
     }
 
@@ -114,15 +114,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     if (!isEdit && initialQuantity !== "") {
       const initQty = Number(initialQuantity);
       if (isNaN(initQty) || initQty <= 0) {
-        setError("หากต้องการระบุสต็อกตั้งต้น จำนวนสินค้าต้องมากกว่า 0 ชิ้น (หากยังไม่มีสินค้า ให้เว้นว่างไว้ ไม่สามารถใส่ 0 หรือติดลบได้)");
+        setError(t("product.initialQtyErrorPos"));
         return;
       }
       if (!Number.isInteger(initQty)) {
-        setError(`จำนวนสินค้าตั้งต้นต้องเป็นจำนวนเต็มเท่านั้น (เช่น 1, 2, 3...) ไม่สามารถระบุเป็นทศนิยมอย่าง ${initialQuantity} ได้`);
+        setError(t("product.initialQtyErrorInt", { qty: initialQuantity }));
         return;
       }
       if (initialUnitCost === "" || isNaN(Number(initialUnitCost)) || Number(initialUnitCost) < 0) {
-        setError("กรุณาระบุราคาต้นทุนจริงต่อชิ้นสำหรับสต็อกตั้งต้น (ต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป)");
+        setError(t("product.initialCostError"));
         return;
       }
     }
@@ -153,7 +153,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       onClose();
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
-      else setError("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+      else setError(t("product.saveError"));
     } finally {
       setLoading(false);
     }
@@ -172,12 +172,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         <div className="flex items-center justify-between border-b border-slate-100 p-6 pb-4 dark:border-slate-800">
           <div>
             <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
-              {isEdit ? t("product.edit") : t("shell.newProduct")}
+              {isEdit ? t("product.modalTitleEdit") : t("product.modalTitleCreate")}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {isEdit
-                ? "แก้ไขข้อมูลทั่วไปหรือแก้ไขรหัส SKU กรณีพิมพ์ผิด"
-                : "กรอกเฉพาะ SKU และชื่อสินค้าเพื่อเริ่มใช้งานได้ทันที (Quick Win)"}
+                ? t("product.modalDescEdit")
+                : t("product.modalDescCreate")}
             </p>
           </div>
           <button
@@ -201,7 +201,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           <div>
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                รหัสสินค้า (SKU) <span className="text-rose-500">*</span>
+                {t("product.skuLabel")} <span className="text-rose-500">*</span>
               </label>
               {!isEdit && (
                 <button
@@ -210,7 +210,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400 cursor-pointer"
                 >
                   <Wand2 className="h-3 w-3" />
-                  <span>สร้างรหัสอัตโนมัติ</span>
+                  <span>{t("product.autoSku")}</span>
                 </button>
               )}
             </div>
@@ -218,13 +218,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               type="text"
               value={sku}
               onChange={(e) => setSku(e.target.value.toUpperCase())}
-              placeholder="เช่น PRD-2026-001"
+              placeholder={t("product.skuPlaceholder")}
               required
               className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 font-mono text-sm uppercase text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
             {isEdit && (
               <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">
-                ⚠️ หากแก้ไข SKU ประวัติและล็อตเดิมจะยังอยู่ครบ ระบบจะอัปเดตรหัสให้ทันที
+                {t("product.skuWarning")}
               </p>
             )}
           </div>
@@ -232,13 +232,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {/* Product Name */}
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              ชื่อสินค้า <span className="text-rose-500">*</span>
+              {t("product.nameLabel")} <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="เช่น เมล็ดกาแฟอาราบิก้า หรือ เมาส์ไร้สาย"
+              placeholder={t("product.namePlaceholder")}
               required
               className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
@@ -247,13 +247,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {/* Brand */}
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              แบรนด์สินค้า (Brand) <span className="text-slate-400 font-normal">(เว้นว่างได้)</span>
+              {t("product.brandLabel")} <span className="text-slate-400 font-normal">({t("common.optional")})</span>
             </label>
             <input
               type="text"
               value={brand}
               onChange={(e) => setBrand(e.target.value)}
-              placeholder="เช่น Doi Chang, Logitech"
+              placeholder={t("product.brandPlaceholder")}
               className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
           </div>
@@ -262,25 +262,25 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                รหัสบาร์โค้ด (Barcode) <span className="text-slate-400 font-normal">(เว้นว่างได้)</span>
+                {t("product.barcodeLabel")} <span className="text-slate-400 font-normal">({t("common.optional")})</span>
               </label>
               <input
                 type="text"
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
-                placeholder="เช่น 8850123456789"
+                placeholder={t("product.barcodePlaceholder")}
                 className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-mono text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
               />
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                หมวดหมู่สินค้า
+                {t("product.categoryLabel")}
               </label>
               <input
                 type="text"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="เช่น General, IT, Food"
+                placeholder={t("product.categoryPlaceholder")}
                 className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
               />
             </div>
@@ -289,7 +289,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {/* MinThreshold */}
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              เกณฑ์เตือนสต็อกใกล้หมด (Min Threshold)
+              {t("product.thresholdLabel")}
             </label>
             <input
               type="number"
@@ -305,7 +305,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             />
             <p className="mt-1 text-[11px] text-slate-400">
-              ระบบจะแสดงสถานะ &quot;ใกล้หมด (Low Stock)&quot; เมื่อจำนวนคงเหลือ $\le$ ค่านี้
+              {t("product.thresholdHelp")}
             </p>
           </div>
 
@@ -313,15 +313,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {!isEdit && (
             <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-800/50">
               <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                สต็อกตั้งต้นพร้อมต้นทุนจริง (ทางเลือก)
+                {t("product.initialStockTitle")}
               </div>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                สามารถกรอกสต็อกล็อตแรกลงไปได้ทันที (ต้องมากกว่า 0) หรือเว้นว่างไว้แล้วมารับเข้าทีหลังก็ได้
+                {t("product.initialStockDesc")}
               </p>
               <div className="mt-2.5 grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
-                    จำนวนชิ้นแรกเริ่ม (จำนวนเต็ม &gt; 0)
+                    {t("product.initialQtyLabel")}
                   </label>
                   <input
                     type="number"
@@ -342,13 +342,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                         setInitialQuantity(isNaN(parsed) ? "" : parsed);
                       }
                     }}
-                    placeholder="เช่น 5 (เว้นว่างได้)"
+                    placeholder={t("product.initialQtyPlaceholder")}
                     className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-2xs transition-all duration-150 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
                   />
                 </div>
                 <div>
                   <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
-                    ราคาต้นทุนจริง/ชิ้น (฿)
+                    {t("product.initialCostLabel")}
                   </label>
                   <input
                     type="number"

@@ -228,7 +228,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                           ) : (
                             <ArrowUpRight className="h-3.5 w-3.5" />
                           )}
-                          <span>{isStockIn ? "รับเข้า" : "ตัดออก"}</span>
+                          <span>{isStockIn ? translate("transaction.in") : translate("transaction.out")}</span>
                         </span>
                       </td>
 
@@ -286,7 +286,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                           {onEditTransaction && (
                             <button
                               onClick={() => onEditTransaction(t)}
-                              title="แก้ไขรายการ (จำนวน, ต้นทุน, หรือหมายเหตุ)"
+                              title={translate("transaction.editTitle")}
                               className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-blue-600 dark:hover:bg-slate-800 dark:hover:text-blue-400 cursor-pointer"
                             >
                               <Edit2 className="h-4 w-4" />
@@ -295,7 +295,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                           {onDeleteTransaction && (
                             <button
                               onClick={() => onDeleteTransaction(t)}
-                              title="ลบ/ยกเลิกรายการนี้ (ระบบจะคืนสต็อก/ปรับปรุงล็อตเดิมให้อัตโนมัติ)"
+                              title={translate("transaction.deleteTitle")}
                               className="rounded-xl p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 cursor-pointer"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -311,7 +311,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                         <td colSpan={8} className="px-6 py-3">
                           <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-750 dark:bg-slate-850">
                             <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                              📋 รายละเอียดการตัด/รับตามล็อตจริง (Batch Breakdown for Accounting):
+                              {translate("transaction.batchBreakdownTitle")}
                             </div>
                             <div className="mt-2 divide-y divide-slate-100 text-xs dark:divide-slate-800">
                               {t.details.map((d, i) => (
@@ -324,7 +324,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                                       {d.batchNumber}
                                     </span>
                                     <span className="text-slate-500 dark:text-slate-400">
-                                      จำนวน {formatNumber(d.quantityDrawn)} {translate("common.pieces")} @ ทุนจริง {formatCurrency(d.unitCost)}
+                                      {translate("transaction.batchDrawnDetail", { qty: formatNumber(d.quantityDrawn), cost: formatCurrency(d.unitCost) })}
                                     </span>
                                   </div>
                                   <span className="font-bold text-slate-900 dark:text-slate-100">

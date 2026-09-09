@@ -251,7 +251,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                         <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium dark:bg-slate-800">
                           {p.category}
                         </span>
-                        <span>เกณฑ์เตือน: {p.minThreshold} ชิ้น</span>
+                        <span>{t("product.threshold", { count: p.minThreshold })}</span>
                       </div>
                     </td>
 
@@ -260,17 +260,17 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                       {isOut ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-bold text-rose-700 dark:bg-rose-950 dark:text-rose-300">
                           <span className="h-1.5 w-1.5 rounded-full bg-rose-600" />
-                          หมดสต็อก
+                          {t("product.out")}
                         </span>
                       ) : isLow ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
                           <span className="h-1.5 w-1.5 rounded-full bg-amber-600" />
-                          ใกล้หมด
+                          {t("product.low")}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-                          ปกติ
+                          {t("product.normal")}
                         </span>
                       )}
                     </td>
@@ -285,7 +285,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                         className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline dark:text-blue-400 cursor-pointer"
                       >
                         <Layers className="h-3 w-3" />
-                        <span>{p.activeBatches.length} ล็อตที่ยังเหลือ</span>
+                        <span>{t("product.batches", { count: p.activeBatches.length })}</span>
                       </button>
                     </td>
 
@@ -295,7 +295,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                         {formatCurrency(p.totalValuation)}
                       </div>
                       <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                        ตามราคาทุนจริง
+                        {t("product.realCost")}
                       </div>
                     </td>
 
@@ -304,20 +304,20 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                       <div className="flex items-center justify-center gap-1.5">
                         <button
                           onClick={() => onOpenStockIn(p)}
-                          title="รับสินค้าเข้าสต็อก (สร้างล็อตใหม่)"
+                          title={t("product.titleStockIn")}
                           className="flex items-center gap-1 rounded-xl bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 active:scale-95 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60 cursor-pointer"
                         >
                           <Plus className="h-3.5 w-3.5" />
-                          <span>รับเข้า</span>
+                          <span>{t("product.stockIn")}</span>
                         </button>
                         <button
                           onClick={() => onOpenStockOut(p)}
                           disabled={p.totalQuantityRemaining === 0}
-                          title="ตัดสต็อกออก (คำนวณต้นทุน )"
+                          title={t("product.titleStockOut")}
                           className="flex items-center gap-1 rounded-xl bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-rose-950/60 dark:text-rose-300 dark:hover:bg-rose-900/60 cursor-pointer"
                         >
                           <Minus className="h-3.5 w-3.5" />
-                          <span>ตัดออก</span>
+                          <span>{t("product.stockOut")}</span>
                         </button>
                       </div>
                     </td>
@@ -327,7 +327,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => onEditProduct(p)}
-                          title="แก้ไขข้อมูลสินค้า (ชื่อ, หมวดหมู่, เกณฑ์เตือน, SKU)"
+                          title={t("product.titleEdit")}
                           className="rounded-xl p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 cursor-pointer"
                         >
                           <Edit2 className="h-4 w-4" />
@@ -346,7 +346,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       <div className="space-y-3 md:hidden">
         {filtered.length === 0 ? (
           <div className="rounded-3xl border border-slate-200/80 bg-white p-8 text-center text-xs text-slate-400 dark:border-slate-800/80 dark:bg-slate-900">
-            ไม่พบสินค้า
+            {t("product.noProducts")}
           </div>
         ) : (
           filtered.map((p) => {
@@ -380,38 +380,38 @@ export const ProductTable: React.FC<ProductTableProps> = ({
 
                   {isOut ? (
                     <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-                      หมดสต็อก
+                      {t("product.out")}
                     </span>
                   ) : isLow ? (
                     <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
-                      ใกล้หมด
+                      {t("product.low")}
                     </span>
                   ) : (
                     <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                      ปกติ
+                      {t("product.normal")}
                     </span>
                   )}
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 gap-2 border-t border-b border-slate-100 py-2.5 text-xs dark:border-slate-800">
                   <div>
-                    <span className="text-slate-500 dark:text-slate-400">คงเหลือ:</span>
+                    <span className="text-slate-500 dark:text-slate-400">{t("product.remaining")}</span>
                     <div className="text-base font-bold text-slate-900 dark:text-slate-100">
-                      {formatNumber(p.totalQuantityRemaining)} ชิ้น
+                      {formatNumber(p.totalQuantityRemaining)} {t("common.pieces")}
                     </div>
                     <button
                       onClick={() => onViewBatches(p)}
                       className="text-[11px] text-blue-600 hover:underline dark:text-blue-400 cursor-pointer"
                     >
-                      {p.activeBatches.length} ล็อต
+                      {p.activeBatches.length} {t("common.lots")}
                     </button>
                   </div>
                   <div className="text-right">
-                    <span className="text-slate-500 dark:text-slate-400">มูลค่ารวม:</span>
+                    <span className="text-slate-500 dark:text-slate-400">{t("product.value")}</span>
                     <div className="text-base font-bold text-slate-900 dark:text-slate-100">
                       {formatCurrency(p.totalValuation)}
                     </div>
-                    <span className="text-[10px] text-slate-400">ทุนจริงรายรอบ</span>
+                    <span className="text-[10px] text-slate-400">{t("product.totalValuationRound")}</span>
                   </div>
                 </div>
 
@@ -422,7 +422,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                     className="flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 cursor-pointer"
                   >
                     <Edit2 className="h-3.5 w-3.5" />
-                    <span>แก้ไข</span>
+                    <span>{t("product.edit")}</span>
                   </button>
 
                   <div className="flex items-center gap-2">
@@ -431,7 +431,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                       className="flex items-center gap-1 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-xs active:scale-95 cursor-pointer"
                     >
                       <Plus className="h-4 w-4" />
-                      <span>รับเข้า</span>
+                      <span>{t("product.stockIn")}</span>
                     </button>
                     <button
                       onClick={() => onOpenStockOut(p)}
@@ -439,7 +439,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                       className="flex items-center gap-1 rounded-xl bg-rose-600 px-3 py-2 text-xs font-semibold text-white shadow-xs active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                     >
                       <Minus className="h-4 w-4" />
-                      <span>ตัดออก</span>
+                      <span>{t("product.stockOut")}</span>
                     </button>
                   </div>
                 </div>

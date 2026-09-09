@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, Eye, EyeOff, Clock, ShieldCheck, Sun, Moon } from "lucide-react";
 import { BrandLogo } from "../Common/BrandLogo";
+import { LanguageSwitcher } from "../LanguageSwitcher";
 import { useTheme } from "../Theme/ThemeContext";
 
 import { api } from "../../lib/api";
@@ -116,8 +117,9 @@ export const PasscodeGate: React.FC<PasscodeGateProps> = ({ children }) => {
   // Locked: Modern SaaS Style Unlock Screen matching the new theme
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#f4f6fa] p-4 text-slate-900 select-none transition-colors duration-200 dark:bg-[#0b0f19] dark:text-slate-100">
-      {/* Top right theme toggle button */}
-      <div className="absolute top-6 right-6">
+      {/* Top right theme & language switcher */}
+      <div className="absolute top-6 right-6 flex items-center gap-2">
+        <LanguageSwitcher />
         <button
           type="button"
           onClick={toggleTheme}

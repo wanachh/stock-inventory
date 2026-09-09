@@ -80,11 +80,11 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
       reference?: string;
     }> = [];
 
-    let title = "รายงานสต็อกสินค้า StockPulse";
+    let title = t("excel.defaultReportTitle");
 
     if (reportType === "CurrentStock") {
       // Export current inventory batches
-      title = "รายงานสินค้าคงเหลือปัจจุบันและราคาทุนจริง";
+      title = t("excel.defaultStockReportTitle");
       products.forEach((prod) => {
         if (prod.activeBatches && prod.activeBatches.length > 0) {
           prod.activeBatches.forEach((batch) => {
@@ -174,7 +174,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
                 {t("shell.exportExcel")} (.xlsx)
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                ฟอร์แมตตามเทมเพลต: ลำดับ, SKU, barcode, Brand, จำนวน, ราคาก่อนแวท, แวท, หลังแวท
+                {t("excel.exportDesc")}
               </p>
             </div>
           </div>
@@ -191,7 +191,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
           {/* Report Type Selector */}
           <div>
             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              ประเภทรายงานที่ต้องการส่งออก
+              {t("excel.reportTypeTitle")}
             </label>
             <div className="mt-2 grid grid-cols-2 gap-2">
               <button
@@ -205,8 +205,8 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
               >
                 <ArrowDownRight className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <div>
-                  <div className="text-xs font-bold">1. รายงานรับเข้าสต็อก</div>
-                  <div className="text-[10px] text-zinc-500">Stock In แยกตามราคาซื้อจริง</div>
+                  <div className="text-xs font-bold">{t("excel.reportIn")}</div>
+                  <div className="text-[10px] text-zinc-500">{t("excel.reportInDesc")}</div>
                 </div>
               </button>
 
@@ -221,8 +221,8 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
               >
                 <ArrowUpRight className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 <div>
-                  <div className="text-xs font-bold">2. รายงานตัดสต็อก </div>
-                  <div className="text-[10px] text-zinc-500">Stock Out / ต้นทุนที่เบิกออก</div>
+                  <div className="text-xs font-bold">{t("excel.reportOut")}</div>
+                  <div className="text-[10px] text-zinc-500">{t("excel.reportOutDesc")}</div>
                 </div>
               </button>
 
@@ -237,8 +237,8 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
               >
                 <Layers className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
                 <div>
-                  <div className="text-xs font-bold">3. สต็อกคงเหลือปัจจุบัน</div>
-                  <div className="text-[10px] text-zinc-500">ยอดคงเหลือทุกล็อตพร้อมมูลค่า</div>
+                  <div className="text-xs font-bold">{t("excel.reportStock")}</div>
+                  <div className="text-[10px] text-zinc-500">{t("excel.reportStockDesc")}</div>
                 </div>
               </button>
 
@@ -253,8 +253,8 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
               >
                 <Filter className="h-4 w-4 text-purple-600 dark:text-purple-400 shrink-0" />
                 <div>
-                  <div className="text-xs font-bold">4. ประวัติเข้า-ออกทั้งหมด</div>
-                  <div className="text-[10px] text-zinc-500">รวมทั้ง Stock In และ Out</div>
+                  <div className="text-xs font-bold">{t("excel.reportAll")}</div>
+                  <div className="text-[10px] text-zinc-500">{t("excel.reportAllDesc")}</div>
                 </div>
               </button>
             </div>
@@ -264,7 +264,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
           {reportType !== "CurrentStock" && (
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                เลือกช่วงวันที่ต้องการออกรายงาน (Date Range)
+                {t("excel.dateRangeTitle")}
               </label>
 
               {/* Presets */}
@@ -274,42 +274,42 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
                   onClick={() => handlePreset("today")}
                   className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
                 >
-                  วันนี้
+                  {t("excel.rangeToday")}
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePreset("7days")}
                   className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
                 >
-                  7 วันล่าสุด
+                  {t("excel.rangeLast7")}
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePreset("thisMonth")}
                   className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
                 >
-                  เดือนนี้
+                  {t("excel.rangeThisMonth")}
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePreset("aug2026")}
                   className="rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
                 >
-                  สิงหาคม 2026
+                  {t("excel.rangeAug2026")}
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePreset("all")}
                   className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
                 >
-                  ทั้งหมด
+                  {t("excel.rangeAll")}
                 </button>
               </div>
 
               {/* Inputs */}
               <div className="mt-2 grid grid-cols-2 gap-3">
                 <div>
-                  <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">ตั้งแต่วันที่:</span>
+                  <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">{t("excel.fromDate")}</span>
                   <input
                     type="date"
                     value={startDate}
@@ -318,7 +318,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
                   />
                 </div>
                 <div>
-                  <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">ถึงวันที่:</span>
+                  <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">{t("excel.toDate")}</span>
                   <input
                     type="date"
                     value={endDate}

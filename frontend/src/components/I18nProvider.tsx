@@ -14,7 +14,21 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     const language = savedLanguage === "en" || savedLanguage === "th" ? savedLanguage : DEFAULT_LANGUAGE;
     if (i18n.language !== language) void i18n.changeLanguage(language);
-    document.documentElement.lang = language;
+
+    const handleLanguageChanged = (lng: string) => {
+      document.documentElement.lang = lng;
+      document.title =
+        lng === "en"
+          ? "StockPulse - Smart Inventory & FIFO Valuation System"
+          : "StockPulse - ระบบจัดการสต็อกและต้นทุนสินค้า (Real-Cost FIFO)";
+    };
+
+    i18n.on("languageChanged", handleLanguageChanged);
+    handleLanguageChanged(i18n.language);
+
+    return () => {
+      i18n.off("languageChanged", handleLanguageChanged);
+    };
   }, []);
 
   return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>;

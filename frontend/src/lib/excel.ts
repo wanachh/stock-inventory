@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import i18n from "../i18n/config";
 import { ExcelImportItem } from "../types";
 
 export interface ParsedExcelRow extends ExcelImportItem {
@@ -72,25 +73,25 @@ export async function parseExcelFile(file: File): Promise<ParseExcelResult> {
 
     // Validate SKU
     if (!rawSku) {
-      error = "กรุณาระบุรหัส SKU";
+      error = i18n.t("excel.errSkuRequired");
     }
 
     // Validate Quantity
     const qtyNum = Number(rawQty);
     if (rawQty === "" || isNaN(qtyNum)) {
-      error = error || "กรุณาระบุจำนวนสินค้าเป็นตัวเลข";
+      error = error || i18n.t("excel.errQtyNumber");
     } else if (qtyNum <= 0) {
-      error = error || "จำนวนสินค้าต้องมากกว่า 0 ชิ้น (ไม่สามารถใส่ 0 หรือติดลบได้)";
+      error = error || i18n.t("excel.errQtyPositive");
     } else if (!Number.isInteger(qtyNum)) {
-      error = error || `จำนวนสินค้าต้องเป็นจำนวนเต็มเท่านั้น (พบ: ${qtyNum} ชิ้น)`;
+      error = error || i18n.t("excel.errQtyInteger", { qty: qtyNum });
     }
 
     // Validate Pre-VAT price
     const preVatNum = Number(rawPreVat);
     if (rawPreVat === "" || isNaN(preVatNum)) {
-      error = error || "กรุณาระบุราคาก่อนแวทเป็นตัวเลข";
+      error = error || i18n.t("excel.errPriceNumber");
     } else if (preVatNum < 0) {
-      error = error || "ราคาก่อนแวทต้องไม่ติดลบ";
+      error = error || i18n.t("excel.errPricePositive");
     }
 
     // VAT & Post-VAT calculation
@@ -154,46 +155,55 @@ export async function parseExcelFile(file: File): Promise<ParseExcelResult> {
  * Columns: [ลำดับ, SKU, barcode, Brand, จำนวน, ราคาก่อนแวท, แวท, หลังแวท]
  */
 export function downloadExcelTemplate() {
+  const colSeq = i18n.t("excel.colSeq");
+  const colSku = i18n.t("excel.colSku");
+  const colBarcode = i18n.t("excel.colBarcode");
+  const colBrand = i18n.t("excel.colBrand");
+  const colQty = i18n.t("excel.colQty");
+  const colPreVat = i18n.t("excel.colPreVat");
+  const colVat = i18n.t("excel.colVat");
+  const colPostVat = i18n.t("excel.colPostVat");
+
   const sampleData = [
     {
-      ลำดับ: 1,
-      SKU: "SKU-TECH-01",
-      barcode: "885901234501",
-      Brand: "Logitech Wireless Mouse",
-      จำนวน: 20,
-      ราคาก่อนแวท: 350.0,
-      แวท: 24.5,
-      หลังแวท: 374.5,
+      [colSeq]: 1,
+      [colSku]: "SKU-TECH-01",
+      [colBarcode]: "885901234501",
+      [colBrand]: "Logitech Wireless Mouse",
+      [colQty]: 20,
+      [colPreVat]: 350.0,
+      [colVat]: 24.5,
+      [colPostVat]: 374.5,
     },
     {
-      ลำดับ: 2,
-      SKU: "SKU-TECH-02",
-      barcode: "885901234502",
-      Brand: "Keychron Mechanical Keyboard",
-      จำนวน: 10,
-      ราคาก่อนแวท: 1200.0,
-      แวท: 84.0,
-      หลังแวท: 1284.0,
+      [colSeq]: 2,
+      [colSku]: "SKU-TECH-02",
+      [colBarcode]: "885901234502",
+      [colBrand]: "Keychron Mechanical Keyboard",
+      [colQty]: 10,
+      [colPreVat]: 1200.0,
+      [colVat]: 84.0,
+      [colPostVat]: 1284.0,
     },
     {
-      ลำดับ: 3,
-      SKU: "SKU-CAFE-01",
-      barcode: "885901234503",
-      Brand: "Premium Arabica Roast 500g",
-      จำนวน: 15,
-      ราคาก่อนแวท: 220.0,
-      แวท: 15.4,
-      หลังแวท: 235.4,
+      [colSeq]: 3,
+      [colSku]: "SKU-CAFE-01",
+      [colBarcode]: "885901234503",
+      [colBrand]: "Premium Arabica Roast 500g",
+      [colQty]: 15,
+      [colPreVat]: 220.0,
+      [colVat]: 15.4,
+      [colPostVat]: 235.4,
     },
     {
-      ลำดับ: 4,
-      SKU: "PRD-A001",
-      barcode: "885000000001",
-      Brand: "Product A",
-      จำนวน: 10,
-      ราคาก่อนแวท: 5.0,
-      แวท: 0.35,
-      หลังแวท: 5.35,
+      [colSeq]: 4,
+      [colSku]: "PRD-A001",
+      [colBarcode]: "885000000001",
+      [colBrand]: "Product A",
+      [colQty]: 10,
+      [colPreVat]: 5.0,
+      [colVat]: 0.35,
+      [colPostVat]: 5.35,
     },
   ];
 
@@ -255,28 +265,46 @@ export function exportExcelReport(options: ExportReportOptions) {
     totalVat += qty * vat;
     totalPostVat += qty * postVat;
 
+    const colSeq = i18n.t("excel.colSeq");
+    const colSku = i18n.t("excel.colSku");
+    const colBarcode = i18n.t("excel.colBarcode");
+    const colBrand = i18n.t("excel.colBrand");
+    const colQty = i18n.t("excel.colQty");
+    const colPreVat = i18n.t("excel.colPreVat");
+    const colVat = i18n.t("excel.colVat");
+    const colPostVat = i18n.t("excel.colPostVat");
+
     return {
-      ลำดับ: index + 1,
-      SKU: item.sku,
-      barcode: item.barcode || "-",
-      Brand: item.brand,
-      จำนวน: qty,
-      ราคาก่อนแวท: preVat,
-      แวท: vat,
-      หลังแวท: postVat,
+      [colSeq]: index + 1,
+      [colSku]: item.sku,
+      [colBarcode]: item.barcode || "-",
+      [colBrand]: item.brand,
+      [colQty]: qty,
+      [colPreVat]: preVat,
+      [colVat]: vat,
+      [colPostVat]: postVat,
     };
   });
 
+  const colSeq = i18n.t("excel.colSeq");
+  const colSku = i18n.t("excel.colSku");
+  const colBarcode = i18n.t("excel.colBarcode");
+  const colBrand = i18n.t("excel.colBrand");
+  const colQty = i18n.t("excel.colQty");
+  const colPreVat = i18n.t("excel.colPreVat");
+  const colVat = i18n.t("excel.colVat");
+  const colPostVat = i18n.t("excel.colPostVat");
+
   // Summary footer row
   const summaryRow: Record<string, string | number> = {
-    ลำดับ: "รวมทั้งสิ้น",
-    SKU: `${rows.length} รายการ`,
-    barcode: "",
-    Brand: "",
-    จำนวน: totalQty,
-    ราคาก่อนแวท: +totalPreVat.toFixed(2),
-    แวท: +totalVat.toFixed(2),
-    หลังแวท: +totalPostVat.toFixed(2),
+    [colSeq]: i18n.t("excel.totalSummary"),
+    [colSku]: i18n.t("excel.totalItems", { count: rows.length }),
+    [colBarcode]: "",
+    [colBrand]: "",
+    [colQty]: totalQty,
+    [colPreVat]: +totalPreVat.toFixed(2),
+    [colVat]: +totalVat.toFixed(2),
+    [colPostVat]: +totalPostVat.toFixed(2),
   };
 
   const finalData = [...rows, summaryRow];
