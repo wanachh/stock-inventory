@@ -392,7 +392,7 @@ export default function Home() {
                         <button
                           type="button"
                           onClick={() => setIsFilterOpen((v) => !v)}
-                          className="flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-bold text-slate-700 hover:border-blue-400 hover:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-750 transition cursor-pointer"
+                          className="flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-bold text-slate-700 hover:border-blue-400 hover:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:border-slate-600 transition cursor-pointer"
                         >
                           <span>
                             {isFiltered ? `${selectedProductIds.size} รายการที่เลือก` : "🌐 เลือกสินค้า"}
