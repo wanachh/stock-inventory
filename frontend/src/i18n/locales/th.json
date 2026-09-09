@@ -26,7 +26,10 @@
     "lightMode": "สลับเป็นโหมดสว่าง (Light Mode)",
     "darkMode": "สลับเป็นโหมดมืด (Dark Mode)",
     "thai": "ไทย",
-    "english": "อังกฤษ"
+    "english": "อังกฤษ",
+    "showAll": "ดูทั้งหมด",
+    "lots": "ล็อต",
+    "issueCost":"ต้นทุนตัดจ่าย"
   },
   "shell": {
     "greeting": "สวัสดี",
@@ -74,7 +77,7 @@
     "search": "ค้นหาด้วย SKU, Barcode, หรือชื่อสินค้า...", "clear": "ล้าง", "allCategories": "ทุกหมวดหมู่ ({{count}})", "all": "ทั้งหมด", "normal": "ปกติ", "low": "ใกล้หมด", "out": "หมด", "notFound": "ไม่พบสินค้าที่ตรงกับเงื่อนไขการค้นหา", "noProducts": "ไม่พบสินค้า", "threshold": "เกณฑ์เตือน: {{count}} ชิ้น", "batches": "{{count}} ล็อตที่ยังเหลือ", "realCost": "ตามราคาทุนจริง", "stockIn": "รับเข้า", "stockOut": "ตัดออก", "remaining": "คงเหลือ:", "value": "มูลค่ารวม:", "edit": "แก้ไข", "import": "นำเข้า Excel", "export": "ออกรายงาน Excel", "nameCategory": "ชื่อสินค้า / หมวดหมู่", "status": "สถานะสต็อก", "quantity": "จำนวนคงเหลือ", "valuation": "มูลค่าคงเหลือจริง", "quickMovement": "จัดการสต็อกด่วน", "tools": "เครื่องมือ"
   },
   "transaction": {
-    "search": "ค้นหาด้วย SKU, ชื่อสินค้า, หรือเลขที่บิลอ้างอิง...", "all": "ทั้งหมด ({{count}})", "in": "รับเข้า", "out": "ตัดออก", "excelTitle": "ส่งออกรายงาน Excel ตามช่วงวันที่เลือก (เทมเพลตมาตรฐาน)", "excel": "รายงาน Excel", "csvTitle": "ส่งออกรายงานเป็น CSV สำหรับงานบัญชี", "date": "วัน-เวลา", "type": "ประเภท", "product": "สินค้า (SKU)", "quantity": "จำนวนชิ้น", "cost": "มูลค่าต้นทุนจริงรวม", "reference": "เอกสารอ้างอิง / หมายเหตุ", "breakdown": "แจกแจงล็อต", "manage": "จัดการ", "empty": "ไม่พบรายการเคลื่อนไหว", "batches": "{{count}} ล็อต", "editTitle": "แก้ไขรายการ (จำนวน, ต้นทุน, หรือหมายเหตุ)", "deleteTitle": "ลบ/ยกเลิกรายการนี้ (ระบบจะคืนสต็อก/ปรับปรุงล็อตเดิมให้อัตโนมัติ)"
+    "search": "ค้นหาด้วย SKU, ชื่อสินค้า, หรือเลขที่บิลอ้างอิง...", "all": "ทั้งหมด ({{count}})", "in": "รับเข้า", "out": "ตัดออก", "excelTitle": "ส่งออกรายงาน Excel ตามช่วงวันที่เลือก (เทมเพลตมาตรฐาน)", "excel": "รายงาน Excel", "csvTitle": "ส่งออกรายงานเป็น CSV สำหรับงานบัญชี", "date": "วัน-เวลา", "type": "ประเภท", "product": "สินค้า (SKU)", "quantity": "จำนวนชิ้น", "cost": "มูลค่าต้นทุนจริงรวม", "reference": "เอกสารอ้างอิง / หมายเหตุ", "breakdown": "แจกแจงล็อต", "manage": "จัดการ", "empty": "ไม่พบรายการเคลื่อนไหว", "batches": "{{count}} ล็อต", "editTitle": "แก้ไขรายการ (จำนวน, ต้นทุน, หรือหมายเหตุ)", "deleteTitle": "ลบ/ยกเลิกรายการนี้ (ระบบจะคืนสต็อก/ปรับปรุงล็อตเดิมให้อัตโนมัติ)", "recent": "ล่าสุด"
   },
   "scanner": {
     "notFound": "ไม่พบสินค้าสำหรับรหัส: {{code}}", "title": "เครื่องสแกนบาร์โค้ด & ค้นหารหัส SKU ด่วน", "description": "ใช้ปืนยิงบาร์โค้ด USB/Bluetooth ยิงใส่หน้านี้ได้ทันที หรือพิมพ์รหัส SKU แล้วกด Enter", "placeholder": "ยิงบาร์โค้ด หรือพิมพ์ SKU เช่น PRD-A001...", "search": "ค้นหา", "out": "หมดสต็อก", "low": "ใกล้หมด", "inStock": "มีสินค้า", "remaining": "คงเหลือปัจจุบัน:", "valuation": "มูลค่าต้นทุนจริงคงเหลือ:", "viewBatches": "ดูทุกล็อต ({{count}})", "stockIn": "รับเข้า (Stock In)", "stockOut": "ตัดออก (Stock Out)", "detected": "ตรวจพบการยิงสแกนเนอร์!"
@@ -82,6 +85,7 @@
   "dashboard": { "goals": "เป้าหมายคลัง (Goals)", "goalDescription": "ตัวชี้วัดประสิทธิภาพสต็อกสินค้า", "stockBalance": "คงเหลือในคลัง", "balanceDetail": "สินค้าคงเหลือทั้งหมด (Balance)", "realCost": "มูลค่าต้นทุนจริง:", "costByBatch": "คำนวณตามราคาซื้อจริงของทุกล็อตย่อย", "stockOut": "เบิก-ขายออก", "outDetail": "ยอดตัดจ่าย / ขายออก (Stock Out)", "cogs": "ต้นทุนตัดจ่าย:", "fifo": "ตัดจากล็อตเก่าก่อนเสมอตามหลักบัญชี", "stockIn": "รับเข้าสต็อก", "inDetail": "ยอดรับเข้าสต็อก (Stock In)", "inValue": "มูลค่ายอดซื้อเข้ารวม:", "batchHistory": "แยกเก็บประวัติต้นทุนตามล็อตจริง", "lowStock": "สินค้าใกล้หมด (Low Stock)", "safe": "ปลอดภัย", "reorder": "ดูรายการที่ถึงจุดสั่งซื้อ", "online": "ออนไลน์", "times": "ครั้ง", "noData": "ยังไม่มีข้อมูลสินค้า",
     "chartTitle": "ความเคลื่อนไหวสต็อก (Stock Movement Flow)", "chartTitleProduct": "ความเคลื่อนไหวสต็อก: {{name}}", "chartSubtitle": "เปรียบเทียบยอดรับเข้าและยอดตัดจ่ายรายวัน (กวาดตาดูเพื่อวางแผนสต็อก)", "chartSubtitleProduct": "เปรียบเทียบยอดรับเข้าและยอดตัดจ่ายรายวันของ \"{{name}}\"", "chartQuantity": "จำนวน (ชิ้น)", "chartCost": "ต้นทุนจริง (฿)", "chartIn": "รับเข้าสะสม:", "chartOut": "ตัดออกสะสม:", "chartPieces": "ชิ้น", "chartLast7": "รอบ 7 วันล่าสุด", "chartNetUp": "สต็อกเพิ่มขึ้นสุทธิ", "chartNetDown": "สต็อกลดลงสุทธิ", "chartInShort": "รับเข้า:", "chartOutShort": "ตัดออก:", "chartLegendIn": "แท่งสีน้ำเงิน: รับเข้าสต็อก (Stock In)", "chartLegendOut": "แท่งสีชมพูแดง: เบิก-ขายออก (Stock Out)",
     "topTitle": "สินค้ามูลค่าคงเหลือสูงสุด", "topSubtitle": "จัดอันดับตามมูลค่าต้นทุนจริงค้างสต็อก", "topRemaining": "คงเหลือ {{count}} ชิ้น",
-    "visitorTitle": "สถิติผู้เข้าชมเว็บไซต์ (Visitor Live Counter)", "visitorOnline": "กำลังออนไลน์:", "visitorToday": "วันนี้:", "visitorTotal": "ยอดดูสะสม:"
+    "visitorTitle": "สถิติผู้เข้าชมเว็บไซต์ (Visitor Live Counter)", "visitorOnline": "กำลังออนไลน์:", "visitorToday": "วันนี้:", "visitorTotal": "ยอดดูสะสม:",
+    "descriptionDateTime": "ประวัติการรับเข้าและตัดออกพร้อมต้นทุนจริง"
   }
 }

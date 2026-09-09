@@ -34,7 +34,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
   onDeleteTransaction,
   onOpenExcelExport,
 }) => {
-  const { t } = useTranslation();
+  const { t: translate } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -104,7 +104,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={t("transaction.search")}
+            placeholder={translate("transaction.search")}
             className="w-full rounded-2xl border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-900 shadow-2xs transition-all duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
           />
           {searchTerm && (
@@ -112,7 +112,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
               onClick={() => setSearchTerm("")}
               className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md px-1.5 py-0.5 text-xs font-semibold text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
             >
-              {t("common.clear")}
+              {translate("common.clear")}
             </button>
           )}
         </div>
@@ -128,7 +128,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
-              {t("transaction.all", { count: transactions.length })}
+              {translate("transaction.all", { count: transactions.length })}
             </button>
             <button
               onClick={() => setTypeFilter("StockIn")}
@@ -138,7 +138,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
-              {t("transaction.in")}
+              {translate("transaction.in")}
             </button>
             <button
               onClick={() => setTypeFilter("StockOut")}
@@ -148,7 +148,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
               }`}
             >
-              {t("transaction.out")}
+              {translate("transaction.out")}
             </button>
           </div>
 
@@ -156,18 +156,18 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
           {onOpenExcelExport && (
             <button
               onClick={onOpenExcelExport}
-              title={t("transaction.excelTitle")}
+              title={translate("transaction.excelTitle")}
               className="flex items-center gap-1.5 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 active:scale-95 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300 cursor-pointer"
             >
               <Download className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span className="hidden sm:inline">{t("transaction.excel")}</span>
+              <span className="hidden sm:inline">{translate("transaction.excel")}</span>
             </button>
           )}
 
           {/* Export CSV */}
           <button
             onClick={handleExportCsv}
-            title={t("transaction.csvTitle")}
+            title={translate("transaction.csvTitle")}
             className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer"
           >
             <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -181,21 +181,21 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
         <table className="w-full text-left text-sm">
           <thead className="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-600 uppercase dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
             <tr>
-              <th className="px-4 py-3.5">{t("transaction.date")}</th>
-              <th className="px-4 py-3.5">{t("transaction.type")}</th>
-              <th className="px-4 py-3.5">{t("transaction.product")}</th>
-              <th className="px-4 py-3.5 text-right">{t("transaction.quantity")}</th>
-              <th className="px-4 py-3.5 text-right">{t("transaction.cost")}</th>
-              <th className="px-4 py-3.5">{t("transaction.reference")}</th>
-              <th className="px-4 py-3.5 text-center">{t("transaction.breakdown")}</th>
-              <th className="px-4 py-3.5 text-right">{t("transaction.manage")}</th>
+              <th className="px-4 py-3.5">{translate("transaction.date")}</th>
+              <th className="px-4 py-3.5">{translate("transaction.type")}</th>
+              <th className="px-4 py-3.5">{translate("transaction.product")}</th>
+              <th className="px-4 py-3.5 text-right">{translate("transaction.quantity")}</th>
+              <th className="px-4 py-3.5 text-right">{translate("transaction.cost")}</th>
+              <th className="px-4 py-3.5">{translate("transaction.reference")}</th>
+              <th className="px-4 py-3.5 text-center">{translate("transaction.breakdown")}</th>
+              <th className="px-4 py-3.5 text-right">{translate("transaction.manage")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
-                  {t("transaction.empty")}
+                  {translate("transaction.empty")}
                 </td>
               </tr>
             ) : (
@@ -245,7 +245,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                       {/* Qty */}
                       <td className="px-4 py-3.5 text-right font-bold text-slate-900 dark:text-slate-100">
                         {isStockIn ? "+" : "-"}
-                        {formatNumber(t.quantity)} ชิ้น
+                        {formatNumber(t.quantity)} {translate("common.pieces")}
                       </td>
 
                       {/* Total Cost */}
@@ -271,7 +271,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                           className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 cursor-pointer"
                         >
                           <Layers className="h-3 w-3" />
-                          <span>{t.details.length} ล็อต</span>
+                          <span>{t.details.length} {translate("common.lots")}</span>
                           {isExpanded ? (
                             <ChevronUp className="h-3 w-3" />
                           ) : (
@@ -324,7 +324,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                                       {d.batchNumber}
                                     </span>
                                     <span className="text-slate-500 dark:text-slate-400">
-                                      จำนวน {formatNumber(d.quantityDrawn)} ชิ้น @ ทุนจริง {formatCurrency(d.unitCost)}
+                                      จำนวน {formatNumber(d.quantityDrawn)} {translate("common.pieces")} @ ทุนจริง {formatCurrency(d.unitCost)}
                                     </span>
                                   </div>
                                   <span className="font-bold text-slate-900 dark:text-slate-100">

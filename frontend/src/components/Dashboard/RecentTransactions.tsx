@@ -21,10 +21,10 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-            {t("transaction.date")} (ล่าสุด)
+            {t("transaction.date")} ({t("transaction.recent")})
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            ประวัติการรับเข้าและตัดออกพร้อมต้นทุนจริง
+            {t("dashboard.descriptionDateTime")}
           </p>
         </div>
         {onViewAll && (
@@ -32,7 +32,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
             onClick={onViewAll}
             className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 cursor-pointer"
           >
-            ดูทั้งหมด &rarr;
+            {t("common.showAll")} &rarr;
           </button>
         )}
       </div>
