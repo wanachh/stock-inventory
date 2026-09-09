@@ -558,6 +558,7 @@ export default function Home() {
               onRefresh={loadData}
               onEditTransaction={handleOpenEditTransaction}
               onDeleteTransaction={handleDeleteTransaction}
+              onOpenExcelImport={() => setIsExcelImportOpen(true)}
               onOpenExcelExport={() => setIsExcelExportOpen(true)}
             />
           )}

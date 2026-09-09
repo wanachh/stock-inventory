@@ -10,6 +10,7 @@ import {
   Search,
   Filter,
   Download,
+  Upload,
   ChevronDown,
   ChevronUp,
   Clock,
@@ -24,6 +25,7 @@ interface TransactionJournalProps {
   onRefresh?: () => void;
   onEditTransaction?: (transaction: StockTransaction) => void;
   onDeleteTransaction?: (transaction: StockTransaction) => void;
+  onOpenExcelImport?: () => void;
   onOpenExcelExport?: () => void;
 }
 
@@ -32,6 +34,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
   onRefresh,
   onEditTransaction,
   onDeleteTransaction,
+  onOpenExcelImport,
   onOpenExcelExport,
 }) => {
   const { t: translate } = useTranslation();
@@ -152,15 +155,26 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
             </button>
           </div>
 
-          {/* Export Excel Report */}
+          {/* Import Excel */}
+          {onOpenExcelImport && (
+            <button
+              onClick={onOpenExcelImport}
+              className="flex items-center gap-1.5 rounded-2xl border border-blue-200/80 bg-blue-50/80 px-3 py-2 text-xs font-semibold text-blue-700 shadow-2xs transition hover:bg-blue-100 active:scale-95 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/60 dark:hover:border-blue-800/60 cursor-pointer"
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{translate("shell.importExcel")}</span>
+            </button>
+          )}
+
+          {/* Export Excel */}
           {onOpenExcelExport && (
             <button
               onClick={onOpenExcelExport}
               title={translate("transaction.excelTitle")}
-              className="flex items-center gap-1.5 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 active:scale-95 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-3 py-2 text-xs font-semibold text-emerald-700 shadow-2xs transition hover:bg-emerald-100 active:scale-95 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 dark:hover:border-emerald-800/60 cursor-pointer"
             >
-              <Download className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span className="hidden sm:inline">{translate("transaction.excel")}</span>
+              <Upload className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{translate("shell.exportExcel")}</span>
             </button>
           )}
 
@@ -168,9 +182,9 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
           <button
             onClick={handleExportCsv}
             title={translate("transaction.csvTitle")}
-            className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer"
+            className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-2xs transition hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer"
           >
-            <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
             <span className="hidden sm:inline">CSV</span>
           </button>
         </div>

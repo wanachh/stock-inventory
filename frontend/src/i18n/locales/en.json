@@ -302,7 +302,7 @@
     "in": "Stock In",
     "out": "Stock Out",
     "excelTitle": "Export Excel report for selected date range (Standard Template)",
-    "excel": "Excel Report",
+    "excel": "Export Excel",
     "csvTitle": "Export CSV report for accounting",
     "date": "Date / Time",
     "type": "Type",

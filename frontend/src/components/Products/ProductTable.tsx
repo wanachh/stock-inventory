@@ -173,20 +173,20 @@ export const ProductTable: React.FC<ProductTableProps> = ({
               <button
                 type="button"
                 onClick={onOpenExcelImport}
-                className="flex items-center gap-1.5 rounded-2xl border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 shadow-xs transition hover:bg-blue-100 dark:border-blue-800/40 dark:bg-blue-950/40 dark:text-blue-300 cursor-pointer"
+                className="flex items-center gap-1.5 rounded-2xl border border-blue-200/80 bg-blue-50/80 px-3 py-2 text-xs font-semibold text-blue-700 shadow-2xs transition hover:bg-blue-100 active:scale-95 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/60 dark:hover:border-blue-800/60 cursor-pointer"
               >
                 <Download className="h-3.5 w-3.5" />
-                <span>{t("product.import")}</span>
+                <span>{t("shell.importExcel")}</span>
               </button>
             )}
             {onOpenExcelExport && (
               <button
                 type="button"
                 onClick={onOpenExcelExport}
-                className="flex items-center gap-1.5 rounded-2xl border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 shadow-xs transition hover:bg-emerald-100 dark:border-emerald-800/40 dark:bg-emerald-950/40 dark:text-emerald-300 cursor-pointer"
+                className="flex items-center gap-1.5 rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-3 py-2 text-xs font-semibold text-emerald-700 shadow-2xs transition hover:bg-emerald-100 active:scale-95 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 dark:hover:border-emerald-800/60 cursor-pointer"
               >
                 <Upload className="h-3.5 w-3.5" />
-                <span>{t("product.export")}</span>
+                <span>{t("shell.exportExcel")}</span>
               </button>
             )}
           </div>
