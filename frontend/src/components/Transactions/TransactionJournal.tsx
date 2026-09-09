@@ -15,7 +15,6 @@ import {
   ChevronUp,
   Clock,
   Layers,
-  FileSpreadsheet,
   Edit2,
   Trash2,
 } from "lucide-react";
@@ -60,42 +59,6 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
       return true;
     });
   }, [transactions, searchTerm, typeFilter]);
-
-  // Export to CSV for Accounting
-  const handleExportCsv = () => {
-    const headers = [
-      "ID",
-      "Date",
-      "Type",
-      "SKU",
-      "ProductName",
-      "Quantity",
-      "TotalCost",
-      "Reference",
-    ];
-    const rows = filtered.map((t) => [
-      t.id,
-      `"${t.createdAt}"`,
-      t.type,
-      `"${t.sku}"`,
-      `"${t.productName}"`,
-      t.quantity,
-      t.totalCost,
-      `"${t.referenceNote || ""}"`,
-    ]);
-
-    const csvContent =
-      "data:text/csv;charset=utf-8,\uFEFF" +
-      [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `stock_transactions_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   return (
     <div className="space-y-4">
@@ -177,16 +140,6 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
               <span className="hidden sm:inline">{translate("shell.exportExcel")}</span>
             </button>
           )}
-
-          {/* Export CSV */}
-          <button
-            onClick={handleExportCsv}
-            title={translate("transaction.csvTitle")}
-            className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-2xs transition hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer"
-          >
-            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span className="hidden sm:inline">CSV</span>
-          </button>
         </div>
       </div>
 
