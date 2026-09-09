@@ -6,17 +6,24 @@ import { ProductDetail } from "../../types";
 import { formatCurrency, formatNumber } from "../../lib/api";
 import {
   Search,
-  Filter,
   Plus,
   Minus,
   Layers,
   Edit2,
-  AlertCircle,
   Barcode,
-  Package,
   Upload,
   Download,
+  Filter,
+  Tag,
+  FolderTree,
+  Activity,
+  Boxes,
+  Coins,
 } from "lucide-react";
+import { MultiSelectDropdown, MultiSelectOption } from "../Common/MultiSelectDropdown";
+import { NumericRangeDropdown } from "../Common/NumericRangeDropdown";
+import { ActiveFilterChips, FilterChip } from "../Common/ActiveFilterChips";
+import { SortableHeader } from "../Common/SortableHeader";
 
 interface ProductTableProps {
   products: ProductDetail[];
@@ -42,51 +49,286 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   initialStatusFilter = "all",
 }) => {
   const { t } = useTranslation();
-  const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState(initialStatusFilter);
 
-  // Extract unique categories
-  const categories = useMemo(() => {
-    const set = new Set<string>();
+  // Search
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+
+  // Multi-select filters
+  const [selectedBrands, setSelectedBrands] = useState<Set<string>>(new Set());
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(() => {
+    if (initialStatusFilter && initialStatusFilter !== "all") {
+      return new Set([initialStatusFilter]);
+    }
+    return new Set();
+  });
+
+  // Numeric range filters
+  const [minQty, setMinQty] = useState("");
+  const [maxQty, setMaxQty] = useState("");
+  const [minVal, setMinVal] = useState("");
+  const [maxVal, setMaxVal] = useState("");
+
+  // Sorting
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else {
+        setSortKey(null);
+        setSortDirection("asc");
+      }
+    } else {
+      setSortKey(key);
+      setSortDirection("asc");
+    }
+  };
+
+  // Extract unique brands with counts
+  const brandOptions: MultiSelectOption[] = useMemo(() => {
+    const counts = new Map<string, number>();
     products.forEach((p) => {
-      if (p.category) set.add(p.category);
+      const b = p.brand?.trim() || "";
+      counts.set(b, (counts.get(b) || 0) + 1);
     });
-    return Array.from(set);
+    return Array.from(counts.entries())
+      .sort((a, b) => {
+        if (!a[0]) return 1;
+        if (!b[0]) return -1;
+        return a[0].localeCompare(b[0], "th");
+      })
+      .map(([val, count]) => ({
+        value: val,
+        label: val || t("tableFilter.noBrand"),
+        count,
+      }));
+  }, [products, t]);
+
+  // Extract unique categories with counts
+  const categoryOptions: MultiSelectOption[] = useMemo(() => {
+    const counts = new Map<string, number>();
+    products.forEach((p) => {
+      const c = p.category?.trim() || "";
+      counts.set(c, (counts.get(c) || 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => a[0].localeCompare(b[0], "th"))
+      .map(([val, count]) => ({
+        value: val,
+        label: val || "-",
+        count,
+      }));
   }, [products]);
 
-  // Filtered products
-  const filtered = useMemo(() => {
-    return products.filter((p) => {
+  // Status options with counts
+  const statusOptions: MultiSelectOption[] = useMemo(() => {
+    const counts = { InStock: 0, LowStock: 0, OutOfStock: 0 };
+    products.forEach((p) => {
+      if (p.status in counts) {
+        counts[p.status as keyof typeof counts]++;
+      }
+    });
+    return [
+      { value: "InStock", label: t("product.normal"), count: counts.InStock },
+      { value: "LowStock", label: t("product.low"), count: counts.LowStock },
+      { value: "OutOfStock", label: t("product.out"), count: counts.OutOfStock },
+    ];
+  }, [products, t]);
+
+  // Combined Filter & Sort logic
+  const filteredAndSorted = useMemo(() => {
+    // 1. Filter
+    const list = products.filter((p) => {
       // Search
       if (searchTerm) {
         const s = searchTerm.toLowerCase();
+        const brand = (p.brand || "").toLowerCase();
         const match =
           p.name.toLowerCase().includes(s) ||
           p.sku.toLowerCase().includes(s) ||
+          brand.includes(s) ||
           (p.barcode && p.barcode.toLowerCase().includes(s));
         if (!match) return false;
       }
 
-      // Category
-      if (categoryFilter !== "all" && p.category.toLowerCase() !== categoryFilter.toLowerCase()) {
-        return false;
+      // Brand multi-select
+      if (selectedBrands.size > 0) {
+        const b = p.brand?.trim() || "";
+        if (!selectedBrands.has(b)) return false;
       }
 
-      // Status
-      if (statusFilter !== "all" && p.status.toLowerCase() !== statusFilter.toLowerCase()) {
-        return false;
+      // Category multi-select
+      if (selectedCategories.size > 0) {
+        const c = p.category?.trim() || "";
+        if (!selectedCategories.has(c)) return false;
       }
+
+      // Status multi-select
+      if (selectedStatuses.size > 0) {
+        if (!selectedStatuses.has(p.status)) return false;
+      }
+
+      // Quantity range
+      if (minQty !== "" && p.totalQuantityRemaining < Number(minQty)) return false;
+      if (maxQty !== "" && p.totalQuantityRemaining > Number(maxQty)) return false;
+
+      // Valuation range
+      if (minVal !== "" && p.totalValuation < Number(minVal)) return false;
+      if (maxVal !== "" && p.totalValuation > Number(maxVal)) return false;
 
       return true;
     });
-  }, [products, searchTerm, categoryFilter, statusFilter]);
+
+    // 2. Sort
+    if (!sortKey) return list;
+
+    return [...list].sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === "sku") {
+        cmp = a.sku.localeCompare(b.sku);
+      } else if (sortKey === "brand") {
+        const bA = a.brand || "";
+        const bB = b.brand || "";
+        cmp = bA.localeCompare(bB, "th");
+      } else if (sortKey === "name") {
+        cmp = a.name.localeCompare(b.name, "th");
+      } else if (sortKey === "status") {
+        cmp = a.status.localeCompare(b.status);
+      } else if (sortKey === "quantity") {
+        cmp = a.totalQuantityRemaining - b.totalQuantityRemaining;
+      } else if (sortKey === "valuation") {
+        cmp = a.totalValuation - b.totalValuation;
+      }
+      return sortDirection === "asc" ? cmp : -cmp;
+    });
+  }, [
+    products,
+    searchTerm,
+    selectedBrands,
+    selectedCategories,
+    selectedStatuses,
+    minQty,
+    maxQty,
+    minVal,
+    maxVal,
+    sortKey,
+    sortDirection,
+  ]);
+
+  // Build active filter chips
+  const activeChips: FilterChip[] = useMemo(() => {
+    const chips: FilterChip[] = [];
+
+    // Brands
+    if (selectedBrands.size > 0) {
+      const labels = Array.from(selectedBrands)
+        .map((b) => b || t("tableFilter.noBrand"))
+        .join(", ");
+      chips.push({
+        id: "brand",
+        category: t("tableFilter.brand"),
+        label: labels,
+        onRemove: () => setSelectedBrands(new Set()),
+      });
+    }
+
+    // Categories
+    if (selectedCategories.size > 0) {
+      const labels = Array.from(selectedCategories).join(", ");
+      chips.push({
+        id: "category",
+        category: t("tableFilter.category"),
+        label: labels,
+        onRemove: () => setSelectedCategories(new Set()),
+      });
+    }
+
+    // Statuses
+    if (selectedStatuses.size > 0) {
+      const labels = Array.from(selectedStatuses)
+        .map((st) => {
+          if (st === "InStock") return t("product.normal");
+          if (st === "LowStock") return t("product.low");
+          if (st === "OutOfStock") return t("product.out");
+          return st;
+        })
+        .join(", ");
+      chips.push({
+        id: "status",
+        category: t("tableFilter.status"),
+        label: labels,
+        onRemove: () => setSelectedStatuses(new Set()),
+      });
+    }
+
+    // Qty Range
+    if (minQty || maxQty) {
+      const label =
+        minQty && maxQty
+          ? `${minQty} - ${maxQty} ${t("tableFilter.pieces")}`
+          : minQty
+          ? `≥ ${minQty} ${t("tableFilter.pieces")}`
+          : `≤ ${maxQty} ${t("tableFilter.pieces")}`;
+      chips.push({
+        id: "qty",
+        category: t("tableFilter.quantity"),
+        label,
+        onRemove: () => {
+          setMinQty("");
+          setMaxQty("");
+        },
+      });
+    }
+
+    // Valuation Range
+    if (minVal || maxVal) {
+      const label =
+        minVal && maxVal
+          ? `${minVal} - ${maxVal} ${t("tableFilter.baht")}`
+          : minVal
+          ? `≥ ${minVal} ${t("tableFilter.baht")}`
+          : `≤ ${maxVal} ${t("tableFilter.baht")}`;
+      chips.push({
+        id: "val",
+        category: t("tableFilter.valuation"),
+        label,
+        onRemove: () => {
+          setMinVal("");
+          setMaxVal("");
+        },
+      });
+    }
+
+    return chips;
+  }, [
+    selectedBrands,
+    selectedCategories,
+    selectedStatuses,
+    minQty,
+    maxQty,
+    minVal,
+    maxVal,
+    t,
+  ]);
+
+  const handleClearAllFilters = () => {
+    setSelectedBrands(new Set());
+    setSelectedCategories(new Set());
+    setSelectedStatuses(new Set());
+    setMinQty("");
+    setMaxQty("");
+    setMinVal("");
+    setMaxVal("");
+  };
 
   return (
     <div className="space-y-4">
-      {/* Controls Bar */}
+      {/* 1. Main Controls Bar */}
       <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-slate-800/80 dark:bg-slate-900">
-        {/* Search input (machine & human friendly) */}
+        {/* Search input */}
         <div className="relative flex-1">
           <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -107,116 +349,190 @@ export const ProductTable: React.FC<ProductTableProps> = ({
           )}
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Category */}
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs transition-all duration-150 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20 cursor-pointer"
-          >
-            <option value="all">{t("product.allCategories", { count: categories.length })}</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-
-          {/* Status Tabs */}
-          <div className="flex rounded-2xl bg-slate-100 p-1 text-xs font-medium dark:bg-slate-800">
+        {/* Excel Action Buttons */}
+        <div className="flex items-center gap-2">
+          {onOpenExcelImport && (
             <button
-              onClick={() => setStatusFilter("all")}
-              className={`rounded-xl px-2.5 py-1.5 transition cursor-pointer ${
-                statusFilter === "all"
-                  ? "bg-white text-slate-900 shadow-xs dark:bg-slate-700 dark:text-white"
-                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-              }`}
+              type="button"
+              onClick={onOpenExcelImport}
+              className="flex items-center gap-1.5 rounded-2xl border border-blue-200/80 bg-blue-50/80 px-3 py-2 text-xs font-semibold text-blue-700 shadow-2xs transition hover:bg-blue-100 active:scale-95 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/60 dark:hover:border-blue-800/60 cursor-pointer"
             >
-              {t("product.all")}
+              <Download className="h-3.5 w-3.5" />
+              <span>{t("shell.importExcel")}</span>
             </button>
+          )}
+          {onOpenExcelExport && (
             <button
-              onClick={() => setStatusFilter("InStock")}
-              className={`rounded-xl px-2.5 py-1.5 transition cursor-pointer ${
-                statusFilter === "InStock"
-                  ? "bg-emerald-50 text-emerald-700 shadow-xs dark:bg-emerald-950 dark:text-emerald-300"
-                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
-              }`}
+              type="button"
+              onClick={onOpenExcelExport}
+              className="flex items-center gap-1.5 rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-3 py-2 text-xs font-semibold text-emerald-700 shadow-2xs transition hover:bg-emerald-100 active:scale-95 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 dark:hover:border-emerald-800/60 cursor-pointer"
             >
-              {t("product.normal")}
+              <Upload className="h-3.5 w-3.5" />
+              <span>{t("shell.exportExcel")}</span>
             </button>
-            <button
-              onClick={() => setStatusFilter("LowStock")}
-              className={`rounded-xl px-2.5 py-1.5 transition cursor-pointer ${
-                statusFilter === "LowStock"
-                  ? "bg-amber-50 text-amber-700 shadow-xs dark:bg-amber-950 dark:text-amber-300"
-                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
-              }`}
-            >
-              {t("product.low")}
-            </button>
-            <button
-              onClick={() => setStatusFilter("OutOfStock")}
-              className={`rounded-xl px-2.5 py-1.5 transition cursor-pointer ${
-                statusFilter === "OutOfStock"
-                  ? "bg-rose-50 text-rose-700 shadow-xs dark:bg-rose-950 dark:text-rose-300"
-                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
-              }`}
-            >
-              {t("product.out")}
-            </button>
-          </div>
-
-          {/* Excel Action Buttons */}
-          <div className="flex items-center gap-1.5">
-            {onOpenExcelImport && (
-              <button
-                type="button"
-                onClick={onOpenExcelImport}
-                className="flex items-center gap-1.5 rounded-2xl border border-blue-200/80 bg-blue-50/80 px-3 py-2 text-xs font-semibold text-blue-700 shadow-2xs transition hover:bg-blue-100 active:scale-95 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/60 dark:hover:border-blue-800/60 cursor-pointer"
-              >
-                <Download className="h-3.5 w-3.5" />
-                <span>{t("shell.importExcel")}</span>
-              </button>
-            )}
-            {onOpenExcelExport && (
-              <button
-                type="button"
-                onClick={onOpenExcelExport}
-                className="flex items-center gap-1.5 rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-3 py-2 text-xs font-semibold text-emerald-700 shadow-2xs transition hover:bg-emerald-100 active:scale-95 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 dark:hover:border-emerald-800/60 cursor-pointer"
-              >
-                <Upload className="h-3.5 w-3.5" />
-                <span>{t("shell.exportExcel")}</span>
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Desktop Table View */}
+      {/* 2. Dedicated Filter Panel ("Filter ใหญ่") */}
+      <div className="rounded-3xl border border-slate-200/80 bg-slate-50/70 p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/70">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 mr-1">
+            <Filter className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+            <span>{t("tableFilter.filterPanel")}:</span>
+          </div>
+
+          {/* Brand Multi-Select */}
+          <MultiSelectDropdown
+            label={t("tableFilter.brand")}
+            icon={<Tag className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />}
+            options={brandOptions}
+            selectedValues={selectedBrands}
+            onChange={setSelectedBrands}
+            searchPlaceholder={t("tableFilter.search")}
+          />
+
+          {/* Category Multi-Select */}
+          <MultiSelectDropdown
+            label={t("tableFilter.category")}
+            icon={<FolderTree className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />}
+            options={categoryOptions}
+            selectedValues={selectedCategories}
+            onChange={setSelectedCategories}
+            searchPlaceholder={t("tableFilter.search")}
+          />
+
+          {/* Status Multi-Select */}
+          <MultiSelectDropdown
+            label={t("tableFilter.status")}
+            icon={<Activity className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />}
+            options={statusOptions}
+            selectedValues={selectedStatuses}
+            onChange={setSelectedStatuses}
+          />
+
+          {/* Quantity Range */}
+          <NumericRangeDropdown
+            label={t("tableFilter.quantity")}
+            min={minQty}
+            max={maxQty}
+            unit={t("tableFilter.pieces")}
+            icon={<Boxes className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />}
+            onChange={(mn, mx) => {
+              setMinQty(mn);
+              setMaxQty(mx);
+            }}
+            presets={[
+              { label: "0 (" + t("product.out") + ")", min: "0", max: "0" },
+              { label: "1 - 10 (" + t("product.low") + ")", min: "1", max: "10" },
+              { label: "≥ 10", min: "10", max: "" },
+              { label: "≥ 50", min: "50", max: "" },
+            ]}
+          />
+
+          {/* Valuation Range */}
+          <NumericRangeDropdown
+            label={t("tableFilter.valuation")}
+            min={minVal}
+            max={maxVal}
+            unit="฿"
+            icon={<Coins className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />}
+            onChange={(mn, mx) => {
+              setMinVal(mn);
+              setMaxVal(mx);
+            }}
+          />
+        </div>
+
+        {/* 3. Active Filters Tag Bar */}
+        <ActiveFilterChips
+          chips={activeChips}
+          totalCount={products.length}
+          filteredCount={filteredAndSorted.length}
+          onClearAll={handleClearAllFilters}
+          className="mt-3"
+        />
+      </div>
+
+      {/* 4. Desktop Table View with Sortable Headers */}
       <div className="hidden overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm md:block dark:border-slate-800/80 dark:bg-slate-900">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-600 uppercase dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
             <tr>
-              <th className="px-4 py-3.5">SKU / Barcode</th>
-              <th className="px-4 py-3.5">{t("common.brand")}</th>
-              <th className="px-4 py-3.5">{t("product.nameCategory")}</th>
-              <th className="px-4 py-3.5 text-center">{t("product.status")}</th>
-              <th className="px-4 py-3.5 text-right">{t("product.quantity")}</th>
-              <th className="px-4 py-3.5 text-right">{t("product.valuation")}</th>
+              <SortableHeader
+                label="SKU / Barcode"
+                sortKey="sku"
+                currentSortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label={t("common.brand")}
+                sortKey="brand"
+                currentSortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                isFiltered={selectedBrands.size > 0}
+              />
+              <SortableHeader
+                label={t("product.nameCategory")}
+                sortKey="name"
+                currentSortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                isFiltered={selectedCategories.size > 0}
+              />
+              <SortableHeader
+                label={t("product.status")}
+                sortKey="status"
+                currentSortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                align="center"
+                isFiltered={selectedStatuses.size > 0}
+              />
+              <SortableHeader
+                label={t("product.quantity")}
+                sortKey="quantity"
+                currentSortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                align="right"
+                isFiltered={Boolean(minQty || maxQty)}
+              />
+              <SortableHeader
+                label={t("product.valuation")}
+                sortKey="valuation"
+                currentSortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                align="right"
+                isFiltered={Boolean(minVal || maxVal)}
+              />
               <th className="px-4 py-3.5 text-center">{t("product.quickMovement")}</th>
               <th className="px-4 py-3.5 text-right">{t("product.tools")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-            {filtered.length === 0 ? (
+            {filteredAndSorted.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
-                  {t("product.notFound")}
+                <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Filter className="h-6 w-6 text-slate-300 dark:text-slate-600" />
+                    <span>{t("product.notFound")}</span>
+                    {activeChips.length > 0 && (
+                      <button
+                        onClick={handleClearAllFilters}
+                        className="text-xs text-blue-600 hover:underline dark:text-blue-400 cursor-pointer"
+                      >
+                        {t("tableFilter.clearAll")}
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ) : (
-              filtered.map((p) => {
+              filteredAndSorted.map((p) => {
                 const isLow = p.status === "LowStock";
                 const isOut = p.status === "OutOfStock";
 
@@ -349,14 +665,14 @@ export const ProductTable: React.FC<ProductTableProps> = ({
         </table>
       </div>
 
-      {/* Mobile Card View */}
+      {/* 5. Mobile Card View */}
       <div className="space-y-3 md:hidden">
-        {filtered.length === 0 ? (
+        {filteredAndSorted.length === 0 ? (
           <div className="rounded-3xl border border-slate-200/80 bg-white p-8 text-center text-xs text-slate-400 dark:border-slate-800/80 dark:bg-slate-900">
             {t("product.noProducts")}
           </div>
         ) : (
-          filtered.map((p) => {
+          filteredAndSorted.map((p) => {
             const isLow = p.status === "LowStock";
             const isOut = p.status === "OutOfStock";
 
