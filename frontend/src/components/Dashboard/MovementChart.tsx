@@ -178,15 +178,15 @@ export const MovementChart: React.FC<MovementChartProps> = ({ data, productName 
                         {d.date}
                       </div>
                       <div className="flex items-center gap-2 text-blue-400">
-                        <span>รับเข้า:</span>
+                        <span>{t("dashboard.chartInShort")}</span>
                         <span className="font-extrabold text-white">
-                          {metric === "quantity" ? `${formatNumber(d.inQuantity)} ชิ้น` : formatCurrency(d.inCost)}
+                          {metric === "quantity" ? `${formatNumber(d.inQuantity)} ${t("dashboard.chartPieces")}` : formatCurrency(d.inCost)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-rose-400">
-                        <span>ตัดออก:</span>
+                        <span>{t("dashboard.chartOutShort")}</span>
                         <span className="font-extrabold text-white">
-                          {metric === "quantity" ? `${formatNumber(d.outQuantity)} ชิ้น` : formatCurrency(d.outCost)}
+                          {metric === "quantity" ? `${formatNumber(d.outQuantity)} ${t("dashboard.chartPieces")}` : formatCurrency(d.outCost)}
                         </span>
                       </div>
                     </div>
@@ -254,13 +254,13 @@ export const MovementChart: React.FC<MovementChartProps> = ({ data, productName 
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded-md bg-blue-600 dark:bg-blue-500 shadow-xs" />
           <span className="text-slate-700 dark:text-slate-300">
-            แท่งสีน้ำเงิน: รับเข้าสต็อก (Stock In)
+            {t("dashboard.chartLegendIn")}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded-md bg-rose-500 dark:bg-rose-500 shadow-xs" />
           <span className="text-slate-700 dark:text-slate-300">
-            แท่งสีชมพูแดง: เบิก-ขายออก (Stock Out)
+            {t("dashboard.chartLegendOut")}
           </span>
         </div>
       </div>
