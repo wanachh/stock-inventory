@@ -92,8 +92,8 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
         onClick={() => setIsOpen((prev) => !prev)}
         className={`flex items-center gap-2 rounded-2xl border px-3.5 py-2 text-xs font-semibold shadow-2xs transition-all duration-150 active:scale-95 cursor-pointer ${
           isSelected
-            ? "border-blue-500/60 bg-blue-50/80 text-blue-700 dark:border-blue-600/60 dark:bg-blue-950/50 dark:text-blue-300 ring-2 ring-blue-500/20"
-            : "border-slate-200/90 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700/80 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-750"
+            ? "border-blue-500/60 bg-blue-50/80 text-blue-700 hover:bg-blue-100 dark:border-blue-600/60 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:bg-blue-900/60 ring-2 ring-blue-500/20"
+            : "border-slate-200/90 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700/80 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-700"
         }`}
       >
         {icon && <span className="shrink-0">{icon}</span>}
@@ -128,14 +128,14 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder={searchPlaceholder || t("tableFilter.search")}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-1.5 pr-7 pl-8 text-xs text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500 dark:focus:bg-slate-850"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-1.5 pr-7 pl-8 text-xs text-slate-800 placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:outline-hidden dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:bg-slate-800"
                 autoFocus
               />
               {searchTerm && (
                 <button
                   type="button"
                   onClick={() => setSearchTerm("")}
-                  className="absolute top-1/2 right-2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  className="absolute top-1/2 right-2 -translate-y-1/2 rounded-md p-0.5 text-slate-400 hover:bg-slate-200/60 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-200 cursor-pointer"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -148,7 +148,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
             <button
               type="button"
               onClick={handleSelectAll}
-              className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer"
+              className="font-medium text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer"
             >
               {t("tableFilter.selectAll")}
             </button>
@@ -156,7 +156,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
               <button
                 type="button"
                 onClick={handleClear}
-                className="font-medium text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 cursor-pointer"
+                className="font-medium text-rose-500 hover:text-rose-600 hover:underline dark:text-rose-400 dark:hover:text-rose-300 cursor-pointer"
               >
                 {t("tableFilter.clear")}
               </button>
@@ -178,8 +178,8 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                     onClick={() => toggleOption(opt.value)}
                     className={`flex items-center justify-between rounded-xl px-2.5 py-1.5 cursor-pointer transition select-none ${
                       checked
-                        ? "bg-blue-50/70 text-blue-900 font-semibold dark:bg-blue-950/40 dark:text-blue-200"
-                        : "text-slate-700 hover:bg-slate-100/70 dark:text-slate-300 dark:hover:bg-slate-800/60"
+                        ? "bg-blue-50/70 text-blue-900 font-semibold hover:bg-blue-100/70 dark:bg-blue-950/60 dark:text-blue-200 dark:hover:bg-blue-900/50"
+                        : "text-slate-700 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
                     }`}
                   >
                     <div className="flex items-center gap-2 overflow-hidden">
@@ -211,7 +211,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 active:scale-95 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white cursor-pointer"
+              className="rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 active:scale-95 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-500 cursor-pointer"
             >
               {t("tableFilter.apply")}
             </button>

@@ -10,6 +10,7 @@
 .dark {
   --background: #0b0f19;
   --foreground: #f8fafc;
+  color-scheme: dark;
 }
 
 body {
@@ -55,9 +56,15 @@ input, select, textarea {
   background: rgba(156, 163, 175, 0.5);
 }
 
-/* Fix native select dark mode — browser option elements don't inherit Tailwind dark: classes */
-.dark select {
+/* Fix native select & date input dark mode — browser option & picker elements */
+.dark select,
+.dark input[type="date"],
+.dark input[type="datetime-local"],
+.dark input[type="time"] {
   color-scheme: dark;
+}
+
+.dark select {
   background-color: #1e293b;
   color: #f1f5f9;
   border-color: #334155;
@@ -66,4 +73,21 @@ input, select, textarea {
 .dark select option {
   background-color: #1e293b;
   color: #f1f5f9;
+}
+
+/* Make calendar picker icon bright and clear on dark background */
+.dark input[type="date"]::-webkit-calendar-picker-indicator,
+.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.dark input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85) brightness(1.2);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dark input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+.dark input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }

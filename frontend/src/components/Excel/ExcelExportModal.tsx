@@ -272,35 +272,35 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
                 <button
                   type="button"
                   onClick={() => handlePreset("today")}
-                  className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                  className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer transition"
                 >
                   {t("excel.rangeToday")}
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePreset("7days")}
-                  className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                  className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer transition"
                 >
                   {t("excel.rangeLast7")}
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePreset("thisMonth")}
-                  className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                  className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer transition"
                 >
                   {t("excel.rangeThisMonth")}
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePreset("aug2026")}
-                  className="rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300"
+                  className="rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900/60 cursor-pointer transition"
                 >
                   {t("excel.rangeAug2026")}
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePreset("all")}
-                  className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                  className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer transition"
                 >
                   {t("excel.rangeAll")}
                 </button>
@@ -314,7 +314,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:[color-scheme:dark] dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20 cursor-pointer"
                   />
                 </div>
                 <div>
@@ -323,7 +323,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:[color-scheme:dark] dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20 cursor-pointer"
                   />
                 </div>
               </div>
