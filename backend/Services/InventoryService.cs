@@ -20,6 +20,7 @@ public partial class InventoryService : IInventoryService
     public async Task<List<ProductDetailDto>> GetProductsAsync(string? search = null, string? category = null, string? status = null)
     {
         var query = _db.Products
+            .Where(p => !p.IsDeleted)
             .Include(p => p.Batches.Where(b => b.Status == BatchStatus.Active))
             .AsNoTracking()
             .AsQueryable();
@@ -52,6 +53,7 @@ public partial class InventoryService : IInventoryService
     public async Task<ProductDetailDto?> GetProductByIdAsync(int id)
     {
         var product = await _db.Products
+            .Where(p => !p.IsDeleted)
             .Include(p => p.Batches.Where(b => b.Status == BatchStatus.Active))
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id);
@@ -65,6 +67,7 @@ public partial class InventoryService : IInventoryService
 
         var clean = code.Trim();
         var product = await _db.Products
+            .Where(p => !p.IsDeleted)
             .Include(p => p.Batches.Where(b => b.Status == BatchStatus.Active))
             .AsNoTracking()
             .FirstOrDefaultAsync(p =>
@@ -227,11 +230,64 @@ public partial class InventoryService : IInventoryService
 
     public async Task<bool> DeleteProductAsync(int id)
     {
-        var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == id);
-        if (product == null) return false;
+        var product = await _db.Products
+            .Include(p => p.Batches.Where(b => b.Status == BatchStatus.Active && b.QuantityRemaining > 0))
+            .FirstOrDefaultAsync(p => p.Id == id);
 
-        _db.Products.Remove(product);
+        if (product == null || product.IsDeleted) return false;
+
+        var now = DateTime.UtcNow;
+        var remainingQty = product.Batches.Sum(b => b.QuantityRemaining);
+        var remainingValuation = product.Batches.Sum(b => b.QuantityRemaining * b.UnitCost);
+
+        // 1. Soft delete the product
+        product.IsDeleted = true;
+        product.DeletedAt = now;
+        product.UpdatedAt = now;
+
+        // 2. Mark active batches as Depleted so inventory queries won't calculate them
+        foreach (var batch in product.Batches)
+        {
+            batch.Status = BatchStatus.Depleted;
+        }
+
+        // 3. Create an audit StockTransaction of type ProductDeleted
+        var deleteTx = new StockTransaction
+        {
+            ProductId = product.Id,
+            Type = TransactionType.ProductDeleted,
+            Quantity = remainingQty,
+            TotalCost = remainingValuation,
+            ReferenceNote = remainingQty > 0
+                ? $"ลบสินค้าออกจากระบบ (ตัดจำหน่ายสต็อกคงเหลือ {remainingQty} ชิ้น)"
+                : "ลบสินค้าออกจากระบบ",
+            CreatedAt = now
+        };
+        _db.StockTransactions.Add(deleteTx);
         await _db.SaveChangesAsync();
+
+        // If there was remaining quantity, create transaction batch details for accurate cost tracking
+        if (remainingQty > 0)
+        {
+            foreach (var batch in product.Batches)
+            {
+                if (batch.QuantityRemaining > 0)
+                {
+                    var detail = new TransactionBatchDetail
+                    {
+                        StockTransactionId = deleteTx.Id,
+                        InventoryBatchId = batch.Id,
+                        QuantityDrawn = batch.QuantityRemaining,
+                        UnitCost = batch.UnitCost,
+                        SubtotalCost = batch.QuantityRemaining * batch.UnitCost
+                    };
+                    _db.TransactionBatchDetails.Add(detail);
+                    batch.QuantityRemaining = 0;
+                }
+            }
+            await _db.SaveChangesAsync();
+        }
+
         return true;
     }
 
@@ -534,7 +590,11 @@ public partial class InventoryService : IInventoryService
             query = query.Where(t => t.CreatedAt <= toDate.Value);
         }
 
-        var list = await query.OrderByDescending(t => t.CreatedAt).Take(200).ToListAsync();
+        var list = await query
+            .OrderByDescending(t => t.CreatedAt)
+            .ThenByDescending(t => t.Id)
+            .Take(200)
+            .ToListAsync();
 
         return list.Select(t => new StockTransactionDto(
             t.Id,
@@ -553,7 +613,8 @@ public partial class InventoryService : IInventoryService
                 d.UnitCost,
                 d.SubtotalCost
             )).ToList(),
-            t.Product?.Brand
+            t.Product?.Brand,
+            t.Product?.IsDeleted ?? true
         )).ToList();
     }
 
@@ -585,7 +646,8 @@ public partial class InventoryService : IInventoryService
                 d.UnitCost,
                 d.SubtotalCost
             )).ToList(),
-            t.Product?.Brand
+            t.Product?.Brand,
+            t.Product?.IsDeleted ?? true
         );
     }
 
@@ -600,6 +662,11 @@ public partial class InventoryService : IInventoryService
         if (tx == null)
         {
             throw new KeyNotFoundException($"ไม่พบรายการเคลื่อนไหวสต็อกรหัส {id}");
+        }
+
+        if (tx.Type == TransactionType.ProductDeleted)
+        {
+            throw new InvalidOperationException("ไม่สามารถแก้ไขรายการบันทึกการลบสินค้าได้ เนื่องจากเป็นประวัติการยกเลิก");
         }
 
         if (req.ReferenceNote != null)
@@ -761,6 +828,11 @@ public partial class InventoryService : IInventoryService
 
         if (tx == null) return false;
 
+        if (tx.Type == TransactionType.ProductDeleted)
+        {
+            throw new InvalidOperationException("ไม่สามารถลบรายการบันทึกการลบสินค้าได้ เนื่องจากเป็นประวัติการยกเลิก");
+        }
+
         if (tx.Type == TransactionType.StockIn)
         {
             var batch = tx.Details.FirstOrDefault()?.InventoryBatch;
@@ -806,9 +878,10 @@ public partial class InventoryService : IInventoryService
 
     public async Task<DashboardSummaryResponse> GetDashboardSummaryAsync()
     {
-        // Active batches across all products
+        // Active batches across non-deleted products
         var activeBatches = await _db.InventoryBatches
-            .Where(b => b.Status == BatchStatus.Active && b.QuantityRemaining > 0)
+            .Include(b => b.Product)
+            .Where(b => b.Product != null && !b.Product.IsDeleted && b.Status == BatchStatus.Active && b.QuantityRemaining > 0)
             .AsNoTracking()
             .ToListAsync();
 
@@ -831,8 +904,9 @@ public partial class InventoryService : IInventoryService
         int totalUnitsIn = inTransactions.Sum(t => t.Quantity);
         decimal totalCostIn = inTransactions.Sum(t => t.TotalCost);
 
-        // Products for valuation breakdown & low stock
+        // Active Products for valuation breakdown & low stock
         var allProducts = await _db.Products
+            .Where(p => !p.IsDeleted)
             .Include(p => p.Batches.Where(b => b.Status == BatchStatus.Active))
             .AsNoTracking()
             .ToListAsync();
@@ -866,6 +940,7 @@ public partial class InventoryService : IInventoryService
 
         var recentTransactions = transactions
             .OrderByDescending(t => t.CreatedAt)
+            .ThenByDescending(t => t.Id)
             .Take(10)
             .Select(t => new StockTransactionDto(
                 t.Id,
@@ -884,7 +959,8 @@ public partial class InventoryService : IInventoryService
                     d.UnitCost,
                     d.SubtotalCost
                 )).ToList(),
-                t.Product?.Brand
+                t.Product?.Brand,
+                t.Product?.IsDeleted ?? true
             ))
             .ToList();
 
@@ -901,7 +977,7 @@ public partial class InventoryService : IInventoryService
             var dayOut = dayTxs.Where(t => t.Type == TransactionType.StockOut).ToList();
 
             movementTrend.Add(new DailyMovementSummary(
-                day.ToString("MMM dd"),
+                day.ToString("MMM dd", System.Globalization.CultureInfo.InvariantCulture),
                 dayIn.Sum(t => t.Quantity),
                 dayIn.Sum(t => t.TotalCost),
                 dayOut.Sum(t => t.Quantity),
@@ -933,15 +1009,16 @@ public partial class InventoryService : IInventoryService
     {
         if (productId.HasValue)
         {
-            return await _db.Products.FirstOrDefaultAsync(p => p.Id == productId.Value);
+            return await _db.Products.FirstOrDefaultAsync(p => p.Id == productId.Value && !p.IsDeleted);
         }
 
         if (!string.IsNullOrWhiteSpace(skuOrBarcode))
         {
             var clean = skuOrBarcode.Trim().ToLower();
             return await _db.Products.FirstOrDefaultAsync(p =>
-                p.Sku.ToLower() == clean ||
-                (p.Barcode != null && p.Barcode.ToLower() == clean));
+                !p.IsDeleted &&
+                (p.Sku.ToLower() == clean ||
+                (p.Barcode != null && p.Barcode.ToLower() == clean)));
         }
 
         return null;
@@ -983,7 +1060,9 @@ public partial class InventoryService : IInventoryService
             status,
             product.CreatedAt,
             product.UpdatedAt,
-            batchDtos
+            batchDtos,
+            product.IsDeleted,
+            product.DeletedAt
         );
     }
 

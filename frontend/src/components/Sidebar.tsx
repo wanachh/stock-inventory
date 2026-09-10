@@ -4,6 +4,7 @@ import React from "react";
 import {
   LayoutDashboard,
   Package,
+  FolderKanban,
   ArrowRightLeft,
   ScanLine,
   Layers,
@@ -14,7 +15,7 @@ import { BrandLogo } from "./Common/BrandLogo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 
-export type NavTab = "dashboard" | "products" | "transactions" | "scanner";
+export type NavTab = "dashboard" | "products" | "management" | "transactions" | "scanner";
 
 interface SidebarProps {
   activeTab: NavTab;
@@ -41,6 +42,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       sublabel: "Products",
       icon: Package,
       badge: lowStockCount > 0 ? lowStockCount : undefined,
+    },
+    {
+      id: "management" as NavTab,
+      label: t("nav.management"),
+      sublabel: "Management",
+      icon: FolderKanban,
     },
     {
       id: "transactions" as NavTab,

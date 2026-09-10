@@ -6,7 +6,8 @@ namespace StockInventory.Api.Models;
 public enum TransactionType
 {
     StockIn,
-    StockOut
+    StockOut,
+    ProductDeleted
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]

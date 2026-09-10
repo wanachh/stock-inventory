@@ -29,6 +29,8 @@ public class AppDbContext : DbContext
             entity.Property(p => p.Name).HasMaxLength(200).IsRequired();
             entity.Property(p => p.Brand).HasMaxLength(150);
             entity.Property(p => p.Category).HasMaxLength(100).HasDefaultValue("General");
+            entity.Property(p => p.IsDeleted).HasDefaultValue(false);
+            entity.HasIndex(p => p.IsDeleted);
         });
 
         // InventoryBatch configuration

@@ -4,7 +4,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StockTransaction } from "../../types";
 import { formatCurrency, formatDateTime, formatNumber } from "../../lib/api";
-import { ArrowDownRight, ArrowUpRight, Clock } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Clock, Trash2 } from "lucide-react";
 
 interface RecentTransactionsProps {
   transactions: StockTransaction[];
@@ -30,7 +30,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
         {onViewAll && (
           <button
             onClick={onViewAll}
-            className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 cursor-pointer"
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer"
           >
             {t("common.showAll")} &rarr;
           </button>
@@ -45,20 +45,25 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
         ) : (
           transactions.slice(0, 6).map((tx) => {
             const isStockIn = tx.type === "StockIn";
+            const isDeletionTx = tx.type === "ProductDeleted";
             return (
               <div
                 key={tx.id}
-                className="flex items-center justify-between py-3 px-2 rounded-2xl transition hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
+                className="flex items-center justify-between py-3 px-2 rounded-2xl transition duration-150 hover:bg-slate-50/80 dark:hover:bg-slate-800/50"
               >
                 <div className="flex items-center gap-3">
                   <div
                     className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl ${
-                      isStockIn
+                      isDeletionTx
+                        ? "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300"
+                        : isStockIn
                         ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
                         : "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
                     }`}
                   >
-                    {isStockIn ? (
+                    {isDeletionTx ? (
+                      <Trash2 className="h-5 w-5" />
+                    ) : isStockIn ? (
                       <ArrowDownRight className="h-5 w-5" />
                     ) : (
                       <ArrowUpRight className="h-5 w-5" />
@@ -69,14 +74,21 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
                       <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                         {tx.productName}
                       </h4>
+                      {tx.isProductDeleted && (
+                        <span className="rounded-md bg-rose-50 px-1.5 py-0.5 text-[9px] font-bold text-rose-600 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-400 dark:border-rose-900/40">
+                          {t("common.deletedProduct")}
+                        </span>
+                      )}
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                          isStockIn
+                          isDeletionTx
+                            ? "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300"
+                            : isStockIn
                             ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
                             : "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300"
                         }`}
                       >
-                        {isStockIn ? `+ ${t("transaction.in")}` : `- ${t("transaction.out")}`}
+                        {isDeletionTx ? t("transaction.deleted") : isStockIn ? `+ ${t("transaction.in")}` : `- ${t("transaction.out")}`}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
@@ -101,12 +113,14 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
                 <div className="text-right">
                   <div
                     className={`text-sm font-bold ${
-                      isStockIn
+                      isDeletionTx
+                        ? "text-purple-700 dark:text-purple-400"
+                        : isStockIn
                         ? "text-emerald-700 dark:text-emerald-400"
                         : "text-rose-700 dark:text-rose-400"
                     }`}
                   >
-                    {isStockIn ? "+" : "-"}
+                    {isDeletionTx ? "-" : isStockIn ? "+" : "-"}
                     {formatNumber(tx.quantity)} {t("common.pieces")}
                   </div>
                   <div className="text-xs font-medium text-slate-600 dark:text-slate-400">

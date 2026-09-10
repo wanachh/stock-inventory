@@ -12,6 +12,7 @@ import { MovementChart } from "../components/Dashboard/MovementChart";
 import { TopProductsCard } from "../components/Dashboard/TopProductsCard";
 import { RecentTransactions } from "../components/Dashboard/RecentTransactions";
 import { ProductTable } from "../components/Products/ProductTable";
+import { ProductManagement } from "../components/Products/ProductManagement";
 import { ProductModal } from "../components/Products/ProductModal";
 import { BatchesModal } from "../components/Products/BatchesModal";
 import { MovementModal } from "../components/Products/MovementModal";
@@ -77,7 +78,10 @@ export default function Home() {
       ]);
       setDashboard(dashRes);
       setProducts(prodsRes);
-      setTransactions(txsRes);
+      const sortedTxs = [...txsRes].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime() || b.id - a.id
+      );
+      setTransactions(sortedTxs);
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
       else setError(t("page.connectionError"));
@@ -182,7 +186,10 @@ export default function Home() {
   const activeTransactions = useMemo<StockTransaction[]>(() => {
     if (!dashboard) return [];
     if (!isFiltered) return dashboard.recentTransactions;
-    return transactions.filter((t) => selectedProductIds.has(t.productId)).slice(0, 10);
+    return transactions
+      .filter((t) => selectedProductIds.has(t.productId))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime() || b.id - a.id)
+      .slice(0, 10);
   }, [dashboard, isFiltered, transactions, selectedProductIds]);
 
   // Handle hardware scanner gun trigger
@@ -260,6 +267,16 @@ export default function Home() {
     loadData();
   };
 
+  const handleDeleteProduct = async (p: ProductDetail) => {
+    try {
+      await api.deleteProduct(p.id);
+      showToast(t("page.toastProductDeleted"));
+      loadData();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : t("common.error"));
+    }
+  };
+
   const handleMovementSuccess = () => {
     showToast(t("page.toastMovementSaved"));
     loadData();
@@ -313,12 +330,14 @@ export default function Home() {
                 <h2 className="text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl dark:text-white">
                   {activeTab === "dashboard" && t("page.dashboardTitle")}
                   {activeTab === "products" && t("page.productsTitle")}
+                  {activeTab === "management" && t("page.managementTitle")}
                   {activeTab === "transactions" && t("page.transactionsTitle")}
                   {activeTab === "scanner" && t("page.scannerTitle")}
                 </h2>
                 <p className="text-xs text-slate-400">
                   {activeTab === "dashboard" && t("page.dashboardDescription")}
                   {activeTab === "products" && t("page.productsDescription")}
+                  {activeTab === "management" && t("page.managementDescription")}
                   {activeTab === "transactions" && t("page.transactionsDescription")}
                   {activeTab === "scanner" && t("page.scannerDescription")}
                 </p>
@@ -548,6 +567,16 @@ export default function Home() {
               onEditProduct={handleOpenEditProduct}
               onOpenExcelImport={() => setIsExcelImportOpen(true)}
               onOpenExcelExport={() => setIsExcelExportOpen(true)}
+            />
+          )}
+
+          {/* TAB: PRODUCT MANAGEMENT */}
+          {activeTab === "management" && (
+            <ProductManagement
+              products={products}
+              onOpenNewProduct={handleOpenNewProduct}
+              onEditProduct={handleOpenEditProduct}
+              onDeleteProduct={handleDeleteProduct}
             />
           )}
 

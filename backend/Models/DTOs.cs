@@ -92,7 +92,9 @@ public record ProductDetailDto(
     string Status, // "InStock", "LowStock", "OutOfStock"
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    List<BatchResponseDto> ActiveBatches
+    List<BatchResponseDto> ActiveBatches,
+    bool IsDeleted = false,
+    DateTime? DeletedAt = null
 );
 
 public record TransactionDetailItemDto(
@@ -114,7 +116,8 @@ public record StockTransactionDto(
     string? ReferenceNote,
     DateTime CreatedAt,
     List<TransactionDetailItemDto> Details,
-    string? Brand = null
+    string? Brand = null,
+    bool IsProductDeleted = false
 );
 
 public record DashboardKpis(

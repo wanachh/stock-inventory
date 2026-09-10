@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "npm --prefix frontend install && npm --prefix frontend run build && rm -rf out && cp -r frontend/out out",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "dotnet run --project backend/StockInventory.Api.csproj",
+    "build": "npm --prefix frontend install && npm --prefix frontend run build",
     "export": "npm --prefix frontend run build"
   }
 }

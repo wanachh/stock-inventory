@@ -23,7 +23,7 @@ import {
 
 const getLocalDateTimeString = (d: Date = new Date()) => {
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
 interface MovementModalProps {
@@ -674,10 +674,10 @@ export const MovementModal: React.FC<MovementModalProps> = ({
                             }}
                             className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs transition ${
                               isSelected
-                                ? "bg-blue-50/80 font-medium text-blue-900 dark:bg-blue-950/40 dark:text-blue-100"
+                                ? "bg-blue-50/80 font-medium text-blue-900 hover:bg-blue-100/70 dark:bg-blue-950/40 dark:text-blue-100 dark:hover:bg-blue-900/40"
                                 : disabledForOut
                                 ? "cursor-not-allowed bg-zinc-50/50 opacity-40 dark:bg-zinc-900/30"
-                                : "cursor-pointer text-zinc-800 hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-850"
+                                : "cursor-pointer text-zinc-800 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                             }`}
                           >
                             <div className="flex items-center gap-2.5 truncate">
@@ -912,6 +912,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
 
             <input
               type="datetime-local"
+              step="1"
               value={transactionDate}
               onChange={(e) => setTransactionDate(e.target.value)}
               required

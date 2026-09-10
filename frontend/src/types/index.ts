@@ -25,6 +25,8 @@ export interface ProductDetail {
   createdAt: string;
   updatedAt: string;
   activeBatches: InventoryBatch[];
+  isDeleted?: boolean;
+  deletedAt?: string | null;
 }
 
 export interface TransactionDetailItem {
@@ -41,12 +43,13 @@ export interface StockTransaction {
   sku: string;
   productName: string;
   brand?: string | null;
-  type: "StockIn" | "StockOut";
+  type: "StockIn" | "StockOut" | "ProductDeleted";
   quantity: number;
   totalCost: number;
   referenceNote?: string | null;
   createdAt: string;
   details: TransactionDetailItem[];
+  isProductDeleted?: boolean;
 }
 
 export interface StockOutPreviewItem {

@@ -105,13 +105,16 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
   const typeOptions: MultiSelectOption[] = useMemo(() => {
     let inCount = 0;
     let outCount = 0;
+    let delCount = 0;
     transactions.forEach((t) => {
       if (t.type === "StockIn") inCount++;
       if (t.type === "StockOut") outCount++;
+      if (t.type === "ProductDeleted") delCount++;
     });
     return [
       { value: "StockIn", label: translate("transaction.in"), count: inCount },
       { value: "StockOut", label: translate("transaction.out"), count: outCount },
+      { value: "ProductDeleted", label: translate("transaction.deleted"), count: delCount },
     ];
   }, [transactions, translate]);
 
@@ -201,16 +204,16 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
       return true;
     });
 
-    // 2. Sort
-    if (!sortKey) return list;
-
+    // 2. Sort (default to latest data in Row 1: date DESC, id DESC)
     return [...list].sort((a, b) => {
       let cmp = 0;
-      if (sortKey === "date") {
+      if (!sortKey || sortKey === "date") {
         const tA = new Date(a.createdAt).getTime();
         const tB = new Date(b.createdAt).getTime();
-        cmp = tA - tB;
-      } else if (sortKey === "type") {
+        cmp = (tA - tB) || (a.id - b.id);
+        return (sortKey && sortDirection === "asc") ? cmp : -cmp;
+      }
+      if (sortKey === "type") {
         cmp = a.type.localeCompare(b.type);
       } else if (sortKey === "brand") {
         const bA = (a.brand || brandMap.get(a.productId) || "").trim();
@@ -224,6 +227,9 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
         cmp = a.totalCost - b.totalCost;
       } else if (sortKey === "reference") {
         cmp = (a.referenceNote || "").localeCompare(b.referenceNote || "", "th");
+      }
+      if (cmp === 0) {
+        cmp = a.id - b.id;
       }
       return sortDirection === "asc" ? cmp : -cmp;
     });
@@ -251,7 +257,12 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
     // Types
     if (selectedTypes.size > 0) {
       const labels = Array.from(selectedTypes)
-        .map((tp) => (tp === "StockIn" ? translate("transaction.in") : translate("transaction.out")))
+        .map((tp) => {
+          if (tp === "StockIn") return translate("transaction.in");
+          if (tp === "StockOut") return translate("transaction.out");
+          if (tp === "ProductDeleted") return translate("transaction.deleted");
+          return tp;
+        })
         .join(", ");
       chips.push({
         id: "type",
@@ -592,12 +603,13 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
             ) : (
               filteredAndSorted.map((t) => {
                 const isStockIn = t.type === "StockIn";
+                const isDeletionTx = t.type === "ProductDeleted";
                 const isExpanded = expandedId === t.id;
                 const brand = (t.brand || brandMap.get(t.productId) || "").trim();
 
                 return (
                   <React.Fragment key={t.id}>
-                    <tr className="group transition hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
+                    <tr className="group transition duration-150 hover:bg-slate-50/80 dark:hover:bg-slate-800/50">
                       {/* Date */}
                       <td className="px-4 py-3.5 text-xs text-slate-500 dark:text-slate-400">
                         <div className="flex items-center gap-1.5">
@@ -608,20 +620,27 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
 
                       {/* Type Badge */}
                       <td className="px-4 py-3.5">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                            isStockIn
-                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                              : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
-                          }`}
-                        >
-                          {isStockIn ? (
-                            <ArrowDownRight className="h-3.5 w-3.5" />
-                          ) : (
-                            <ArrowUpRight className="h-3.5 w-3.5" />
-                          )}
-                          <span>{isStockIn ? translate("transaction.in") : translate("transaction.out")}</span>
-                        </span>
+                        {isDeletionTx ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-bold text-purple-800 dark:bg-purple-950/60 dark:text-purple-300">
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span>{translate("transaction.deleted")}</span>
+                          </span>
+                        ) : (
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                              isStockIn
+                                ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
+                            }`}
+                          >
+                            {isStockIn ? (
+                              <ArrowDownRight className="h-3.5 w-3.5" />
+                            ) : (
+                              <ArrowUpRight className="h-3.5 w-3.5" />
+                            )}
+                            <span>{isStockIn ? translate("transaction.in") : translate("transaction.out")}</span>
+                          </span>
+                        )}
                       </td>
 
                       {/* Brand */}
@@ -637,8 +656,15 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
 
                       {/* Product */}
                       <td className="px-4 py-3.5">
-                        <div className="font-semibold text-slate-900 dark:text-slate-100">
-                          {t.productName}
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-slate-900 dark:text-slate-100">
+                            {t.productName}
+                          </span>
+                          {t.isProductDeleted && (
+                            <span className="rounded-md bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-600 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-400 dark:border-rose-900/40">
+                              {translate("common.deletedProduct")}
+                            </span>
+                          )}
                         </div>
                         <span className="font-mono text-xs text-slate-400 dark:text-slate-500">
                           {t.sku}
@@ -647,14 +673,16 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
 
                       {/* Qty */}
                       <td className="px-4 py-3.5 text-right font-bold text-slate-900 dark:text-slate-100">
-                        {isStockIn ? "+" : "-"}
+                        {isDeletionTx ? "-" : isStockIn ? "+" : "-"}
                         {formatNumber(t.quantity)} {translate("common.pieces")}
                       </td>
 
                       {/* Total Cost */}
                       <td
                         className={`px-4 py-3.5 text-right font-bold ${
-                          isStockIn
+                          isDeletionTx
+                            ? "text-purple-700 dark:text-purple-400"
+                            : isStockIn
                             ? "text-emerald-700 dark:text-emerald-400"
                             : "text-rose-700 dark:text-rose-400"
                         }`}
@@ -669,42 +697,52 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
 
                       {/* Lot Breakdown Toggle */}
                       <td className="px-4 py-3.5 text-center">
-                        <button
-                          onClick={() => setExpandedId(isExpanded ? null : t.id)}
-                          className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 cursor-pointer"
-                        >
-                          <Layers className="h-3 w-3" />
-                          <span>{t.details.length} {translate("common.lots")}</span>
-                          {isExpanded ? (
-                            <ChevronUp className="h-3 w-3" />
-                          ) : (
-                            <ChevronDown className="h-3 w-3" />
-                          )}
-                        </button>
+                        {t.details && t.details.length > 0 ? (
+                          <button
+                            onClick={() => setExpandedId(isExpanded ? null : t.id)}
+                            className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 cursor-pointer"
+                          >
+                            <Layers className="h-3 w-3" />
+                            <span>{t.details.length} {translate("common.lots")}</span>
+                            {isExpanded ? (
+                              <ChevronUp className="h-3 w-3" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3" />
+                            )}
+                          </button>
+                        ) : (
+                          <span className="text-xs text-slate-400">-</span>
+                        )}
                       </td>
 
                       {/* Actions: Edit & Delete */}
                       <td className="px-4 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {onEditTransaction && (
-                            <button
-                              onClick={() => onEditTransaction(t)}
-                              title={translate("transaction.editTitle")}
-                              className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-blue-600 dark:hover:bg-slate-800 dark:hover:text-blue-400 cursor-pointer"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </button>
-                          )}
-                          {onDeleteTransaction && (
-                            <button
-                              onClick={() => onDeleteTransaction(t)}
-                              title={translate("transaction.deleteTitle")}
-                              className="rounded-xl p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 cursor-pointer"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
+                        {isDeletionTx ? (
+                          <span className="text-[11px] text-slate-400 italic">
+                            {translate("transaction.deletedShort")}
+                          </span>
+                        ) : (
+                          <div className="flex items-center justify-end gap-1">
+                            {onEditTransaction && (
+                              <button
+                                onClick={() => onEditTransaction(t)}
+                                title={translate("transaction.editTitle")}
+                                className="rounded-xl p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-blue-600 dark:hover:bg-slate-800 dark:hover:text-blue-400 cursor-pointer"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </button>
+                            )}
+                            {onDeleteTransaction && (
+                              <button
+                                onClick={() => onDeleteTransaction(t)}
+                                title={translate("transaction.deleteTitle")}
+                                className="rounded-xl p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 cursor-pointer"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </td>
                     </tr>
 
@@ -712,7 +750,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                     {isExpanded && (
                       <tr className="bg-slate-50/80 dark:bg-slate-800/60">
                         <td colSpan={9} className="px-6 py-3">
-                          <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-750 dark:bg-slate-850">
+                          <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
                             <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
                               {translate("transaction.batchBreakdownTitle")}
                             </div>

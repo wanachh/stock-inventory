@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { LayoutDashboard, Package, ArrowRightLeft, ScanLine } from "lucide-react";
+import { LayoutDashboard, Package, FolderKanban, ArrowRightLeft, ScanLine } from "lucide-react";
 import { NavTab } from "./Sidebar";
 import { useTranslation } from "react-i18next";
 
@@ -25,6 +25,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
       icon: Package,
       badge: lowStockCount > 0 ? lowStockCount : undefined,
     },
+    { id: "management" as NavTab, label: t("nav.managementShort"), icon: FolderKanban },
     { id: "transactions" as NavTab, label: t("nav.transactionsShort"), icon: ArrowRightLeft },
     { id: "scanner" as NavTab, label: t("nav.scannerShort"), icon: ScanLine },
   ];

@@ -109,7 +109,7 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
                     key={b.id}
                     className={`rounded-2xl border p-4 transition ${
                       isActive
-                        ? "border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-850"
+                        ? "border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-800"
                         : "border-slate-200/50 bg-slate-50/70 opacity-60 dark:border-slate-800/50 dark:bg-slate-900"
                     }`}
                   >

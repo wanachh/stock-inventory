@@ -44,7 +44,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
         {chips.map((chip) => (
           <span
             key={chip.id}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200/80 bg-white px-2.5 py-1 text-xs font-medium text-slate-800 shadow-2xs dark:border-blue-800/60 dark:bg-slate-850 dark:text-slate-200"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200/80 bg-white px-2.5 py-1 text-xs font-medium text-slate-800 shadow-2xs dark:border-blue-800/60 dark:bg-slate-800 dark:text-slate-200"
           >
             <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">
               {chip.category}:

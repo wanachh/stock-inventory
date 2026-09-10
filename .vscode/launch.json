@@ -24,15 +24,15 @@
         "enabled": false
       },
       "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "DOTNET_CLI_HOME": "/tmp"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
     {
       "name": "Frontend (Next.js Web)",
       "type": "node-terminal",
       "request": "launch",
-      "command": "cd ${workspaceFolder}/frontend && npm run dev",
+      "cwd": "${workspaceFolder}/frontend",
+      "command": "npm run dev",
       "serverReadyAction": {
         "action": "openExternally",
         "pattern": "Local:\\s*(https?://\\S+)",

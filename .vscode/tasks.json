@@ -7,13 +7,11 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/backend/StockInventory.Api.csproj",
+        "StockInventory.Api.csproj",
         "/property:GenerateFullPaths=true"
       ],
       "options": {
-        "env": {
-          "DOTNET_CLI_HOME": "/tmp"
-        }
+        "cwd": "${workspaceFolder}/backend"
       },
       "problemMatcher": "$msCompile",
       "group": {
