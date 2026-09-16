@@ -123,6 +123,11 @@ CREATE TABLE IF NOT EXISTS "TransactionBatchDetails" (
 );
 CREATE INDEX IF NOT EXISTS "IX_TransactionBatchDetails_StockTransactionId" ON "TransactionBatchDetails" ("StockTransactionId");
 CREATE INDEX IF NOT EXISTS "IX_TransactionBatchDetails_InventoryBatchId" ON "TransactionBatchDetails" ("InventoryBatchId");
+
+ALTER TABLE "Products" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "InventoryBatches" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "StockTransactions" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "TransactionBatchDetails" ENABLE ROW LEVEL SECURITY;
 """;
         await db.Database.ExecuteSqlRawAsync(initSql);
         Console.WriteLine("--> [Database] PostgreSQL schema verified/created successfully via direct DDL (10ms).");
