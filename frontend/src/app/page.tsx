@@ -752,6 +752,7 @@ export default function Home() {
         <ExcelImportModal
           isOpen={isExcelImportOpen}
           onClose={() => setIsExcelImportOpen(false)}
+          products={products}
           onSuccess={() => {
             showToast(t("page.toastImportSuccess"));
             loadData();

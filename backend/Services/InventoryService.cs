@@ -135,7 +135,18 @@ public partial class InventoryService : IInventoryService
                     : req.TransactionDate.Value.ToUniversalTime())
                 : DateTime.UtcNow;
 
-            var cleanLocation = !string.IsNullOrWhiteSpace(req.Location) ? req.Location.Trim().ToUpper() : "BT";
+            if (string.IsNullOrWhiteSpace(req.Location))
+            {
+                throw new ArgumentException("จำเป็นต้องระบุคลังสินค้า (Location ต้องระบุ BT, EB, MT, หรือ WS)");
+            }
+
+            var cleanLocation = req.Location.Trim().ToUpper();
+            var validLocations = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "BT", "EB", "MT", "WS" };
+            if (!validLocations.Contains(cleanLocation))
+            {
+                throw new ArgumentException($"รหัสคลังสินค้า '{req.Location}' ไม่ถูกต้อง (ต้องเป็น BT, EB, MT, หรือ WS)");
+            }
+
             var batchNumber = $"LOT-{effectiveDate:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
             var batch = new InventoryBatch
             {
@@ -1113,6 +1124,31 @@ public partial class InventoryService : IInventoryService
             throw new ArgumentException("ไม่พบรายการข้อมูลในไฟล์ Excel สำหรับนำเข้า");
         }
 
+        var validLocations = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "BT", "EB", "MT", "WS" };
+
+        // 1. Mandatory Pre-Validation for all rows (Barcode & Location must not be empty and must be valid)
+        for (int i = 0; i < req.Items.Count; i++)
+        {
+            var item = req.Items[i];
+            var line = item.LineNumber ?? (i + 1);
+
+            if (string.IsNullOrWhiteSpace(item.Barcode))
+            {
+                throw new InvalidOperationException($"แถวที่ {line}: ไม่พบบาร์โค้ด (Barcode จำเป็นต้องระบุทุกแถว)");
+            }
+
+            if (string.IsNullOrWhiteSpace(item.Location))
+            {
+                throw new InvalidOperationException($"แถวที่ {line}: ไม่ได้ระบุคลังสินค้า (Location ต้องระบุ BT, EB, MT, หรือ WS)");
+            }
+
+            var cleanLoc = item.Location.Trim().ToUpper();
+            if (!validLocations.Contains(cleanLoc))
+            {
+                throw new InvalidOperationException($"แถวที่ {line}: รหัสคลังสินค้า '{item.Location}' ไม่ถูกต้อง (ต้องเป็น BT, EB, MT, หรือ WS)");
+            }
+        }
+
         var messages = new List<string>();
         int createdProducts = 0;
         int stockInBatches = 0;
@@ -1123,7 +1159,7 @@ public partial class InventoryService : IInventoryService
         decimal totalValueIn = 0m;
         decimal totalValueOut = 0m;
 
-        // 1. Bulk pre-fetch all existing products matching SKUs or Barcodes
+        // 2. Bulk pre-fetch all existing products matching SKUs or Barcodes
         var nonNullSkus = req.Items
             .Where(i => !string.IsNullOrWhiteSpace(i.Sku))
             .Select(i => i.Sku!.Trim().ToLower())
@@ -1154,91 +1190,118 @@ public partial class InventoryService : IInventoryService
         }
 
         var usedSkus = new HashSet<string>(productBySku.Keys, StringComparer.OrdinalIgnoreCase);
+        var inMemoryNewProducts = new Dictionary<string, (string Sku, string Name, string? Brand, int FirstLine)>(StringComparer.OrdinalIgnoreCase);
         var newProducts = new List<Product>();
 
-        var defaultLoc = !string.IsNullOrWhiteSpace(req.DefaultLocation) ? req.DefaultLocation.Trim().ToUpper() : "BT";
-
-        // 2. Process each imported row
+        // 3. Process each imported row with strict DB matching and atomic consistency
         foreach (var item in req.Items)
         {
-            // Auto-generate SKU if missing or empty (matching web behavior PRD-YYYY-XXXX)
-            string cleanSku;
-            if (string.IsNullOrWhiteSpace(item.Sku))
-            {
-                do
-                {
-                    cleanSku = $"PRD-{DateTime.UtcNow.Year}-{Guid.NewGuid().ToString()[..6].ToUpper()}";
-                } while (usedSkus.Contains(cleanSku));
-            }
-            else
-            {
-                cleanSku = item.Sku.Trim();
-            }
-            usedSkus.Add(cleanSku);
-
-            var cleanBarcode = string.IsNullOrWhiteSpace(item.Barcode) ? null : item.Barcode.Trim();
+            var line = item.LineNumber ?? 0;
+            var cleanBarcode = item.Barcode!.Trim();
+            var cleanSku = string.IsNullOrWhiteSpace(item.Sku) ? null : item.Sku.Trim();
+            var cleanName = string.IsNullOrWhiteSpace(item.Name) ? null : item.Name.Trim();
             var cleanBrand = string.IsNullOrWhiteSpace(item.Brand) ? null : item.Brand.Trim();
-            var cleanName = !string.IsNullOrWhiteSpace(item.Name)
-                ? item.Name.Trim()
-                : (!string.IsNullOrWhiteSpace(cleanBrand) ? cleanBrand : cleanSku);
-
-            var cleanLocation = !string.IsNullOrWhiteSpace(item.Location)
-                ? item.Location.Trim().ToUpper()
-                : defaultLoc;
-
+            var cleanLocation = item.Location!.Trim().ToUpper();
             var importDate = item.ReceivedDate ?? DateTime.UtcNow;
 
-            // Locate product from memory dictionaries or create a new one
             Product? product = null;
-            if (productBySku.TryGetValue(cleanSku, out var pSku))
-            {
-                product = pSku;
-            }
-            else if (cleanBarcode != null && productByBarcode.TryGetValue(cleanBarcode, out var pBar))
-            {
-                product = pBar;
-            }
 
-            if (product == null)
+            if (productByBarcode.TryGetValue(cleanBarcode, out var dbProd))
             {
-                product = new Product
+                // CASE 1: Barcode exists in DB (Existing Product)
+                // 1.1 SKU check: If provided in Excel, must match DB SKU (case-insensitive)
+                if (!string.IsNullOrWhiteSpace(cleanSku))
                 {
-                    Sku = cleanSku,
-                    Barcode = cleanBarcode,
-                    Name = cleanName,
-                    Brand = cleanBrand,
-                    Category = cleanBrand ?? "General",
-                    MinThreshold = 5,
-                    CreatedAt = importDate,
-                    UpdatedAt = DateTime.UtcNow
-                };
-
-                _db.Products.Add(product);
-                newProducts.Add(product);
-                productBySku[cleanSku] = product;
-                if (!string.IsNullOrWhiteSpace(cleanBarcode))
-                {
-                    productByBarcode[cleanBarcode] = product;
+                    if (!string.Equals(cleanSku, dbProd.Sku, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException($"แถวที่ {line}: บาร์โค้ด '{cleanBarcode}' ผูกกับ SKU '{dbProd.Sku}' ในระบบ (แต่ในไฟล์ระบุ '{cleanSku}')");
+                    }
                 }
-                createdProducts++;
+
+                // 1.2 Name check: If provided in Excel, must match DB Name (case-insensitive)
+                if (!string.IsNullOrWhiteSpace(cleanName))
+                {
+                    if (!string.Equals(cleanName, dbProd.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException($"แถวที่ {line}: บาร์โค้ด '{cleanBarcode}' คือสินค้า '{dbProd.Name}' ในระบบ (แต่ในไฟล์ระบุ '{cleanName}')");
+                    }
+                }
+
+                // 1.3 Brand check: If provided in Excel and DB has brand, must match DB Brand (case-insensitive)
+                if (!string.IsNullOrWhiteSpace(cleanBrand) && !string.IsNullOrWhiteSpace(dbProd.Brand))
+                {
+                    if (!string.Equals(cleanBrand, dbProd.Brand, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException($"แถวที่ {line}: บาร์โค้ด '{cleanBarcode}' คือแบรนด์ '{dbProd.Brand}' ในระบบ (แต่ในไฟล์ระบุ '{cleanBrand}')");
+                    }
+                }
+
+                product = dbProd;
             }
             else
             {
-                bool updated = false;
-                if (string.IsNullOrEmpty(product.Barcode) && !string.IsNullOrEmpty(cleanBarcode))
+                // CASE 2: New Barcode (Not in DB)
+                // 2.1 Name is strictly required
+                if (string.IsNullOrWhiteSpace(cleanName))
                 {
-                    product.Barcode = cleanBarcode;
+                    throw new InvalidOperationException($"แถวที่ {line}: บาร์โค้ดใหม่ '{cleanBarcode}' จำเป็นต้องระบุชื่อสินค้า");
+                }
+
+                // 2.2 Cannot Stock Out new product that has never entered DB
+                if (item.Quantity < 0)
+                {
+                    throw new InvalidOperationException($"แถวที่ {line}: ไม่สามารถตัดสต็อกสินค้าใหม่ '{cleanBarcode}' ที่ยังไม่มีในระบบได้");
+                }
+
+                // 2.3 Check if this new barcode was already registered in an earlier row in this file
+                string assignedSku;
+                if (inMemoryNewProducts.TryGetValue(cleanBarcode, out var inMem))
+                {
+                    if (!string.Equals(cleanName, inMem.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException($"แถวที่ {line}: บาร์โค้ดใหม่ '{cleanBarcode}' ระบุชื่อสินค้าไม่ตรงกับแถวที่ {inMem.FirstLine}");
+                    }
+                    assignedSku = inMem.Sku;
+                    product = productBySku[assignedSku];
+                }
+                else
+                {
+                    // First time seeing this new barcode in this file
+                    if (!string.IsNullOrWhiteSpace(cleanSku))
+                    {
+                        if (productBySku.ContainsKey(cleanSku))
+                        {
+                            throw new InvalidOperationException($"แถวที่ {line}: รหัส SKU '{cleanSku}' ถูกใช้งานโดยสินค้าตัวอื่นในระบบแล้ว");
+                        }
+                        assignedSku = cleanSku.ToUpper();
+                    }
+                    else
+                    {
+                        do
+                        {
+                            assignedSku = $"PRD-{DateTime.UtcNow.Year}-{Guid.NewGuid().ToString()[..6].ToUpper()}";
+                        } while (usedSkus.Contains(assignedSku));
+                    }
+                    usedSkus.Add(assignedSku);
+
+                    product = new Product
+                    {
+                        Sku = assignedSku,
+                        Barcode = cleanBarcode,
+                        Name = cleanName,
+                        Brand = cleanBrand,
+                        Category = cleanBrand ?? "General",
+                        MinThreshold = 5,
+                        CreatedAt = importDate,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    _db.Products.Add(product);
+                    newProducts.Add(product);
+                    productBySku[assignedSku] = product;
                     productByBarcode[cleanBarcode] = product;
-                    updated = true;
-                }
-                if (string.IsNullOrEmpty(product.Brand) && !string.IsNullOrEmpty(cleanBrand))
-                {
-                    product.Brand = cleanBrand;
-                    updated = true;
-                }
-                if (updated)
-                {
-                    product.UpdatedAt = DateTime.UtcNow;
+                    inMemoryNewProducts[cleanBarcode] = (assignedSku, cleanName, cleanBrand, line);
+                    createdProducts++;
                 }
             }
 

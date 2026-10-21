@@ -13,17 +13,20 @@ import {
 } from "lucide-react";
 import { parseExcelFile, downloadExcelTemplate, ParseExcelResult } from "../../lib/excel";
 import { api, formatCurrency, formatNumber } from "../../lib/api";
+import { ProductDetail } from "../../types";
 
 interface ExcelImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  products?: ProductDetail[];
 }
 
 export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  products = [],
 }) => {
   const { t } = useTranslation();
   const [parseResult, setParseResult] = useState<ParseExcelResult | null>(null);
@@ -31,7 +34,6 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [usePostVatAsCost, setUsePostVatAsCost] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<string>("BT");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -53,7 +55,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
     setError(null);
     setLoading(true);
     try {
-      const res = await parseExcelFile(f);
+      const res = await parseExcelFile(f, products);
       if (res.items.length === 0) {
         setError(t("excel.rowFormatError"));
         setParseResult(null);
@@ -74,6 +76,11 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
       return;
     }
 
+    if (parseResult.invalidRows > 0) {
+      setError(t("excel.atomicImportBlock", { count: parseResult.invalidRows }));
+      return;
+    }
+
     setImporting(true);
     setError(null);
 
@@ -82,7 +89,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
       await api.importExcel({
         items: validItems,
         usePriceAfterVatAsCost: usePostVatAsCost,
-        defaultLocation: selectedLocation,
+        defaultLocation: "",
       });
 
       onSuccess();
@@ -242,61 +249,52 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                 </div>
               </div>
 
-              {/* Setting Controls: Location Selector + Unit Cost Toggle */}
-              <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-3.5 text-xs sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800 dark:bg-zinc-900/80">
-                {/* Location Selection */}
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-purple-600 dark:text-purple-400 shrink-0" />
-                  <span className="font-semibold text-zinc-800 dark:text-zinc-200">
-                    {t("excel.defaultLocationTitle")}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    {["BT", "EB", "MT", "WS"].map((loc) => (
-                      <button
-                        key={loc}
-                        type="button"
-                        onClick={() => setSelectedLocation(loc)}
-                        className={`rounded-lg px-2.5 py-1 font-bold text-[11px] transition cursor-pointer ${
-                          selectedLocation === loc
-                            ? "bg-purple-600 text-white shadow-xs"
-                            : "bg-zinc-200 text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                        }`}
-                      >
-                        {loc}
-                      </button>
-                    ))}
+              {/* Atomic / All-or-Nothing Warning Banner (if invalid rows exist) */}
+              {parseResult.invalidRows > 0 && (
+                <div className="flex items-start gap-2.5 rounded-2xl border border-rose-200 bg-rose-50/90 p-3.5 text-xs text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200 animate-in fade-in">
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
+                  <div>
+                    <div className="font-bold text-rose-900 dark:text-rose-100">
+                      {t("excel.atomicImportBlock", { count: parseResult.invalidRows })}
+                    </div>
+                    <div className="text-[11px] font-normal text-rose-700 dark:text-rose-300 mt-0.5">
+                      {t("excel.atomicImportHelp") || "โปรดตรวจสอบแถวที่มีไฮไลท์สีแดงด้านล่าง แล้วแก้ไขไฟล์ Excel ให้ถูกต้องทั้งหมดก่อนกดนำเข้า"}
+                    </div>
                   </div>
                 </div>
+              )}
 
-                {/* VAT Cost Setting */}
+              {/* Setting Controls: Unit Cost Toggle */}
+              <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-3.5 text-xs sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800 dark:bg-zinc-900/80">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-zinc-800 dark:text-zinc-200">
                     {t("excel.unitCostSetting")}
                   </span>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setUsePostVatAsCost(false)}
-                      className={`rounded-lg px-2.5 py-1 font-semibold transition cursor-pointer ${
-                        !usePostVatAsCost
-                          ? "bg-blue-600 text-white shadow-xs"
-                          : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-                      }`}
-                    >
-                      {t("excel.usePreVat")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setUsePostVatAsCost(true)}
-                      className={`rounded-lg px-2.5 py-1 font-semibold transition cursor-pointer ${
-                        usePostVatAsCost
-                          ? "bg-emerald-600 text-white shadow-xs"
-                          : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-                      }`}
-                    >
-                      {t("excel.usePostVat")}
-                    </button>
-                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setUsePostVatAsCost(false)}
+                    className={`rounded-lg px-2.5 py-1 font-semibold transition cursor-pointer ${
+                      !usePostVatAsCost
+                        ? "bg-blue-600 text-white shadow-xs"
+                        : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                    }`}
+                  >
+                    {t("excel.usePreVat")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUsePostVatAsCost(true)}
+                    className={`rounded-lg px-2.5 py-1 font-semibold transition cursor-pointer ${
+                      usePostVatAsCost
+                        ? "bg-emerald-600 text-white shadow-xs"
+                        : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                    }`}
+                  >
+                    {t("excel.usePostVat")}
+                  </button>
                 </div>
               </div>
 
@@ -390,9 +388,15 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
 
                         {/* Location */}
                         <td className="px-3 py-2 whitespace-nowrap">
-                          <span className="rounded-md bg-purple-50 px-1.5 py-0.5 font-mono text-[11px] font-bold text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
-                            {row.location || selectedLocation}
-                          </span>
+                          {row.location ? (
+                            <span className="rounded-md bg-purple-50 px-1.5 py-0.5 font-mono text-[11px] font-bold text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
+                              {row.location}
+                            </span>
+                          ) : (
+                            <span className="rounded-md bg-rose-100 px-1.5 py-0.5 font-mono text-[10px] font-bold text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
+                              {t("common.required") || "ต้องระบุ"}
+                            </span>
+                          )}
                         </td>
 
                         {/* Quantity */}
@@ -452,8 +456,8 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
               <button
                 type="button"
                 onClick={handleConfirmImport}
-                disabled={importing || parseResult.validRows === 0}
-                className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition hover:bg-blue-700 active:scale-95 disabled:opacity-50 cursor-pointer"
+                disabled={importing || parseResult.validRows === 0 || parseResult.invalidRows > 0}
+                className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition hover:bg-blue-700 active:scale-95 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
               >
                 {importing ? (
                   <>

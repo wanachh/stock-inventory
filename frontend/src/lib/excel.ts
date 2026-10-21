@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 import i18n from "../i18n/config";
-import { ExcelImportItem } from "../types";
+import { ExcelImportItem, ProductDetail } from "../types";
 
 export interface ParsedExcelRow extends ExcelImportItem {
   name?: string | null;
@@ -50,7 +50,38 @@ function generateRowSku(lineNum: number, existingSkus: Set<string>): string {
  * Parses uploaded Excel (.xlsx, .xls) or CSV file matching the user template:
  * [ลำดับ, SKU, barcode, Brand, ชื่อสินค้า, Location, จำนวน, ราคาก่อนแวท, แวท, หลังแวท]
  */
-export async function parseExcelFile(file: File): Promise<ParseExcelResult> {
+/**
+ * Normalizes barcode values from Excel, converting potential scientific notation (e.g. 8.85E+12) to integer string
+ */
+function formatBarcodeString(val: unknown): string {
+  if (val === null || val === undefined) return "";
+  let s = String(val).trim();
+  if (/^[+-]?\d+(\.\d+)?[eE][+-]?\d+$/.test(s)) {
+    try {
+      const num = Number(s);
+      if (!isNaN(num) && Number.isFinite(num)) {
+        s = BigInt(Math.round(num)).toString();
+      }
+    } catch {
+      // Keep original string if BigInt fails
+    }
+  }
+  return s;
+}
+
+/**
+ * Parses uploaded Excel (.xlsx, .xls) or CSV file matching the user template:
+ * [ลำดับ, SKU, barcode, Brand, ชื่อสินค้า, Location, จำนวน, ราคาก่อนแวท, แวท, หลังแวท]
+ * Performs strict validation:
+ * 1. Barcode is strictly required for all rows
+ * 2. Location is strictly required (BT, EB, MT, WS - case-insensitive)
+ * 3. If barcode exists in DB: Master fields (SKU, Name, Brand) if provided MUST match DB; if empty, auto-filled from DB
+ * 4. If barcode is new: Name is strictly required, Stock Out not allowed, and in-file rows must be consistent
+ */
+export async function parseExcelFile(
+  file: File,
+  existingProducts?: ProductDetail[]
+): Promise<ParseExcelResult> {
   const data = await file.arrayBuffer();
   const workbook = XLSX.read(data, { type: "array" });
   const firstSheetName = workbook.SheetNames[0];
@@ -63,6 +94,29 @@ export async function parseExcelFile(file: File): Promise<ParseExcelResult> {
   const nowIso = new Date().toISOString();
   const usedSkus = new Set<string>();
 
+  // Pre-index existing products by barcode and SKU (case-insensitive)
+  const existingByBarcode = new Map<string, ProductDetail>();
+  const existingBySku = new Map<string, ProductDetail>();
+  if (existingProducts) {
+    for (const p of existingProducts) {
+      if (p.barcode) {
+        existingByBarcode.set(p.barcode.trim().toLowerCase(), p);
+      }
+      if (p.sku) {
+        existingBySku.set(p.sku.trim().toLowerCase(), p);
+      }
+    }
+  }
+
+  // In-memory cache for new barcodes appearing across multiple rows in the same file
+  interface InFileBarcodeTracking {
+    sku: string;
+    name: string;
+    brand?: string | null;
+    firstLine: number;
+  }
+  const inMemoryNewBarcodes = new Map<string, InFileBarcodeTracking>();
+
   let validCount = 0;
   let invalidCount = 0;
   let totalUnitsIn = 0;
@@ -70,6 +124,8 @@ export async function parseExcelFile(file: File): Promise<ParseExcelResult> {
   let zeroQtyCount = 0;
   let totalValPreVat = 0;
   let totalValPostVat = 0;
+
+  const validLocations = ["BT", "EB", "MT", "WS"];
 
   rawRows.forEach((row, index) => {
     const lineNum = index + 1;
@@ -86,11 +142,11 @@ export async function parseExcelFile(file: File): Promise<ParseExcelResult> {
       return "";
     };
 
-    let rawSku = String(findVal(["SKU", "sku", "รหัสสินค้า", "รหัส SKU", "รหัส"])).trim();
-    const rawBarcode = String(findVal(["barcode", "Barcode", "บาร์โค้ด"])).trim();
+    const rawSku = String(findVal(["SKU", "sku", "รหัสสินค้า", "รหัส SKU", "รหัส"])).trim();
+    const rawBarcode = formatBarcodeString(findVal(["barcode", "Barcode", "บาร์โค้ด"]));
     const rawBrand = String(findVal(["Brand", "brand", "ยี่ห้อ", "แบรนด์"])).trim();
     const rawName = String(findVal(["ชื่อสินค้า", "ชื่อ", "Name", "Product Name", "product_name", "รายการสินค้า", "สินค้า"])).trim();
-    const rawLocation = String(findVal(["Location", "location", "คลัง", "คลังสินค้า", "สถานที่เก็บ"])).trim().toUpperCase();
+    const rawLocation = String(findVal(["Location", "location", "คลัง", "คลังสินค้า", "สถานที่เก็บ"])).trim();
     const rawQty = findVal(["จำนวน", "Qty", "Quantity", "จำนวนชิ้น", "amount"]);
     const rawPreVat = findVal(["ราคาก่อนแวท", "ก่อนแวท", "ราคาต้นทุน", "UnitCost", "PriceBeforeVat", "ราคา"]);
     const rawVat = findVal(["แวท", "vat", "VAT", "ภาษีมูลค่าเพิ่ม"]);
@@ -98,32 +154,28 @@ export async function parseExcelFile(file: File): Promise<ParseExcelResult> {
     const rawDate = findVal(["วันที่", "Date", "ReceivedDate", "datetime"]);
 
     // If completely empty row, skip
-    if (!rawSku && !rawQty && !rawPreVat && !rawBrand && !rawName) {
+    if (!rawSku && !rawBarcode && !rawQty && !rawPreVat && !rawBrand && !rawName && !rawLocation) {
       return;
     }
 
     let error: string | undefined = undefined;
     let isAutoSku = false;
 
-    // 1. SKU Resolution: If empty, auto-generate unique random SKU like web create
-    if (!rawSku) {
-      rawSku = generateRowSku(lineNum, usedSkus);
-      isAutoSku = true;
-    } else {
-      usedSkus.add(rawSku.toUpperCase());
+    // 1. Barcode Validation: Mandatory on every row
+    if (!rawBarcode) {
+      error = error || i18n.t("excel.errBarcodeRequired", { line: lineNum });
     }
 
-    // 2. Separate Brand and Name (Backward compatible with single-column Brand)
-    const finalBrand = rawBrand || null;
-    const finalName = rawName || rawBrand || rawSku;
+    // 2. Location Validation: Mandatory and must be BT, EB, MT, or WS (case-insensitive)
+    const locUpper = rawLocation.toUpperCase();
+    if (!rawLocation) {
+      error = error || i18n.t("excel.errLocationRequired", { line: lineNum });
+    } else if (!validLocations.includes(locUpper)) {
+      error = error || i18n.t("excel.errLocationInvalid", { line: lineNum, loc: rawLocation });
+    }
+    const finalLocation = validLocations.includes(locUpper) ? locUpper : (rawLocation || null);
 
-    // 3. Location Resolution (BT, EB, MT, WS or empty)
-    const validLocations = ["BT", "EB", "MT", "WS"];
-    const finalLocation = rawLocation
-      ? (validLocations.includes(rawLocation) ? rawLocation : rawLocation)
-      : null;
-
-    // 4. Validate Quantity: Allow 0 (Master only) and Negative (Stock Out)
+    // 3. Quantity Validation: Allow 0 (Master only) and Negative (Stock Out)
     const qtyNum = Number(rawQty);
     let movementType: "StockIn" | "StockOut" | "ZeroStock" = "StockIn";
 
@@ -139,13 +191,128 @@ export async function parseExcelFile(file: File): Promise<ParseExcelResult> {
       movementType = "StockIn";
     }
 
-    // 5. Validate Pre-VAT price
+    // 4. Pre-VAT Price Validation
     const preVatNum = Number(rawPreVat);
     if (rawPreVat === "" || isNaN(preVatNum)) {
       error = error || i18n.t("excel.errPriceNumber");
     } else if (preVatNum < 0) {
       error = error || i18n.t("excel.errPricePositive");
     }
+
+    // 5. Product & Barcode Matching (Strict DB Matching & Inheritance)
+    let finalSku = rawSku;
+    let finalName = rawName;
+    let finalBrand = rawBrand || null;
+
+    if (rawBarcode) {
+      const barcodeKey = rawBarcode.toLowerCase();
+      const dbProduct = existingByBarcode.get(barcodeKey);
+
+      if (dbProduct) {
+        // CASE A: Barcode already exists in DB
+        // A.1 SKU check: If provided in Excel, must match DB SKU (case-insensitive)
+        if (rawSku) {
+          if (rawSku.toLowerCase() !== dbProduct.sku.toLowerCase()) {
+            error = error || i18n.t("excel.errSkuMismatchDb", {
+              line: lineNum,
+              barcode: rawBarcode,
+              dbSku: dbProduct.sku,
+              excelSku: rawSku,
+            });
+          }
+        }
+        finalSku = dbProduct.sku; // Always adopt DB master SKU
+
+        // A.2 Name check: If provided in Excel, must match DB Name (case-insensitive)
+        if (rawName) {
+          if (rawName.toLowerCase() !== dbProduct.name.toLowerCase()) {
+            error = error || i18n.t("excel.errNameMismatchDb", {
+              line: lineNum,
+              barcode: rawBarcode,
+              dbName: dbProduct.name,
+              excelName: rawName,
+            });
+          }
+        }
+        finalName = dbProduct.name; // Always adopt DB master Name
+
+        // A.3 Brand check: If provided in Excel and DB has brand, must match DB Brand
+        if (rawBrand && dbProduct.brand) {
+          if (rawBrand.toLowerCase() !== dbProduct.brand.toLowerCase()) {
+            error = error || i18n.t("excel.errBrandMismatchDb", {
+              line: lineNum,
+              barcode: rawBarcode,
+              dbBrand: dbProduct.brand,
+              excelBrand: rawBrand,
+            });
+          }
+        }
+        finalBrand = dbProduct.brand || rawBrand || null;
+      } else {
+        // CASE B: New Barcode (Not found in DB)
+        // B.1 Product Name is strictly required
+        if (!rawName) {
+          error = error || i18n.t("excel.errNewProductNameRequired", {
+            line: lineNum,
+            barcode: rawBarcode,
+          });
+        }
+
+        // B.2 Cannot Stock Out a new product that doesn't exist in DB
+        if (movementType === "StockOut") {
+          error = error || i18n.t("excel.errCannotStockOutNewProduct", {
+            line: lineNum,
+            barcode: rawBarcode,
+          });
+        }
+
+        // B.3 Check in-file memory cache for this new barcode
+        const inMem = inMemoryNewBarcodes.get(barcodeKey);
+        if (inMem) {
+          // If seen earlier in the file, ensure name is consistent
+          if (rawName && inMem.name && rawName.toLowerCase() !== inMem.name.toLowerCase()) {
+            error = error || i18n.t("excel.errInFileNewBarcodeNameMismatch", {
+              line: lineNum,
+              barcode: rawBarcode,
+              prevLine: inMem.firstLine,
+            });
+          }
+          finalSku = inMem.sku;
+          finalName = inMem.name;
+          finalBrand = inMem.brand || rawBrand || null;
+        } else {
+          // First time this new barcode is seen
+          if (rawSku) {
+            const existingWithSku = existingBySku.get(rawSku.toLowerCase());
+            if (existingWithSku) {
+              error = error || i18n.t("excel.errSkuBelongsToOtherProduct", {
+                line: lineNum,
+                sku: rawSku,
+              });
+            }
+            finalSku = rawSku.toUpperCase();
+          } else {
+            finalSku = generateRowSku(lineNum, usedSkus);
+            isAutoSku = true;
+          }
+
+          inMemoryNewBarcodes.set(barcodeKey, {
+            sku: finalSku,
+            name: rawName,
+            brand: rawBrand || null,
+            firstLine: lineNum,
+          });
+        }
+      }
+    } else {
+      // Row has no barcode - if SKU is also missing, auto-generate temporary identifier
+      if (!finalSku) {
+        finalSku = generateRowSku(lineNum, usedSkus);
+        isAutoSku = true;
+      }
+    }
+
+    usedSkus.add(finalSku.toUpperCase());
 
     // VAT & Post-VAT calculation
     const vatNum: number = isNaN(Number(rawVat)) || rawVat === "" ? +(preVatNum * 0.07).toFixed(2) : Number(rawVat);
@@ -184,9 +351,9 @@ export async function parseExcelFile(file: File): Promise<ParseExcelResult> {
 
     items.push({
       lineNumber: lineNum,
-      sku: rawSku,
+      sku: finalSku,
       barcode: rawBarcode || null,
-      name: finalName,
+      name: finalName || rawName || null,
       brand: finalBrand,
       location: finalLocation,
       quantity: isValid ? qtyNum : 0,
