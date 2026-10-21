@@ -1,0 +1,14 @@
+.github/workflows/deploy.yml
+  h_2b3e20e8ec5721 87-90,94-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.3",
+  "base_commit_sha": "915a02de6242484feaafc502ce1bf11a6200996b",
+  "prompts": {},
+  "humans": {
+    "h_2b3e20e8ec5721": {
+      "author": "Wanatchaporn Kampinit <wanatchaporn.kam@axonstech.com>"
+    }
+  }
+}
