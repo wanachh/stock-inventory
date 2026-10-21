@@ -1,0 +1,70 @@
+backend/Data/AppDbContext.cs
+  h_2b3e20e8ec5721 42,45,59,61
+backend/Endpoints/AuthEndpoints.cs
+  h_2b3e20e8ec5721 29-32
+backend/Endpoints/StockEndpoints.cs
+  h_2b3e20e8ec5721 50,56,73,94-113
+backend/Models/DTOs.cs
+  h_2b3e20e8ec5721 13-14,33-34,42-43,59-60,83-84,125-126,174,176,182-183,188-189,196-201,204-207
+backend/Models/InventoryBatch.cs
+  h_2b3e20e8ec5721 15
+backend/Models/StockTransaction.cs
+  h_2b3e20e8ec5721 13
+backend/Program.cs
+  h_2b3e20e8ec5721 103-104,113-114,118-119,143,145-156,158-162
+backend/Services/IInventoryService.cs
+  h_2b3e20e8ec5721 15,25
+backend/Services/InventoryService.cs
+  h_2b3e20e8ec5721 12,138,149-150,162-163,315-316,320,322-323,325,335-343,350,352-353,357,374-375,385,415-416,430-431,445-446,477-479,485-486,488,497-500,502-510,516,518-519,522,536,539-540,597-599,653-654,687-688,1001-1002,1086-1087,1119-1145,1147-1161,1164-1165,1168-1171,1173,1175,1177,1180-1183,1185-1193,1195,1197,1199,1208,1210,1212,1215,1217-1222,1227,1231-1240,1245-1246,1248-1250,1252-1253,1255-1263,1265-1309,1311-1355,1357-1384,1387-1390,1396-1401,1405-1442
+frontend/src/app/page.tsx
+  h_2b3e20e8ec5721 14,24,28,38,63,94,123-138,140,156-165,169-184,186-187,196-203,209-217,240,245-258,260,474-493,571-574,587-599,625-631,676,767-775
+frontend/src/components/Common/ClearAllModal.tsx
+  h_2b3e20e8ec5721 1-155
+frontend/src/components/Common/DateRangeDropdown.tsx
+  h_2b3e20e8ec5721 5
+frontend/src/components/Dashboard/RecentTransactions.tsx
+  h_2b3e20e8ec5721 93-97
+frontend/src/components/Dashboard/WarehouseLocationsCard.tsx
+  h_2b3e20e8ec5721 1-205
+frontend/src/components/Excel/ExcelExportModal.tsx
+  h_2b3e20e8ec5721 40,45-46,67-73,78-80,102-104,116-118,150-152,287,294,301,308,321-324,333-336
+frontend/src/components/Excel/ExcelImportModal.tsx
+  h_2b3e20e8ec5721 11-12,34,82,85,105,125,132,140,165-174,201,204,212-227,229-231,233,238,243,245-267,271,276-299,313-314,331-332,334-347,358,360-370,372,374-406,408,434,446,456
+frontend/src/components/Products/BatchesModal.tsx
+  h_2b3e20e8ec5721 7,19,24,35-39,43,97-127,132,138,159-161
+frontend/src/components/Products/MovementModal.tsx
+  h_2b3e20e8ec5721 20,51,174,176-177,180,200,218,235-236,307,315,770-819,832,838,841-842
+frontend/src/components/Products/ProductManagement.tsx
+  h_2b3e20e8ec5721 18,38,86-93,96,165-179,261-281,371-391
+frontend/src/components/Products/ProductModal.tsx
+  h_2b3e20e8ec5721 6,36,152,368-391
+frontend/src/components/Products/ProductTable.tsx
+  h_2b3e20e8ec5721 20-21,34,45,57,140-159,193-200,239,295-305,348,360,393-395,398-400,402-403,405-406,437-446,621-641,765-785
+frontend/src/components/Scanner/QuickScanView.tsx
+  h_2b3e20e8ec5721 7,149-171
+frontend/src/components/Transactions/EditTransactionModal.tsx
+  h_2b3e20e8ec5721 6
+frontend/src/components/Transactions/TransactionJournal.tsx
+  h_2b3e20e8ec5721 18,24,56,154-167,200-205,260,317-327,391,405,438-440,442-444,446,448-449,489-498,674-678
+frontend/src/i18n/locales/en.json
+  h_2b3e20e8ec5721 365-366,371-392,516-538
+frontend/src/i18n/locales/th.json
+  h_2b3e20e8ec5721 365-366,371-392,516-538
+frontend/src/lib/api.ts
+  h_2b3e20e8ec5721 165-170
+frontend/src/lib/excel.ts
+  h_2b3e20e8ec5721 6-9,21-23,28-48,51,64,68-70,89,91-93,101,106,108,110-113,116-126,128-129,134-139,142,155,172-180,189-191,197-198,210-213,220-221,228-229,238-261,264-267,273-274,276-279,285-286,288-294,300,304-307,326-328,340,348-358,374-376,390-391,406-408
+frontend/src/types/index.ts
+  h_2b3e20e8ec5721 12,54,64,131,158,167,178,180,187,193,200-205,210-213
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.3",
+  "base_commit_sha": "90d646a2109e5401a6b38898305e8bf8b09977ac",
+  "prompts": {},
+  "humans": {
+    "h_2b3e20e8ec5721": {
+      "author": "Wanatchaporn Kampinit <wanatchaporn.kam@axonstech.com>"
+    }
+  }
+}
