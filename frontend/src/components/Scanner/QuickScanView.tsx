@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ProductDetail } from "../../types";
 import { api, formatCurrency, formatNumber } from "../../lib/api";
-import { ScanLine, Search, Plus, Minus, Layers, CheckCircle2, AlertCircle } from "lucide-react";
+import { ScanLine, Search, Plus, Minus, Layers, AlertCircle } from "lucide-react";
 
 interface QuickScanViewProps {
   onOpenStockIn: (product: ProductDetail) => void;
@@ -145,6 +145,29 @@ export const QuickScanView: React.FC<QuickScanViewProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Location Breakdown */}
+          {product.activeBatches && product.activeBatches.length > 0 && (() => {
+            const locMap = new Map<string, number>();
+            product.activeBatches.forEach((b) => {
+              const l = (b.location || "BT").toUpperCase();
+              locMap.set(l, (locMap.get(l) || 0) + b.quantityRemaining);
+            });
+            return (
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t("location.locStockBreakdown")}</span>
+                {Array.from(locMap.entries()).map(([loc, qty]) => (
+                  <span
+                    key={loc}
+                    className="inline-flex items-center gap-1 rounded-lg border border-purple-200/80 bg-purple-50 px-2 py-0.5 font-mono text-xs font-bold text-purple-700 dark:border-purple-900/40 dark:bg-purple-950/40 dark:text-purple-300"
+                  >
+                    <span>{t("location.locPrefix", { loc })}:</span>
+                    <span>{formatNumber(qty)}</span>
+                  </span>
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Action Buttons */}
           <div className="mt-5 flex flex-wrap items-center justify-between gap-2">

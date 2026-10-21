@@ -47,13 +47,13 @@ public static class StockEndpoints
             }
         })
         .WithName("StockOut")
-        .WithSummary("Issue stock out using  real cost allocation");
+        .WithSummary("Issue stock out using real FIFO cost allocation");
 
         group.MapPost("/preview-out", async (StockOutRequest request, IInventoryService service) =>
         {
             try
             {
-                var result = await service.PreviewStockOutAsync(request.ProductId, request.SkuOrBarcode, request.Quantity);
+                var result = await service.PreviewStockOutAsync(request.ProductId, request.SkuOrBarcode, request.Quantity, request.Location);
                 return Results.Ok(result);
             }
             catch (KeyNotFoundException ex)
@@ -70,7 +70,7 @@ public static class StockEndpoints
             }
         })
         .WithName("PreviewStockOut")
-        .WithSummary("Preview  batch deductions and total cost out before confirming");
+        .WithSummary("Preview batch deductions and total cost out before confirming");
 
         group.MapPost("/import-excel", async (ExcelImportRequest request, IInventoryService service) =>
         {
@@ -90,6 +90,26 @@ public static class StockEndpoints
         })
         .WithName("ImportExcel")
         .WithSummary("Bulk import products and stock in batches from Excel");
+
+        group.MapPost("/clear-all", async (ClearAllDataRequest request, IInventoryService service) =>
+        {
+            try
+            {
+                await service.ClearAllDataAsync(request.Confirmation);
+                return Results.Ok(new { success = true, message = "ล้างข้อมูลสินค้าและสต็อกในระบบทั้งหมดเรียบร้อยแล้ว" });
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"--> [Error] ClearAllData failed: {ex.Message}");
+                return Results.Problem(detail: "เกิดข้อผิดพลาดในการล้างข้อมูล กรุณาตรวจสอบสิทธิ์ของฐานข้อมูล", statusCode: StatusCodes.Status500InternalServerError);
+            }
+        })
+        .WithName("ClearAllData")
+        .WithSummary("Wipe all database records (products, batches, transactions) after explicit user confirmation");
 
         return group;
     }

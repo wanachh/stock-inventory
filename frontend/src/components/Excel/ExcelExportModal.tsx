@@ -4,9 +4,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FileSpreadsheet,
-  Download,
   Upload,
-  Calendar,
   X,
   Layers,
   ArrowDownRight,
@@ -39,11 +37,13 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
 
   const [startDate, setStartDate] = useState(firstDayStr);
   const [endDate, setEndDate] = useState(todayStr);
+  const [activePreset, setActivePreset] = useState<"today" | "7days" | "thisMonth" | "all" | "custom">("thisMonth");
 
   if (!isOpen) return null;
 
   // Preset Date Range buttons
-  const handlePreset = (preset: "today" | "7days" | "thisMonth" | "aug2026" | "all") => {
+  const handlePreset = (preset: "today" | "7days" | "thisMonth" | "all") => {
+    setActivePreset(preset);
     const today = new Date();
     if (preset === "today") {
       const d = today.toISOString().slice(0, 10);
@@ -58,20 +58,26 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
       const first = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10);
       setStartDate(first);
       setEndDate(today.toISOString().slice(0, 10));
-    } else if (preset === "aug2026") {
-      setStartDate("2026-08-01");
-      setEndDate("2026-08-31");
     } else if (preset === "all") {
       setStartDate("");
       setEndDate("");
     }
   };
 
+  const getPresetClass = (preset: "today" | "7days" | "thisMonth" | "all") => {
+    const isActive = activePreset === preset;
+    return isActive
+      ? "rounded-lg border border-blue-500 bg-blue-50 px-2.5 py-1 font-semibold text-blue-700 dark:border-blue-500 dark:bg-blue-950/60 dark:text-blue-300 shadow-2xs cursor-pointer transition"
+      : "rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 font-medium text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer transition";
+  };
+
   const handleExport = () => {
     const exportData: Array<{
       sku: string;
       barcode?: string | null;
-      brand: string;
+      brand?: string | null;
+      name?: string | null;
+      location?: string | null;
       quantity: number;
       priceBeforeVat: number;
       vat?: number | null;
@@ -93,7 +99,9 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
             exportData.push({
               sku: prod.sku,
               barcode: prod.barcode,
-              brand: prod.brand || prod.name,
+              brand: prod.brand || "-",
+              name: prod.name,
+              location: batch.location || "BT",
               quantity: batch.quantityRemaining,
               priceBeforeVat: preVat,
               vat: vat,
@@ -105,7 +113,9 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
           exportData.push({
             sku: prod.sku,
             barcode: prod.barcode,
-            brand: prod.brand || prod.name,
+            brand: prod.brand || "-",
+            name: prod.name,
+            location: "BT",
             quantity: prod.totalQuantityRemaining,
             priceBeforeVat: 0,
             vat: 0,
@@ -137,7 +147,9 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
         exportData.push({
           sku: tx.sku,
           barcode: "-",
-          brand: tx.productName,
+          brand: tx.brand || "-",
+          name: tx.productName,
+          location: tx.location || "BT",
           quantity: tx.quantity,
           priceBeforeVat: preVat,
           vat: vat,
@@ -272,35 +284,28 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
                 <button
                   type="button"
                   onClick={() => handlePreset("today")}
-                  className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer transition"
+                  className={getPresetClass("today")}
                 >
                   {t("excel.rangeToday")}
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePreset("7days")}
-                  className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer transition"
+                  className={getPresetClass("7days")}
                 >
                   {t("excel.rangeLast7")}
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePreset("thisMonth")}
-                  className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer transition"
+                  className={getPresetClass("thisMonth")}
                 >
                   {t("excel.rangeThisMonth")}
                 </button>
                 <button
                   type="button"
-                  onClick={() => handlePreset("aug2026")}
-                  className="rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900/60 cursor-pointer transition"
-                >
-                  {t("excel.rangeAug2026")}
-                </button>
-                <button
-                  type="button"
                   onClick={() => handlePreset("all")}
-                  className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer transition"
+                  className={getPresetClass("all")}
                 >
                   {t("excel.rangeAll")}
                 </button>
@@ -313,7 +318,10 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
                   <input
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      setActivePreset("custom");
+                    }}
                     className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:[color-scheme:dark] dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20 cursor-pointer"
                   />
                 </div>
@@ -322,7 +330,10 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
                   <input
                     type="date"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                      setActivePreset("custom");
+                    }}
                     className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-zinc-900 shadow-2xs transition-all duration-150 hover:border-zinc-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:[color-scheme:dark] dark:hover:border-zinc-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20 cursor-pointer"
                   />
                 </div>

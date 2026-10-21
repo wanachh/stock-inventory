@@ -8,8 +8,6 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Search,
-  Download,
-  Upload,
   ChevronDown,
   ChevronUp,
   Clock,
@@ -17,11 +15,13 @@ import {
   Edit2,
   Trash2,
   Filter,
+  RefreshCw,
   Tag,
   Package,
   Activity,
   Boxes,
   Coins,
+  MapPin,
 } from "lucide-react";
 import { MultiSelectDropdown, MultiSelectOption } from "../Common/MultiSelectDropdown";
 import { DateRangeDropdown, DatePreset } from "../Common/DateRangeDropdown";
@@ -35,8 +35,6 @@ interface TransactionJournalProps {
   onRefresh?: () => void;
   onEditTransaction?: (transaction: StockTransaction) => void;
   onDeleteTransaction?: (transaction: StockTransaction) => void;
-  onOpenExcelImport?: () => void;
-  onOpenExcelExport?: () => void;
 }
 
 export const TransactionJournal: React.FC<TransactionJournalProps> = ({
@@ -45,8 +43,6 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
   onRefresh,
   onEditTransaction,
   onDeleteTransaction,
-  onOpenExcelImport,
-  onOpenExcelExport,
 }) => {
   const { t: translate } = useTranslation();
 
@@ -57,6 +53,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
   const [selectedBrands, setSelectedBrands] = useState<Set<string>>(new Set());
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+  const [selectedLocations, setSelectedLocations] = useState<Set<string>>(new Set());
 
   // Date range filter
   const [datePreset, setDatePreset] = useState<DatePreset>("all");
@@ -154,6 +151,20 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
       }));
   }, [transactions]);
 
+  // Options for Location (BT, EB, MT, WS)
+  const locationOptions: MultiSelectOption[] = useMemo(() => {
+    const counts = new Map<string, number>();
+    transactions.forEach((t) => {
+      const loc = (t.location || "BT").toUpperCase();
+      counts.set(loc, (counts.get(loc) || 0) + 1);
+    });
+    return ["BT", "EB", "MT", "WS"].map((loc) => ({
+      value: loc,
+      label: translate("location.locPrefix", { loc }),
+      count: counts.get(loc) || 0,
+    }));
+  }, [transactions, translate]);
+
   // Combined Filter & Sort logic
   const filteredAndSorted = useMemo(() => {
     // 1. Filter
@@ -184,6 +195,12 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
       // Product multi-select
       if (selectedProducts.size > 0 && !selectedProducts.has(t.productName.trim())) {
         return false;
+      }
+
+      // Location multi-select
+      if (selectedLocations.size > 0) {
+        const loc = (t.location || "BT").toUpperCase();
+        if (!selectedLocations.has(loc)) return false;
       }
 
       // Date range filter
@@ -240,6 +257,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
     selectedTypes,
     selectedBrands,
     selectedProducts,
+    selectedLocations,
     fromDate,
     toDate,
     minQty,
@@ -293,6 +311,17 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
         category: translate("tableFilter.product"),
         label: labels,
         onRemove: () => setSelectedProducts(new Set()),
+      });
+    }
+
+    // Locations (BT, EB, MT, WS)
+    if (selectedLocations.size > 0) {
+      const labels = Array.from(selectedLocations).map((l) => translate("location.locPrefix", { loc: l })).join(", ");
+      chips.push({
+        id: "location",
+        category: translate("location.locationLabel"),
+        label: labels,
+        onRemove: () => setSelectedLocations(new Set()),
       });
     }
 
@@ -359,6 +388,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
     selectedTypes,
     selectedBrands,
     selectedProducts,
+    selectedLocations,
     fromDate,
     toDate,
     minQty,
@@ -372,6 +402,7 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
     setSelectedTypes(new Set());
     setSelectedBrands(new Set());
     setSelectedProducts(new Set());
+    setSelectedLocations(new Set());
     setDatePreset("all");
     setFromDate("");
     setToDate("");
@@ -404,29 +435,18 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
           )}
         </div>
 
-        {/* Excel Import & Export */}
-        <div className="flex items-center gap-2">
-          {onOpenExcelImport && (
+        {/* Refresh Action */}
+        {onRefresh && (
+          <div className="flex items-center gap-2">
             <button
-              onClick={onOpenExcelImport}
-              className="flex items-center gap-1.5 rounded-2xl border border-blue-200/80 bg-blue-50/80 px-3 py-2 text-xs font-semibold text-blue-700 shadow-2xs transition hover:bg-blue-100 active:scale-95 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/60 dark:hover:border-blue-800/60 cursor-pointer"
+              onClick={onRefresh}
+              title={translate("common.refresh") || "Refresh"}
+              className="flex items-center gap-1.5 rounded-2xl border border-slate-200/80 bg-slate-50/80 px-3 py-2 text-xs font-semibold text-slate-700 shadow-2xs transition hover:bg-slate-100 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 cursor-pointer"
             >
-              <Download className="h-3.5 w-3.5" />
-              <span>{translate("shell.importExcel")}</span>
+              <RefreshCw className="h-3.5 w-3.5" />
             </button>
-          )}
-
-          {onOpenExcelExport && (
-            <button
-              onClick={onOpenExcelExport}
-              title={translate("transaction.excelTitle")}
-              className="flex items-center gap-1.5 rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-3 py-2 text-xs font-semibold text-emerald-700 shadow-2xs transition hover:bg-emerald-100 active:scale-95 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 dark:hover:border-emerald-800/60 cursor-pointer"
-            >
-              <Upload className="h-3.5 w-3.5" />
-              <span>{translate("shell.exportExcel")}</span>
-            </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* 2. Dedicated Filter Panel ("Filter ใหญ่") */}
@@ -463,6 +483,16 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
             options={productOptions}
             selectedValues={selectedProducts}
             onChange={setSelectedProducts}
+            searchPlaceholder={translate("tableFilter.search")}
+          />
+
+          {/* Location Multi-Select */}
+          <MultiSelectDropdown
+            label={translate("location.locationLabel")}
+            icon={<MapPin className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />}
+            options={locationOptions}
+            selectedValues={selectedLocations}
+            onChange={setSelectedLocations}
             searchPlaceholder={translate("tableFilter.search")}
           />
 
@@ -639,6 +669,11 @@ export const TransactionJournal: React.FC<TransactionJournalProps> = ({
                               <ArrowUpRight className="h-3.5 w-3.5" />
                             )}
                             <span>{isStockIn ? translate("transaction.in") : translate("transaction.out")}</span>
+                          </span>
+                        )}
+                        {t.location && (
+                          <span className="ml-1.5 rounded-md border border-purple-200/80 bg-purple-50 px-1.5 py-0.5 font-mono text-[10px] font-bold text-purple-700 dark:border-purple-900/40 dark:bg-purple-950/60 dark:text-purple-300">
+                            {translate("location.locPrefix", { loc: t.location })}
                           </span>
                         )}
                       </td>

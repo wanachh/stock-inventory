@@ -39,8 +39,10 @@ public class AppDbContext : DbContext
             entity.HasKey(b => b.Id);
             entity.Property(b => b.BatchNumber).HasMaxLength(64).IsRequired();
             entity.Property(b => b.UnitCost).HasPrecision(18, 2);
+            entity.Property(b => b.Location).HasMaxLength(50).HasDefaultValue("BT");
             entity.Property(b => b.Status).HasConversion<string>().HasMaxLength(20);
             entity.HasIndex(b => b.ReceivedDate);
+            entity.HasIndex(b => b.Location);
 
             entity.HasOne(b => b.Product)
                 .WithMany(p => p.Batches)
@@ -54,7 +56,9 @@ public class AppDbContext : DbContext
             entity.HasKey(t => t.Id);
             entity.Property(t => t.Type).HasConversion<string>().HasMaxLength(20);
             entity.Property(t => t.TotalCost).HasPrecision(18, 2);
+            entity.Property(t => t.Location).HasMaxLength(50).HasDefaultValue("BT");
             entity.HasIndex(t => t.CreatedAt);
+            entity.HasIndex(t => t.Location);
 
             entity.HasOne(t => t.Product)
                 .WithMany(p => p.Transactions)

@@ -11,6 +11,7 @@ import { KpiCards } from "../components/Dashboard/KpiCards";
 import { MovementChart } from "../components/Dashboard/MovementChart";
 import { TopProductsCard } from "../components/Dashboard/TopProductsCard";
 import { RecentTransactions } from "../components/Dashboard/RecentTransactions";
+import { WarehouseLocationsCard } from "../components/Dashboard/WarehouseLocationsCard";
 import { ProductTable } from "../components/Products/ProductTable";
 import { ProductManagement } from "../components/Products/ProductManagement";
 import { ProductModal } from "../components/Products/ProductModal";
@@ -20,11 +21,11 @@ import { TransactionJournal } from "../components/Transactions/TransactionJourna
 import { EditTransactionModal } from "../components/Transactions/EditTransactionModal";
 import { ExcelImportModal } from "../components/Excel/ExcelImportModal";
 import { ExcelExportModal } from "../components/Excel/ExcelExportModal";
+import { ClearAllModal } from "../components/Common/ClearAllModal";
 import { QuickScanView } from "../components/Scanner/QuickScanView";
 import { GlobalScannerListener } from "../components/Scanner/GlobalScannerListener";
 import { PasscodeGate } from "../components/Auth/PasscodeGate";
-import { VisitorBadge } from "../components/Dashboard/VisitorBadge";
-import { AlertTriangle, CheckCircle2, RefreshCw, Filter, X } from "lucide-react";
+import { AlertTriangle, RefreshCw, Filter, X, MapPin } from "lucide-react";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<NavTab>("dashboard");
@@ -34,6 +35,7 @@ export default function Home() {
 
   // Multi-select product filter on dashboard (empty Set = all products)
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
+  const [selectedDashboardLocation, setSelectedDashboardLocation] = useState<string>("ALL");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -58,6 +60,7 @@ export default function Home() {
 
   const [isExcelImportOpen, setIsExcelImportOpen] = useState(false);
   const [isExcelExportOpen, setIsExcelExportOpen] = useState(false);
+  const [isClearAllOpen, setIsClearAllOpen] = useState(false);
 
   // Toast notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -88,7 +91,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadData();
@@ -117,11 +120,24 @@ export default function Home() {
 
   // Derived: filtered products list (empty = all)
   const activeProducts = useMemo<ProductDetail[]>(() => {
-    if (selectedProductIds.size === 0) return products;
-    return products.filter((p) => selectedProductIds.has(p.id));
-  }, [selectedProductIds, products]);
+    let list = products;
+    if (selectedProductIds.size > 0) {
+      list = list.filter((p) => selectedProductIds.has(p.id));
+    }
+    if (selectedDashboardLocation !== "ALL") {
+      list = list.filter((p) =>
+        p.activeBatches?.some(
+          (b) =>
+            (b.location || "BT").toUpperCase() === selectedDashboardLocation &&
+            b.status === "Active" &&
+            b.quantityRemaining > 0
+        )
+      );
+    }
+    return list;
+  }, [selectedProductIds, selectedDashboardLocation, products]);
 
-  const isFiltered = selectedProductIds.size > 0;
+  const isFiltered = selectedProductIds.size > 0 || selectedDashboardLocation !== "ALL";
 
   const activeKpis = useMemo<DashboardKpis>(() => {
     if (!dashboard) {
@@ -137,13 +153,38 @@ export default function Home() {
     }
     if (!isFiltered) return dashboard.kpis;
 
-    const filteredTxs = transactions.filter((t) => selectedProductIds.has(t.productId));
+    let filteredTxs = transactions;
+    if (selectedProductIds.size > 0) {
+      filteredTxs = filteredTxs.filter((t) => selectedProductIds.has(t.productId));
+    }
+    if (selectedDashboardLocation !== "ALL") {
+      filteredTxs = filteredTxs.filter(
+        (t) => (t.location || "BT").toUpperCase() === selectedDashboardLocation
+      );
+    }
+
     const inTxs = filteredTxs.filter((t) => t.type === "StockIn");
     const outTxs = filteredTxs.filter((t) => t.type === "StockOut");
 
+    let remainingItems = 0;
+    let remainingValuation = 0;
+    activeProducts.forEach((p) => {
+      p.activeBatches?.forEach((b) => {
+        if (b.status === "Active" && b.quantityRemaining > 0) {
+          if (
+            selectedDashboardLocation === "ALL" ||
+            (b.location || "BT").toUpperCase() === selectedDashboardLocation
+          ) {
+            remainingItems += b.quantityRemaining;
+            remainingValuation += b.quantityRemaining * b.unitCost;
+          }
+        }
+      });
+    });
+
     return {
-      totalRemainingItems: activeProducts.reduce((s, p) => s + p.totalQuantityRemaining, 0),
-      totalRemainingValuation: activeProducts.reduce((s, p) => s + p.totalValuation, 0),
+      totalRemainingItems: remainingItems,
+      totalRemainingValuation: remainingValuation,
       totalItemsOut: outTxs.reduce((s, t) => s + t.quantity, 0),
       totalCostOut: outTxs.reduce((s, t) => s + t.totalCost, 0),
       totalItemsIn: inTxs.reduce((s, t) => s + t.quantity, 0),
@@ -152,13 +193,28 @@ export default function Home() {
         (p) => p.totalQuantityRemaining <= p.minThreshold
       ).length,
     };
-  }, [dashboard, isFiltered, activeProducts, transactions, selectedProductIds]);
+  }, [
+    dashboard,
+    isFiltered,
+    activeProducts,
+    transactions,
+    selectedProductIds,
+    selectedDashboardLocation,
+  ]);
 
   const activeMovementTrend = useMemo<DailyMovementSummary[]>(() => {
     if (!dashboard) return [];
     if (!isFiltered) return dashboard.movementTrend;
 
-    const filteredTxs = transactions.filter((t) => selectedProductIds.has(t.productId));
+    let filteredTxs = transactions;
+    if (selectedProductIds.size > 0) {
+      filteredTxs = filteredTxs.filter((t) => selectedProductIds.has(t.productId));
+    }
+    if (selectedDashboardLocation !== "ALL") {
+      filteredTxs = filteredTxs.filter(
+        (t) => (t.location || "BT").toUpperCase() === selectedDashboardLocation
+      );
+    }
 
     return dashboard.movementTrend.map((daySummary) => {
       const dayTxs = filteredTxs.filter((t) => {
@@ -181,16 +237,27 @@ export default function Home() {
         outCost: dayOut.reduce((s, t) => s + t.totalCost, 0),
       };
     });
-  }, [dashboard, isFiltered, transactions, selectedProductIds]);
+  }, [dashboard, isFiltered, transactions, selectedProductIds, selectedDashboardLocation]);
 
   const activeTransactions = useMemo<StockTransaction[]>(() => {
     if (!dashboard) return [];
     if (!isFiltered) return dashboard.recentTransactions;
-    return transactions
-      .filter((t) => selectedProductIds.has(t.productId))
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime() || b.id - a.id)
+    let list = transactions;
+    if (selectedProductIds.size > 0) {
+      list = list.filter((t) => selectedProductIds.has(t.productId));
+    }
+    if (selectedDashboardLocation !== "ALL") {
+      list = list.filter(
+        (t) => (t.location || "BT").toUpperCase() === selectedDashboardLocation
+      );
+    }
+    return list
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime() || b.id - a.id
+      )
       .slice(0, 10);
-  }, [dashboard, isFiltered, transactions, selectedProductIds]);
+  }, [dashboard, isFiltered, transactions, selectedProductIds, selectedDashboardLocation]);
 
   // Handle hardware scanner gun trigger
   const handleHardwareScan = async (code: string) => {
@@ -404,8 +471,26 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Right: dropdown trigger + clear */}
-                    <div className="flex items-center gap-2" ref={filterRef}>
+                    {/* Right: dropdown trigger + location pills + clear */}
+                    <div className="flex flex-wrap items-center gap-2" ref={filterRef}>
+                      {/* Location selector pills on dashboard */}
+                      <div className="flex items-center gap-1">
+                        {["ALL", "BT", "EB", "MT", "WS"].map((loc) => (
+                          <button
+                            key={loc}
+                            type="button"
+                            onClick={() => setSelectedDashboardLocation(loc)}
+                            className={`rounded-xl px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
+                              selectedDashboardLocation === loc
+                                ? "bg-purple-600 text-white shadow-xs"
+                                : "border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                            }`}
+                          >
+                            {loc === "ALL" ? t("location.allLocationsShort") : t("location.locPrefix", { loc })}
+                          </button>
+                        ))}
+                      </div>
+
                       {/* Custom multi-select dropdown */}
                       <div className="relative">
                         <button
@@ -483,7 +568,10 @@ export default function Home() {
                       {isFiltered && (
                         <button
                           type="button"
-                          onClick={() => setSelectedProductIds(new Set())}
+                          onClick={() => {
+                            setSelectedProductIds(new Set());
+                            setSelectedDashboardLocation("ALL");
+                          }}
                           className="flex h-9 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 text-xs font-bold text-rose-700 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300 cursor-pointer transition"
                         >
                           <X className="h-3.5 w-3.5" />
@@ -496,6 +584,19 @@ export default function Home() {
                   {/* Selected pills row */}
                   {isFiltered && (
                     <div className="flex flex-wrap gap-1.5 border-t border-slate-100 px-4 py-2.5 dark:border-slate-800">
+                      {selectedDashboardLocation !== "ALL" && (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-[11px] font-semibold text-purple-700 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-300">
+                          <MapPin className="h-3 w-3" />
+                          {t("location.locPrefix", { loc: selectedDashboardLocation })}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedDashboardLocation("ALL")}
+                            className="ml-0.5 cursor-pointer text-purple-400 hover:text-purple-700 dark:hover:text-purple-200"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      )}
                       {Array.from(selectedProductIds).map((id) => {
                         const p = products.find((x) => x.id === id);
                         if (!p) return null;
@@ -519,6 +620,13 @@ export default function Home() {
                 <KpiCards
                   kpis={activeKpis}
                   onFilterLowStock={() => setActiveTab("products")}
+                />
+
+                {/* 1.5. Warehouse Locations Overview */}
+                <WarehouseLocationsCard
+                  products={products}
+                  selectedLocation={selectedDashboardLocation}
+                  onSelectLocation={setSelectedDashboardLocation}
                 />
 
                 {/* 2. Stock movement */}
@@ -565,8 +673,7 @@ export default function Home() {
               onOpenStockOut={handleOpenStockOut}
               onViewBatches={handleViewBatches}
               onEditProduct={handleOpenEditProduct}
-              onOpenExcelImport={() => setIsExcelImportOpen(true)}
-              onOpenExcelExport={() => setIsExcelExportOpen(true)}
+              onOpenClearAll={() => setIsClearAllOpen(true)}
             />
           )}
 
@@ -574,7 +681,6 @@ export default function Home() {
           {activeTab === "management" && (
             <ProductManagement
               products={products}
-              onOpenNewProduct={handleOpenNewProduct}
               onEditProduct={handleOpenEditProduct}
               onDeleteProduct={handleDeleteProduct}
             />
@@ -588,8 +694,6 @@ export default function Home() {
               onRefresh={loadData}
               onEditTransaction={handleOpenEditTransaction}
               onDeleteTransaction={handleDeleteTransaction}
-              onOpenExcelImport={() => setIsExcelImportOpen(true)}
-              onOpenExcelExport={() => setIsExcelExportOpen(true)}
             />
           )}
 
@@ -659,6 +763,15 @@ export default function Home() {
           onClose={() => setIsExcelExportOpen(false)}
           products={products}
           transactions={transactions}
+        />
+
+        <ClearAllModal
+          isOpen={isClearAllOpen}
+          onClose={() => setIsClearAllOpen(false)}
+          onSuccess={() => {
+            showToast(t("excel.clearAllSuccess"));
+            loadData();
+          }}
         />
       </div>
     </PasscodeGate>

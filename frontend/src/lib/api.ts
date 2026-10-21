@@ -162,6 +162,12 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
+  clearAllData: (confirmation: string): Promise<{ success: boolean; message: string }> =>
+    request<{ success: boolean; message: string }>("/stock/clear-all", {
+      method: "POST",
+      body: JSON.stringify({ confirmation }),
+    }),
+
   verifyPasscode: (passcode: string): Promise<{ success: boolean; token: string; expiresInDays: number; message: string }> =>
     request<{ success: boolean; token: string; expiresInDays: number; message: string }>("/auth/verify", {
       method: "POST",

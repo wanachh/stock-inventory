@@ -10,6 +10,7 @@ public class StockTransaction
     public int Quantity { get; set; }
     public decimal TotalCost { get; set; }
     public string? ReferenceNote { get; set; }
+    public string? Location { get; set; } = "BT";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties

@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { StockTransaction, UpdateTransactionRequest } from "../../types";
-import { formatCurrency, formatNumber } from "../../lib/api";
-import { X, Check, AlertCircle, ShieldAlert } from "lucide-react";
+import { X, Check, ShieldAlert } from "lucide-react";
 
 interface EditTransactionModalProps {
   isOpen: boolean;

@@ -10,15 +10,14 @@ import {
   Minus,
   AlertCircle,
   CheckCircle2,
-  ScanLine,
   Layers,
   Search,
   Sparkles,
   Package,
-  PlusCircle,
   ChevronDown,
   Check,
   Calendar,
+  MapPin,
 } from "lucide-react";
 
 const getLocalDateTimeString = (d: Date = new Date()) => {
@@ -49,6 +48,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
 
   // Transaction Date state (allows backdating)
   const [transactionDate, setTransactionDate] = useState<string>("");
+  const [selectedLocation, setSelectedLocation] = useState<string>("BT");
 
   // Search & Suggestion states
   const [searchQuery, setSearchQuery] = useState("");
@@ -171,12 +171,13 @@ export const MovementModal: React.FC<MovementModalProps> = ({
     setError(null);
   };
 
-  // Live  Preview effect when stocking out
+  // Live Preview effect when stocking out
   useEffect(() => {
-    const qtyNum = Number(quantity);
+    const rawQty = Number(quantity);
+    const qtyNum = Math.abs(rawQty);
     if (type !== "StockOut" || !currentProduct || !quantity || qtyNum <= 0 || !Number.isInteger(qtyNum)) {
       setPreview(null);
-      if (quantity !== "" && (!Number.isInteger(qtyNum) || qtyNum <= 0)) {
+      if (quantity !== "" && (!Number.isInteger(rawQty) || qtyNum <= 0)) {
         setPreviewError(t("movement.qtyErrorPositive"));
       } else {
         setPreviewError(null);
@@ -196,6 +197,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
         .previewStockOut({
           productId: currentProduct.id,
           quantity: qtyNum,
+          location: selectedLocation !== "ALL" ? selectedLocation : undefined,
         })
         .then((res) => {
           setPreview(res);
@@ -213,7 +215,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
     return () => {
       if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
     };
-  }, [type, selectedProductId, quantity, currentProduct]);
+  }, [type, selectedProductId, quantity, currentProduct, selectedLocation, t]);
 
   // Escape key always closes the modal, even if content overflows the viewport
   useEffect(() => {
@@ -230,7 +232,8 @@ export const MovementModal: React.FC<MovementModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const qty = Number(quantity);
+    const rawQty = Number(quantity);
+    const qty = type === "StockOut" ? Math.abs(rawQty) : rawQty;
     if (quantity === "" || isNaN(qty) || qty <= 0) {
       setError(t("movement.qtyErrorPositive"));
       return;
@@ -301,6 +304,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
             unitCost: cost,
             reference: reference.trim() || undefined,
             transactionDate: dateIso,
+            location: selectedLocation,
           });
         } else {
           await api.stockOut({
@@ -308,6 +312,7 @@ export const MovementModal: React.FC<MovementModalProps> = ({
             quantity: qty,
             referenceNote: reference.trim() || undefined,
             transactionDate: dateIso,
+            location: selectedLocation !== "ALL" ? selectedLocation : undefined,
           });
         }
       }
@@ -762,6 +767,56 @@ export const MovementModal: React.FC<MovementModalProps> = ({
             </div>
           )}
 
+          {/* Location Selector */}
+          <div>
+            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+              <span>{t("location.warehouseLocation")}</span>
+            </label>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              {(type === "StockIn" ? ["BT", "EB", "MT", "WS"] : ["ALL", "BT", "EB", "MT", "WS"]).map((loc) => {
+                let locQty: number | null = null;
+                if (type === "StockOut" && currentProduct) {
+                  if (loc === "ALL") {
+                    locQty = currentProduct.totalQuantityRemaining;
+                  } else {
+                    locQty = (currentProduct.activeBatches || [])
+                      .filter((b) => (b.location || "BT").toUpperCase() === loc)
+                      .reduce((sum, b) => sum + b.quantityRemaining, 0);
+                  }
+                }
+
+                return (
+                  <button
+                    key={loc}
+                    type="button"
+                    onClick={() => setSelectedLocation(loc)}
+                    className={`rounded-xl px-3 py-1.5 font-bold text-xs transition cursor-pointer ${
+                      selectedLocation === loc
+                        ? "bg-purple-600 text-white shadow-xs"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                    }`}
+                  >
+                    <span>{loc === "ALL" ? t("location.allLotsWithCount") : t("location.locPrefix", { loc })}</span>
+                    {locQty !== null && (
+                      <span
+                        className={`ml-1.5 text-[11px] font-semibold ${
+                          selectedLocation === loc
+                            ? "text-purple-200"
+                            : locQty > 0
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-slate-400 dark:text-slate-500"
+                        }`}
+                      >
+                        ({locQty})
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Quantity */}
           <div>
             <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
@@ -774,17 +829,17 @@ export const MovementModal: React.FC<MovementModalProps> = ({
               step={1}
               value={quantity}
               onKeyDown={(e) => {
-                if (e.key === "." || e.key === "," || e.key === "e" || e.key === "E" || e.key === "-") {
+                if (e.key === "." || e.key === "," || e.key === "e" || e.key === "E") {
                   e.preventDefault();
                 }
               }}
               onChange={(e) => {
                 const val = e.target.value;
-                if (val === "") {
+                if (val === "" || val === "-") {
                   setQuantity("");
                 } else {
-                  const parsed = parseFloat(val);
-                  setQuantity(isNaN(parsed) ? "" : parsed);
+                  const parsed = parseInt(val, 10);
+                  setQuantity(isNaN(parsed) ? "" : Math.abs(parsed));
                 }
               }}
               placeholder={t("movement.qtyPlaceholder")}

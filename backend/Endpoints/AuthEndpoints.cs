@@ -26,7 +26,10 @@ public static class AuthEndpoints
                                 ?? config["Auth:Passcode"]
                                 ?? "2026";
 
-            if (request.Passcode.Trim() == expectedPasscode)
+            var inputBytes = Encoding.UTF8.GetBytes(request.Passcode.Trim());
+            var expectedBytes = Encoding.UTF8.GetBytes(expectedPasscode);
+
+            if (CryptographicOperations.FixedTimeEquals(inputBytes, expectedBytes))
             {
                 // Generate a secure 30-day session token
                 var tokenBytes = SHA256.HashData(Encoding.UTF8.GetBytes($"{expectedPasscode}-StockPulseSessionSalt-{DateTime.UtcNow:yyyyMM}"));

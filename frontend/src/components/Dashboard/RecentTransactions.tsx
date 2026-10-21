@@ -90,6 +90,11 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
                       >
                         {isDeletionTx ? t("transaction.deleted") : isStockIn ? `+ ${t("transaction.in")}` : `- ${t("transaction.out")}`}
                       </span>
+                      {tx.location && (
+                        <span className="rounded-md border border-purple-200/80 bg-purple-50 px-1.5 py-0.5 font-mono text-[9px] font-bold text-purple-700 dark:border-purple-900/40 dark:bg-purple-950/60 dark:text-purple-300">
+                          {t("location.locPrefix", { loc: tx.location })}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                       <span className="font-mono">{tx.sku}</span>

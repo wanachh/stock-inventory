@@ -9,7 +9,7 @@ public partial class InventoryService : IInventoryService
 {
     private readonly AppDbContext _db;
 
-    [GeneratedRegex(@"^[A-Za-z0-9_\-\.]{2,50}$")]
+    [GeneratedRegex(@"^[A-Za-z0-9_\-\.]{2,50}$", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex SkuRegex();
 
     public InventoryService(AppDbContext db)
@@ -135,6 +135,7 @@ public partial class InventoryService : IInventoryService
                     : req.TransactionDate.Value.ToUniversalTime())
                 : DateTime.UtcNow;
 
+            var cleanLocation = !string.IsNullOrWhiteSpace(req.Location) ? req.Location.Trim().ToUpper() : "BT";
             var batchNumber = $"LOT-{effectiveDate:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
             var batch = new InventoryBatch
             {
@@ -145,7 +146,8 @@ public partial class InventoryService : IInventoryService
                 UnitCost = unitCost,
                 ReceivedDate = effectiveDate,
                 Reference = req.Reference ?? "Initial Stock",
-                Status = BatchStatus.Active
+                Status = BatchStatus.Active,
+                Location = cleanLocation
             };
             _db.InventoryBatches.Add(batch);
             await _db.SaveChangesAsync();
@@ -157,7 +159,8 @@ public partial class InventoryService : IInventoryService
                 Quantity = req.InitialQuantity.Value,
                 TotalCost = req.InitialQuantity.Value * unitCost,
                 ReferenceNote = req.Reference ?? "Initial Stock Receipt",
-                CreatedAt = effectiveDate
+                CreatedAt = effectiveDate,
+                Location = cleanLocation
             };
             _db.StockTransactions.Add(tx);
             await _db.SaveChangesAsync();
@@ -309,15 +312,17 @@ public partial class InventoryService : IInventoryService
             b.QuantityRemaining * b.UnitCost,
             b.ReceivedDate,
             b.Reference,
-            b.Status.ToString()
+            b.Status.ToString(),
+            b.Location ?? "BT"
         )).ToList();
     }
 
-    public async Task<StockOutPreviewResponse> PreviewStockOutAsync(int? productId, string? skuOrBarcode, int quantity)
+    public async Task<StockOutPreviewResponse> PreviewStockOutAsync(int? productId, string? skuOrBarcode, int quantity, string? location = null)
     {
-        if (quantity <= 0)
+        var effectiveQty = Math.Abs(quantity);
+        if (effectiveQty <= 0)
         {
-            throw new ArgumentException("จำนวนสินค้าที่ต้องการตัดออกต้องเป็นจำนวนเต็มบวกมากกว่า 0 ชิ้น (ไม่สามารถตัดออก 0 หรือติดลบได้)");
+            throw new ArgumentException("จำนวนสินค้าที่ต้องการตัดออกต้องมากกว่า 0 ชิ้น");
         }
 
         var product = await FindProductAsync(productId, skuOrBarcode);
@@ -327,21 +332,29 @@ public partial class InventoryService : IInventoryService
         }
 
         // Active batches ordered 
-        var activeBatches = await _db.InventoryBatches
-            .Where(b => b.ProductId == product.Id && b.Status == BatchStatus.Active && b.QuantityRemaining > 0)
+        var query = _db.InventoryBatches
+            .Where(b => b.ProductId == product.Id && b.Status == BatchStatus.Active && b.QuantityRemaining > 0);
+
+        if (!string.IsNullOrWhiteSpace(location) && !location.Equals("ALL", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(b => b.Location.ToUpper() == location.Trim().ToUpper());
+        }
+
+        var activeBatches = await query
             .OrderBy(b => b.ReceivedDate)
             .ThenBy(b => b.Id)
             .AsNoTracking()
             .ToListAsync();
 
         var totalAvailable = activeBatches.Sum(b => b.QuantityRemaining);
-        if (totalAvailable < quantity)
+        if (totalAvailable < effectiveQty)
         {
-            throw new InvalidOperationException($"สินค้าคงเหลือไม่เพียงพอ (มีอยู่ {totalAvailable} ชิ้น, ต้องการตัดออก {quantity} ชิ้น)");
+            var locMsg = !string.IsNullOrWhiteSpace(location) ? $"ในคลัง {location} " : "";
+            throw new InvalidOperationException($"สินค้าคงเหลือ{locMsg}ไม่เพียงพอ (มีอยู่ {totalAvailable} ชิ้น, ต้องการตัดออก {effectiveQty} ชิ้น)");
         }
 
         var allocated = new List<StockOutPreviewItem>();
-        int needed = quantity;
+        int needed = effectiveQty;
         decimal totalCost = 0m;
 
         foreach (var batch in activeBatches)
@@ -358,7 +371,8 @@ public partial class InventoryService : IInventoryService
                 batch.QuantityRemaining,
                 draw,
                 batch.UnitCost,
-                subtotal
+                subtotal,
+                batch.Location ?? "BT"
             ));
 
             needed -= draw;
@@ -368,7 +382,7 @@ public partial class InventoryService : IInventoryService
             product.Id,
             product.Sku,
             product.Name,
-            quantity,
+            effectiveQty,
             totalAvailable,
             totalCost,
             allocated
@@ -398,6 +412,8 @@ public partial class InventoryService : IInventoryService
                 : req.TransactionDate.Value.ToUniversalTime())
             : DateTime.UtcNow;
 
+        var cleanLocation = !string.IsNullOrWhiteSpace(req.Location) ? req.Location.Trim().ToUpper() : "BT";
+
         var batchNumber = !string.IsNullOrWhiteSpace(req.BatchNumber)
             ? req.BatchNumber.Trim()
             : $"LOT-{effectiveDate:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
@@ -411,7 +427,8 @@ public partial class InventoryService : IInventoryService
             UnitCost = req.UnitCost,
             ReceivedDate = effectiveDate,
             Reference = req.Reference,
-            Status = BatchStatus.Active
+            Status = BatchStatus.Active,
+            Location = cleanLocation
         };
 
         _db.InventoryBatches.Add(batch);
@@ -425,7 +442,8 @@ public partial class InventoryService : IInventoryService
             Quantity = req.Quantity,
             TotalCost = totalCost,
             ReferenceNote = req.Reference,
-            CreatedAt = effectiveDate
+            CreatedAt = effectiveDate,
+            Location = cleanLocation
         };
 
         _db.StockTransactions.Add(transaction);
@@ -456,15 +474,18 @@ public partial class InventoryService : IInventoryService
             transaction.ReferenceNote,
             transaction.CreatedAt,
             [new TransactionDetailItemDto(batch.Id, batch.BatchNumber, req.Quantity, req.UnitCost, totalCost)],
-            product.Brand
+            product.Brand,
+            product.IsDeleted,
+            cleanLocation
         );
     }
 
     public async Task<StockTransactionDto> StockOutAsync(StockOutRequest req)
     {
-        if (req.Quantity <= 0)
+        var effectiveQty = Math.Abs(req.Quantity);
+        if (effectiveQty <= 0)
         {
-            throw new ArgumentException("จำนวนสินค้าที่ต้องการตัดออกต้องเป็นจำนวนเต็มบวกมากกว่า 0 ชิ้น (ไม่สามารถตัดออก 0 หรือติดลบได้)");
+            throw new ArgumentException("จำนวนสินค้าที่ต้องการตัดออกต้องมากกว่า 0 ชิ้น");
         }
 
         var product = await FindProductAsync(req.ProductId, req.SkuOrBarcode);
@@ -473,20 +494,32 @@ public partial class InventoryService : IInventoryService
             throw new KeyNotFoundException("ไม่พบสินค้าที่ต้องการตัดออก");
         }
 
+        var cleanLocation = !string.IsNullOrWhiteSpace(req.Location) && !req.Location.Equals("ALL", StringComparison.OrdinalIgnoreCase)
+            ? req.Location.Trim().ToUpper()
+            : null;
+
         // Active batches ordered 
-        var batches = await _db.InventoryBatches
-            .Where(b => b.ProductId == product.Id && b.Status == BatchStatus.Active && b.QuantityRemaining > 0)
+        var query = _db.InventoryBatches
+            .Where(b => b.ProductId == product.Id && b.Status == BatchStatus.Active && b.QuantityRemaining > 0);
+
+        if (cleanLocation != null)
+        {
+            query = query.Where(b => b.Location.ToUpper() == cleanLocation);
+        }
+
+        var batches = await query
             .OrderBy(b => b.ReceivedDate)
             .ThenBy(b => b.Id)
             .ToListAsync();
 
         int available = batches.Sum(b => b.QuantityRemaining);
-        if (available < req.Quantity)
+        if (available < effectiveQty)
         {
-            throw new InvalidOperationException($"สินค้าคงเหลือไม่เพียงพอสำหรับการตัดออก (มีอยู่ {available} ชิ้น, ต้องการตัด {req.Quantity} ชิ้น)");
+            var locMsg = cleanLocation != null ? $"ในคลัง {cleanLocation} " : "";
+            throw new InvalidOperationException($"สินค้าคงเหลือ{locMsg}ไม่เพียงพอสำหรับการตัดออก (มีอยู่ {available} ชิ้น, ต้องการตัด {effectiveQty} ชิ้น)");
         }
 
-        int remainingToDraw = req.Quantity;
+        int remainingToDraw = effectiveQty;
         decimal totalCostOut = 0m;
         var detailDtos = new List<TransactionDetailItemDto>();
 
@@ -500,10 +533,11 @@ public partial class InventoryService : IInventoryService
         {
             ProductId = product.Id,
             Type = TransactionType.StockOut,
-            Quantity = req.Quantity,
+            Quantity = effectiveQty,
             TotalCost = 0m,
             ReferenceNote = req.ReferenceNote,
-            CreatedAt = effectiveDate
+            CreatedAt = effectiveDate,
+            Location = cleanLocation ?? batches.FirstOrDefault()?.Location ?? "BT"
         };
 
         _db.StockTransactions.Add(transaction);
@@ -560,7 +594,9 @@ public partial class InventoryService : IInventoryService
             transaction.ReferenceNote,
             transaction.CreatedAt,
             detailDtos,
-            product.Brand
+            product.Brand,
+            product.IsDeleted,
+            transaction.Location
         );
     }
 
@@ -614,7 +650,8 @@ public partial class InventoryService : IInventoryService
                 d.SubtotalCost
             )).ToList(),
             t.Product?.Brand,
-            t.Product?.IsDeleted ?? true
+            t.Product?.IsDeleted ?? true,
+            t.Location ?? "BT"
         )).ToList();
     }
 
@@ -647,7 +684,8 @@ public partial class InventoryService : IInventoryService
                 d.SubtotalCost
             )).ToList(),
             t.Product?.Brand,
-            t.Product?.IsDeleted ?? true
+            t.Product?.IsDeleted ?? true,
+            t.Location ?? "BT"
         );
     }
 
@@ -960,7 +998,8 @@ public partial class InventoryService : IInventoryService
                     d.SubtotalCost
                 )).ToList(),
                 t.Product?.Brand,
-                t.Product?.IsDeleted ?? true
+                t.Product?.IsDeleted ?? true,
+                t.Location ?? "BT"
             ))
             .ToList();
 
@@ -1044,7 +1083,8 @@ public partial class InventoryService : IInventoryService
             b.QuantityRemaining * b.UnitCost,
             b.ReceivedDate,
             b.Reference,
-            b.Status.ToString()
+            b.Status.ToString(),
+            b.Location ?? "BT"
         )).ToList();
 
         return new ProductDetailDto(
@@ -1076,117 +1116,328 @@ public partial class InventoryService : IInventoryService
         var messages = new List<string>();
         int createdProducts = 0;
         int stockInBatches = 0;
-        int totalUnits = 0;
-        decimal totalValue = 0m;
+        int stockOutBatches = 0;
+        int zeroQuantityCount = 0;
+        int totalUnitsIn = 0;
+        int totalUnitsOut = 0;
+        decimal totalValueIn = 0m;
+        decimal totalValueOut = 0m;
 
+        // 1. Bulk pre-fetch all existing products matching SKUs or Barcodes
+        var nonNullSkus = req.Items
+            .Where(i => !string.IsNullOrWhiteSpace(i.Sku))
+            .Select(i => i.Sku!.Trim().ToLower())
+            .Distinct()
+            .ToList();
+
+        var nonNullBarcodes = req.Items
+            .Where(i => !string.IsNullOrWhiteSpace(i.Barcode))
+            .Select(i => i.Barcode!.Trim().ToLower())
+            .Distinct()
+            .ToList();
+
+        var existingProducts = await _db.Products
+            .Where(p => !p.IsDeleted && (nonNullSkus.Contains(p.Sku.ToLower()) || (p.Barcode != null && nonNullBarcodes.Contains(p.Barcode.ToLower()))))
+            .Include(p => p.Batches.Where(b => b.Status == BatchStatus.Active && b.QuantityRemaining > 0))
+            .ToListAsync();
+
+        var productBySku = new Dictionary<string, Product>(StringComparer.OrdinalIgnoreCase);
+        var productByBarcode = new Dictionary<string, Product>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var p in existingProducts)
+        {
+            productBySku[p.Sku] = p;
+            if (!string.IsNullOrWhiteSpace(p.Barcode))
+            {
+                productByBarcode[p.Barcode] = p;
+            }
+        }
+
+        var usedSkus = new HashSet<string>(productBySku.Keys, StringComparer.OrdinalIgnoreCase);
+        var newProducts = new List<Product>();
+
+        var defaultLoc = !string.IsNullOrWhiteSpace(req.DefaultLocation) ? req.DefaultLocation.Trim().ToUpper() : "BT";
+
+        // 2. Process each imported row
         foreach (var item in req.Items)
         {
+            // Auto-generate SKU if missing or empty (matching web behavior PRD-YYYY-XXXX)
+            string cleanSku;
             if (string.IsNullOrWhiteSpace(item.Sku))
             {
-                continue;
+                do
+                {
+                    cleanSku = $"PRD-{DateTime.UtcNow.Year}-{Guid.NewGuid().ToString()[..6].ToUpper()}";
+                } while (usedSkus.Contains(cleanSku));
             }
-
-            if (item.Quantity <= 0)
+            else
             {
-                throw new ArgumentException($"แถวที่ {item.LineNumber ?? 0} (SKU: {item.Sku}): จำนวนสินค้าต้องมากกว่า 0 ชิ้น");
+                cleanSku = item.Sku.Trim();
             }
+            usedSkus.Add(cleanSku);
 
-            var cleanSku = item.Sku.Trim();
             var cleanBarcode = string.IsNullOrWhiteSpace(item.Barcode) ? null : item.Barcode.Trim();
-            var cleanBrand = string.IsNullOrWhiteSpace(item.Brand) ? cleanSku : item.Brand.Trim();
+            var cleanBrand = string.IsNullOrWhiteSpace(item.Brand) ? null : item.Brand.Trim();
+            var cleanName = !string.IsNullOrWhiteSpace(item.Name)
+                ? item.Name.Trim()
+                : (!string.IsNullOrWhiteSpace(cleanBrand) ? cleanBrand : cleanSku);
 
-            decimal unitCost = item.PriceBeforeVat;
-            if (req.UsePriceAfterVatAsCost && item.PriceAfterVat.HasValue && item.PriceAfterVat.Value > 0)
+            var cleanLocation = !string.IsNullOrWhiteSpace(item.Location)
+                ? item.Location.Trim().ToUpper()
+                : defaultLoc;
+
+            var importDate = item.ReceivedDate ?? DateTime.UtcNow;
+
+            // Locate product from memory dictionaries or create a new one
+            Product? product = null;
+            if (productBySku.TryGetValue(cleanSku, out var pSku))
             {
-                unitCost = item.PriceAfterVat.Value;
+                product = pSku;
             }
-            if (unitCost < 0)
+            else if (cleanBarcode != null && productByBarcode.TryGetValue(cleanBarcode, out var pBar))
             {
-                unitCost = 0;
+                product = pBar;
             }
 
-            var product = await _db.Products.FirstOrDefaultAsync(p => p.Sku.ToLower() == cleanSku.ToLower());
             if (product == null)
             {
                 product = new Product
                 {
                     Sku = cleanSku,
                     Barcode = cleanBarcode,
-                    Name = cleanBrand,
+                    Name = cleanName,
                     Brand = cleanBrand,
-                    Category = cleanBrand,
+                    Category = cleanBrand ?? "General",
                     MinThreshold = 5,
-                    CreatedAt = item.ReceivedDate ?? DateTime.UtcNow,
+                    CreatedAt = importDate,
                     UpdatedAt = DateTime.UtcNow
                 };
+
                 _db.Products.Add(product);
-                await _db.SaveChangesAsync();
+                newProducts.Add(product);
+                productBySku[cleanSku] = product;
+                if (!string.IsNullOrWhiteSpace(cleanBarcode))
+                {
+                    productByBarcode[cleanBarcode] = product;
+                }
                 createdProducts++;
             }
             else
             {
+                bool updated = false;
                 if (string.IsNullOrEmpty(product.Barcode) && !string.IsNullOrEmpty(cleanBarcode))
                 {
                     product.Barcode = cleanBarcode;
+                    productByBarcode[cleanBarcode] = product;
+                    updated = true;
+                }
+                if (string.IsNullOrEmpty(product.Brand) && !string.IsNullOrEmpty(cleanBrand))
+                {
+                    product.Brand = cleanBrand;
+                    updated = true;
+                }
+                if (updated)
+                {
                     product.UpdatedAt = DateTime.UtcNow;
                 }
             }
 
-            var importDate = item.ReceivedDate ?? DateTime.UtcNow;
-            var batchNumber = $"LOT-{importDate:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
-
-            var batch = new InventoryBatch
+            // Case A: Quantity == 0 (Catalog / Master product registration without stock movement)
+            if (item.Quantity == 0)
             {
-                ProductId = product.Id,
-                BatchNumber = batchNumber,
-                QuantityReceived = item.Quantity,
-                QuantityRemaining = item.Quantity,
-                UnitCost = unitCost,
-                ReceivedDate = importDate,
-                Reference = $"Excel Import{(item.LineNumber.HasValue ? $" #{item.LineNumber}" : "")}",
-                Status = BatchStatus.Active
-            };
-            _db.InventoryBatches.Add(batch);
-            await _db.SaveChangesAsync();
+                zeroQuantityCount++;
+                continue;
+            }
 
-            var lineCost = item.Quantity * unitCost;
-            var transaction = new StockTransaction
+            // Case B: Quantity > 0 (Stock In - receive into batches)
+            if (item.Quantity > 0)
             {
-                ProductId = product.Id,
-                Type = TransactionType.StockIn,
-                Quantity = item.Quantity,
-                TotalCost = lineCost,
-                ReferenceNote = $"นำเข้าจาก Excel แถว {item.LineNumber ?? 0} (ก่อน VAT: ฿{item.PriceBeforeVat:N2}, หลัง VAT: ฿{(item.PriceAfterVat ?? item.PriceBeforeVat * 1.07m):N2})",
-                CreatedAt = importDate
-            };
-            _db.StockTransactions.Add(transaction);
-            await _db.SaveChangesAsync();
+                decimal unitCost = item.PriceBeforeVat;
+                if (req.UsePriceAfterVatAsCost && item.PriceAfterVat.HasValue && item.PriceAfterVat.Value > 0)
+                {
+                    unitCost = item.PriceAfterVat.Value;
+                }
+                if (unitCost < 0)
+                {
+                    unitCost = 0;
+                }
 
-            var detail = new TransactionBatchDetail
+                var batchNumber = $"LOT-{importDate:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}";
+                var batch = new InventoryBatch
+                {
+                    Product = product,
+                    BatchNumber = batchNumber,
+                    QuantityReceived = item.Quantity,
+                    QuantityRemaining = item.Quantity,
+                    UnitCost = unitCost,
+                    ReceivedDate = importDate,
+                    Reference = $"Excel Import{(item.LineNumber.HasValue ? $" #{item.LineNumber}" : "")}",
+                    Status = BatchStatus.Active,
+                    Location = cleanLocation
+                };
+                _db.InventoryBatches.Add(batch);
+                product.Batches.Add(batch); // Keep in-memory cache synchronized
+
+                var lineCost = item.Quantity * unitCost;
+                var transaction = new StockTransaction
+                {
+                    Product = product,
+                    Type = TransactionType.StockIn,
+                    Quantity = item.Quantity,
+                    TotalCost = lineCost,
+                    ReferenceNote = $"นำเข้าจาก Excel แถว {item.LineNumber ?? 0} (คลัง: {cleanLocation}, ก่อน VAT: ฿{item.PriceBeforeVat:N2}, หลัง VAT: ฿{(item.PriceAfterVat ?? item.PriceBeforeVat * 1.07m):N2})",
+                    CreatedAt = importDate,
+                    Location = cleanLocation
+                };
+                _db.StockTransactions.Add(transaction);
+
+                var detail = new TransactionBatchDetail
+                {
+                    StockTransaction = transaction,
+                    InventoryBatch = batch,
+                    QuantityDrawn = item.Quantity,
+                    UnitCost = unitCost,
+                    SubtotalCost = lineCost
+                };
+                _db.TransactionBatchDetails.Add(detail);
+
+                stockInBatches++;
+                totalUnitsIn += item.Quantity;
+                totalValueIn += lineCost;
+            }
+            // Case C: Quantity < 0 (Stock Out - FIFO batch deduction)
+            else
             {
-                StockTransactionId = transaction.Id,
-                InventoryBatchId = batch.Id,
-                QuantityDrawn = item.Quantity,
-                UnitCost = unitCost,
-                SubtotalCost = lineCost
-            };
-            _db.TransactionBatchDetails.Add(detail);
-            await _db.SaveChangesAsync();
+                int qtyToDraw = Math.Abs(item.Quantity);
 
-            stockInBatches++;
-            totalUnits += item.Quantity;
-            totalValue += lineCost;
+                // Find active batches for this product
+                var availableBatches = product.Batches
+                    .Where(b => b.Status == BatchStatus.Active && b.QuantityRemaining > 0 && b.Location.Equals(cleanLocation, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(b => b.ReceivedDate)
+                    .ThenBy(b => b.Id)
+                    .ToList();
+
+                // If specific location doesn't have enough, check all active batches for the product
+                if (availableBatches.Sum(b => b.QuantityRemaining) < qtyToDraw)
+                {
+                    availableBatches = product.Batches
+                        .Where(b => b.Status == BatchStatus.Active && b.QuantityRemaining > 0)
+                        .OrderBy(b => b.ReceivedDate)
+                        .ThenBy(b => b.Id)
+                        .ToList();
+                }
+
+                int remainingToDraw = qtyToDraw;
+                decimal totalCostOut = 0m;
+                var details = new List<TransactionBatchDetail>();
+
+                var txOut = new StockTransaction
+                {
+                    Product = product,
+                    Type = TransactionType.StockOut,
+                    Quantity = qtyToDraw,
+                    TotalCost = 0m,
+                    ReferenceNote = $"ตัดสต็อก Excel แถว {item.LineNumber ?? 0} (คลัง: {cleanLocation})",
+                    CreatedAt = importDate,
+                    Location = cleanLocation
+                };
+                _db.StockTransactions.Add(txOut);
+
+                foreach (var b in availableBatches)
+                {
+                    if (remainingToDraw <= 0) break;
+
+                    int draw = Math.Min(b.QuantityRemaining, remainingToDraw);
+                    b.QuantityRemaining -= draw;
+                    if (b.QuantityRemaining == 0)
+                    {
+                        b.Status = BatchStatus.Depleted;
+                    }
+
+                    decimal sub = draw * b.UnitCost;
+                    totalCostOut += sub;
+
+                    var detail = new TransactionBatchDetail
+                    {
+                        StockTransaction = txOut,
+                        InventoryBatch = b,
+                        QuantityDrawn = draw,
+                        UnitCost = b.UnitCost,
+                        SubtotalCost = sub
+                    };
+                    _db.TransactionBatchDetails.Add(detail);
+                    remainingToDraw -= draw;
+                }
+
+                txOut.TotalCost = totalCostOut;
+                stockOutBatches++;
+                totalUnitsOut += qtyToDraw;
+                totalValueOut += totalCostOut;
+            }
         }
 
-        messages.Add($"นำเข้าข้อมูลเรียบร้อย: เพิ่มสินค้าใหม่ {createdProducts} รายการ, บันทึกรับเข้าสต็อก {stockInBatches} ล็อต (รวม {totalUnits} ชิ้น, มูลค่า ฿{totalValue:N2})");
+        // 3. Batch Save inside single Database Transaction (massive performance boost)
+        await using var dbTx = await _db.Database.BeginTransactionAsync();
+
+        if (newProducts.Count > 0)
+        {
+            await _db.SaveChangesAsync(); // Generates IDs for new products
+        }
+
+        await _db.SaveChangesAsync(); // Saves all batches, transactions, and details in one single roundtrip
+        await dbTx.CommitAsync();
+
+        messages.Add($"นำเข้าข้อมูลเรียบร้อย: เพิ่มสินค้าใหม่ {createdProducts} รายการ, รับเข้า {stockInBatches} ล็อต ({totalUnitsIn} ชิ้น, ฿{totalValueIn:N2}), ตัดสต็อกออก {stockOutBatches} รายการ ({totalUnitsOut} ชิ้น, ฿{totalValueOut:N2}), สินค้าสต็อกศูนย์ {zeroQuantityCount} รายการ");
 
         return new ExcelImportResult(
             req.Items.Count,
             createdProducts,
             stockInBatches,
-            totalUnits,
-            totalValue,
+            stockOutBatches,
+            zeroQuantityCount,
+            totalUnitsIn,
+            totalUnitsOut,
+            totalValueIn,
+            totalValueOut,
             messages
         );
+    }
+
+    public async Task ClearAllDataAsync(string confirmation)
+    {
+        if (!string.Equals(confirmation?.Trim(), "DELETE ALL", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("คำยืนยันไม่ถูกต้อง กรุณาพิมพ์ DELETE ALL เพื่อยืนยันการล้างข้อมูล");
+        }
+
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+
+        await _db.TransactionBatchDetails.ExecuteDeleteAsync();
+        await _db.StockTransactions.ExecuteDeleteAsync();
+        await _db.InventoryBatches.ExecuteDeleteAsync();
+        await _db.Products.ExecuteDeleteAsync();
+
+        if (_db.Database.IsNpgsql())
+        {
+            await _db.Database.ExecuteSqlRawAsync("""
+                ALTER SEQUENCE IF EXISTS "TransactionBatchDetails_Id_seq" RESTART WITH 1;
+                ALTER SEQUENCE IF EXISTS "StockTransactions_Id_seq" RESTART WITH 1;
+                ALTER SEQUENCE IF EXISTS "InventoryBatches_Id_seq" RESTART WITH 1;
+                ALTER SEQUENCE IF EXISTS "Products_Id_seq" RESTART WITH 1;
+            """);
+        }
+        else if (_db.Database.IsSqlite())
+        {
+            try
+            {
+                await _db.Database.ExecuteSqlRawAsync("DELETE FROM sqlite_sequence WHERE name IN ('Products', 'InventoryBatches', 'StockTransactions', 'TransactionBatchDetails');");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"--> [Database] SQLite sequence reset note: {ex.Message}");
+            }
+        }
+
+        await transaction.CommitAsync();
     }
 }
