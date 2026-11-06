@@ -149,7 +149,7 @@ ALTER TABLE "TransactionBatchDetails" ENABLE ROW LEVEL SECURITY;
     }
 
     await DbInitializer.SeedAsync(db);
-    Console.WriteLine("--> [Database] Connected and seeded successfully.");
+    Console.WriteLine("--> [Database] Database initialized and ready.");
 }
 catch (Exception ex)
 {
