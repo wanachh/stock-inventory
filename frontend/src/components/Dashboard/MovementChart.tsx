@@ -6,8 +6,6 @@ import { DailyMovementSummary } from "../../types";
 import { formatCurrency, formatNumber } from "../../lib/api";
 import {
   BarChart3,
-  TrendingDown,
-  TrendingUp,
   ArrowDownRight,
   ArrowUpRight,
   Calendar,
@@ -46,7 +44,6 @@ export const MovementChart: React.FC<MovementChartProps> = ({ data, productName 
     (acc, d) => acc + (metric === "quantity" ? d.outQuantity : d.outCost),
     0
   );
-  const netFlow = totalIn - totalOut;
 
   // Maximum value for scaling the bar heights
   const maxVal = Math.max(

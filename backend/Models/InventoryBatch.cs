@@ -12,6 +12,7 @@ public class InventoryBatch
     public decimal UnitCost { get; set; }
     public DateTime ReceivedDate { get; set; } = DateTime.UtcNow;
     public string? Reference { get; set; }
+    public string Location { get; set; } = "BT";
     public BatchStatus Status { get; set; } = BatchStatus.Active;
 
     // Navigation properties

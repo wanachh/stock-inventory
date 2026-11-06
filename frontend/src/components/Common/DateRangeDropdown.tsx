@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, Calendar, X } from "lucide-react";
+import { ChevronDown, Calendar } from "lucide-react";
 
 export type DatePreset = "all" | "today" | "last7" | "last30" | "thisMonth" | "custom";
 

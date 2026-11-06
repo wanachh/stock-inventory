@@ -11,14 +11,14 @@ import {
   Layers,
   Edit2,
   Barcode,
-  Upload,
-  Download,
   Filter,
   Tag,
   FolderTree,
   Activity,
   Boxes,
   Coins,
+  Trash2,
+  MapPin,
 } from "lucide-react";
 import { MultiSelectDropdown, MultiSelectOption } from "../Common/MultiSelectDropdown";
 import { NumericRangeDropdown } from "../Common/NumericRangeDropdown";
@@ -31,8 +31,7 @@ interface ProductTableProps {
   onOpenStockOut: (product: ProductDetail) => void;
   onViewBatches: (product: ProductDetail) => void;
   onEditProduct: (product: ProductDetail) => void;
-  onOpenExcelImport?: () => void;
-  onOpenExcelExport?: () => void;
+  onOpenClearAll?: () => void;
   initialSearch?: string;
   initialStatusFilter?: string;
 }
@@ -43,8 +42,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   onOpenStockOut,
   onViewBatches,
   onEditProduct,
-  onOpenExcelImport,
-  onOpenExcelExport,
+  onOpenClearAll,
   initialSearch = "",
   initialStatusFilter = "all",
 }) => {
@@ -56,6 +54,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   // Multi-select filters
   const [selectedBrands, setSelectedBrands] = useState<Set<string>>(new Set());
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+  const [selectedLocations, setSelectedLocations] = useState<Set<string>>(new Set());
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(() => {
     if (initialStatusFilter && initialStatusFilter !== "all") {
       return new Set([initialStatusFilter]);
@@ -138,6 +137,26 @@ export const ProductTable: React.FC<ProductTableProps> = ({
     ];
   }, [products, t]);
 
+  // Location options (BT, EB, MT, WS)
+  const locationOptions: MultiSelectOption[] = useMemo(() => {
+    const counts = new Map<string, number>();
+    products.forEach((p) => {
+      const locs = new Set<string>();
+      p.activeBatches?.forEach((b) => {
+        if (b.location) locs.add(b.location.toUpperCase());
+      });
+      if (locs.size === 0) locs.add("BT");
+      locs.forEach((l) => {
+        counts.set(l, (counts.get(l) || 0) + 1);
+      });
+    });
+    return ["BT", "EB", "MT", "WS"].map((loc) => ({
+      value: loc,
+      label: t("location.locPrefix", { loc }),
+      count: counts.get(loc) || 0,
+    }));
+  }, [products, t]);
+
   // Combined Filter & Sort logic
   const filteredAndSorted = useMemo(() => {
     // 1. Filter
@@ -169,6 +188,14 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       // Status multi-select
       if (selectedStatuses.size > 0) {
         if (!selectedStatuses.has(p.status)) return false;
+      }
+
+      // Location multi-select
+      if (selectedLocations.size > 0) {
+        const hasMatchingBatch = p.activeBatches?.some((b) =>
+          selectedLocations.has((b.location || "BT").toUpperCase())
+        );
+        if (!hasMatchingBatch) return false;
       }
 
       // Quantity range
@@ -209,6 +236,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
     searchTerm,
     selectedBrands,
     selectedCategories,
+    selectedLocations,
     selectedStatuses,
     minQty,
     maxQty,
@@ -264,6 +292,17 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       });
     }
 
+    // Locations (BT, EB, MT, WS)
+    if (selectedLocations.size > 0) {
+      const labels = Array.from(selectedLocations).map((l) => t("location.locPrefix", { loc: l })).join(", ");
+      chips.push({
+        id: "location",
+        category: t("location.locationLabel"),
+        label: labels,
+        onRemove: () => setSelectedLocations(new Set()),
+      });
+    }
+
     // Qty Range
     if (minQty || maxQty) {
       const label =
@@ -306,6 +345,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   }, [
     selectedBrands,
     selectedCategories,
+    selectedLocations,
     selectedStatuses,
     minQty,
     maxQty,
@@ -317,6 +357,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   const handleClearAllFilters = () => {
     setSelectedBrands(new Set());
     setSelectedCategories(new Set());
+    setSelectedLocations(new Set());
     setSelectedStatuses(new Set());
     setMinQty("");
     setMaxQty("");
@@ -349,29 +390,20 @@ export const ProductTable: React.FC<ProductTableProps> = ({
           )}
         </div>
 
-        {/* Excel Action Buttons */}
-        <div className="flex items-center gap-2">
-          {onOpenExcelImport && (
+        {/* Clear Action Button */}
+        {onOpenClearAll && (
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={onOpenExcelImport}
-              className="flex items-center gap-1.5 rounded-2xl border border-blue-200/80 bg-blue-50/80 px-3 py-2 text-xs font-semibold text-blue-700 shadow-2xs transition hover:bg-blue-100 active:scale-95 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/60 dark:hover:border-blue-800/60 cursor-pointer"
+              onClick={onOpenClearAll}
+              className="flex items-center gap-1.5 rounded-2xl border border-rose-200/80 bg-rose-50/80 px-3 py-2 text-xs font-semibold text-rose-700 shadow-2xs transition hover:bg-rose-100 active:scale-95 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60 cursor-pointer"
+              title={t("excel.clearAllTitle")}
             >
-              <Download className="h-3.5 w-3.5" />
-              <span>{t("shell.importExcel")}</span>
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>{t("excel.clearAllBtn")}</span>
             </button>
-          )}
-          {onOpenExcelExport && (
-            <button
-              type="button"
-              onClick={onOpenExcelExport}
-              className="flex items-center gap-1.5 rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-3 py-2 text-xs font-semibold text-emerald-700 shadow-2xs transition hover:bg-emerald-100 active:scale-95 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 dark:hover:border-emerald-800/60 cursor-pointer"
-            >
-              <Upload className="h-3.5 w-3.5" />
-              <span>{t("shell.exportExcel")}</span>
-            </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* 2. Dedicated Filter Panel ("Filter ใหญ่") */}
@@ -399,6 +431,16 @@ export const ProductTable: React.FC<ProductTableProps> = ({
             options={categoryOptions}
             selectedValues={selectedCategories}
             onChange={setSelectedCategories}
+            searchPlaceholder={t("tableFilter.search")}
+          />
+
+          {/* Location Multi-Select */}
+          <MultiSelectDropdown
+            label={t("location.locationLabel")}
+            icon={<MapPin className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />}
+            options={locationOptions}
+            selectedValues={selectedLocations}
+            onChange={setSelectedLocations}
             searchPlaceholder={t("tableFilter.search")}
           />
 
@@ -576,6 +618,27 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                         </span>
                         <span>{t("product.threshold", { count: p.minThreshold })}</span>
                       </div>
+                      {p.activeBatches && p.activeBatches.length > 0 && (() => {
+                        const locMap = new Map<string, number>();
+                        p.activeBatches.forEach((b) => {
+                          const l = (b.location || "BT").toUpperCase();
+                          locMap.set(l, (locMap.get(l) || 0) + b.quantityRemaining);
+                        });
+                        return (
+                          <div className="mt-1 flex flex-wrap items-center gap-1">
+                            {Array.from(locMap.entries()).map(([loc, qty]) => (
+                              <span
+                                key={loc}
+                                className="inline-flex items-center gap-1 rounded-md border border-purple-200/80 bg-purple-50/80 px-1.5 py-0.5 font-mono text-[10px] font-bold text-purple-700 dark:border-purple-900/40 dark:bg-purple-950/40 dark:text-purple-300"
+                                title={t("location.locStock", { loc, qty: formatNumber(qty) })}
+                              >
+                                <span>{t("location.locPrefix", { loc })}:</span>
+                                <span className="font-extrabold">{formatNumber(qty)}</span>
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     {/* Status Badge */}
@@ -699,6 +762,27 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                     <h4 className="mt-1 text-base font-bold text-slate-900 dark:text-slate-50">
                       {p.name}
                     </h4>
+                    {p.activeBatches && p.activeBatches.length > 0 && (() => {
+                      const locMap = new Map<string, number>();
+                      p.activeBatches.forEach((b) => {
+                        const l = (b.location || "BT").toUpperCase();
+                        locMap.set(l, (locMap.get(l) || 0) + b.quantityRemaining);
+                      });
+                      return (
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                          {Array.from(locMap.entries()).map(([loc, qty]) => (
+                            <span
+                              key={loc}
+                              className="inline-flex items-center gap-1 rounded-md border border-purple-200/80 bg-purple-50/80 px-1.5 py-0.5 font-mono text-[10px] font-bold text-purple-700 dark:border-purple-900/40 dark:bg-purple-950/40 dark:text-purple-300"
+                              title={t("location.locStock", { loc, qty: formatNumber(qty) })}
+                            >
+                              <span>{t("location.locPrefix", { loc })}:</span>
+                              <span className="font-extrabold">{formatNumber(qty)}</span>
+                            </span>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {isOut ? (

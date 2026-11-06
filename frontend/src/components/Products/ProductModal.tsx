@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { CreateProductRequest, ProductDetail, UpdateProductRequest } from "../../types";
-import { X, Wand2, ShieldAlert, Check } from "lucide-react";
+import { X, Wand2, ShieldAlert, Check, MapPin } from "lucide-react";
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -33,6 +33,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   // For create only: optional initial stock
   const [initialQuantity, setInitialQuantity] = useState<number | "">("");
   const [initialUnitCost, setInitialUnitCost] = useState<number | "">("");
+  const [location, setLocation] = useState<string>("BT");
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -148,6 +149,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           minThreshold: Number(minThreshold) || 5,
           initialQuantity: initialQuantity !== "" ? Number(initialQuantity) : undefined,
           initialUnitCost: initialUnitCost !== "" ? Number(initialUnitCost) : undefined,
+          location: initialQuantity !== "" ? location : undefined,
         });
       }
       onClose();
@@ -361,6 +363,30 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                     placeholder="0.00"
                     className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-2xs transition-all duration-150 hover:border-slate-300 focus:border-blue-600 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-600 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
                   />
+                </div>
+              </div>
+
+              {/* Warehouse Location Selector */}
+              <div className="mt-3">
+                <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                  <span>{t("location.warehouseLocation")}</span>
+                </label>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  {["BT", "EB", "MT", "WS"].map((loc) => (
+                    <button
+                      key={loc}
+                      type="button"
+                      onClick={() => setLocation(loc)}
+                      className={`rounded-xl px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
+                        location === loc
+                          ? "bg-purple-600 text-white shadow-xs"
+                          : "bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
+                      }`}
+                    >
+                      {t("location.locPrefix", { loc })}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

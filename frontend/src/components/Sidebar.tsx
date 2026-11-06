@@ -6,9 +6,6 @@ import {
   Package,
   FolderKanban,
   ArrowRightLeft,
-  ScanLine,
-  Layers,
-  Settings,
   ShieldCheck,
 } from "lucide-react";
 import { BrandLogo } from "./Common/BrandLogo";

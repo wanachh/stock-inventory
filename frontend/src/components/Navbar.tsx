@@ -3,7 +3,6 @@
 import React from "react";
 import {
   Plus,
-  ScanLine,
   ArrowDownUp,
   Lock,
   Upload,
@@ -20,7 +19,6 @@ interface NavbarProps {
   onOpenQuickMovement: () => void;
   onOpenExcelImport?: () => void;
   onOpenExcelExport?: () => void;
-  scannerActive?: boolean;
   onLock?: () => void;
   userName?: string;
 }
@@ -30,7 +28,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenQuickMovement,
   onOpenExcelImport,
   onOpenExcelExport,
-  scannerActive = true,
   onLock,
   userName = "StockPulse Team",
 }) => {

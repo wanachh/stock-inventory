@@ -6,7 +6,6 @@ import { ProductDetail } from "../../types";
 import { formatNumber, formatDate } from "../../lib/api";
 import {
   Search,
-  Plus,
   Edit2,
   Trash2,
   Barcode,
@@ -16,18 +15,17 @@ import {
   Boxes,
   PackageCheck,
   Calendar,
+  MapPin,
 } from "lucide-react";
 
 interface ProductManagementProps {
   products: ProductDetail[];
-  onOpenNewProduct: () => void;
   onEditProduct: (product: ProductDetail) => void;
   onDeleteProduct: (product: ProductDetail) => Promise<void>;
 }
 
 export const ProductManagement: React.FC<ProductManagementProps> = ({
   products,
-  onOpenNewProduct,
   onEditProduct,
   onDeleteProduct,
 }) => {
@@ -37,6 +35,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedLocation, setSelectedLocation] = useState<string>("all");
 
   // Deletion Modal state
   const [productToDelete, setProductToDelete] = useState<ProductDetail | null>(null);
@@ -84,9 +83,17 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
         return false;
       }
 
+      // Location
+      if (selectedLocation !== "all") {
+        const hasBatchInLoc = p.activeBatches?.some(
+          (b) => (b.location || "BT").toUpperCase() === selectedLocation
+        );
+        if (!hasBatchInLoc) return false;
+      }
+
       return true;
     });
-  }, [products, searchTerm, selectedBrand, selectedCategory]);
+  }, [products, searchTerm, selectedBrand, selectedCategory, selectedLocation]);
 
   const handleConfirmDelete = async () => {
     if (!productToDelete) return;
@@ -155,14 +162,21 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
             </select>
           )}
 
-          {/* New Product Action Button */}
-          <button
-            onClick={onOpenNewProduct}
-            className="flex h-10 items-center gap-1.5 rounded-2xl bg-blue-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-500/25 transition hover:bg-blue-700 active:scale-95 dark:hover:bg-blue-500 cursor-pointer"
-          >
-            <Plus className="h-4 w-4" />
-            <span>{t("management.createProduct")}</span>
-          </button>
+          {/* Location select */}
+          <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-slate-50 px-2.5 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700">
+            <MapPin className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+            <select
+              value={selectedLocation}
+              onChange={(e) => setSelectedLocation(e.target.value)}
+              className="h-10 bg-transparent pr-1 text-xs font-semibold text-slate-700 dark:text-slate-200 cursor-pointer focus:outline-hidden"
+            >
+              <option value="all">{t("location.locationLabel")}: {t("common.all")}</option>
+              <option value="BT">{t("location.bt")}</option>
+              <option value="EB">{t("location.eb")}</option>
+              <option value="MT">{t("location.mt")}</option>
+              <option value="WS">{t("location.ws")}</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -244,6 +258,27 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
                           <span>{p.category}</span>
                         </span>
                       </div>
+                      {p.activeBatches && p.activeBatches.length > 0 && (() => {
+                        const locMap = new Map<string, number>();
+                        p.activeBatches.forEach((b) => {
+                          const l = (b.location || "BT").toUpperCase();
+                          locMap.set(l, (locMap.get(l) || 0) + b.quantityRemaining);
+                        });
+                        return (
+                          <div className="mt-1 flex flex-wrap items-center gap-1">
+                            {Array.from(locMap.entries()).map(([loc, qty]) => (
+                              <span
+                                key={loc}
+                                className="inline-flex items-center gap-1 rounded-md border border-purple-200/80 bg-purple-50/80 px-1.5 py-0.5 font-mono text-[10px] font-bold text-purple-700 dark:border-purple-900/40 dark:bg-purple-950/40 dark:text-purple-300"
+                                title={t("location.locStock", { loc, qty: formatNumber(qty) })}
+                              >
+                                <span>{t("location.locPrefix", { loc })}:</span>
+                                <span className="font-extrabold">{formatNumber(qty)}</span>
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     {/* Low Stock Threshold */}
@@ -333,6 +368,27 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
                   <div className="mt-1 text-xs text-slate-400">
                     {p.category} · {t("product.threshold", { count: p.minThreshold })}
                   </div>
+                  {p.activeBatches && p.activeBatches.length > 0 && (() => {
+                    const locMap = new Map<string, number>();
+                    p.activeBatches.forEach((b) => {
+                      const l = (b.location || "BT").toUpperCase();
+                      locMap.set(l, (locMap.get(l) || 0) + b.quantityRemaining);
+                    });
+                    return (
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                        {Array.from(locMap.entries()).map(([loc, qty]) => (
+                          <span
+                            key={loc}
+                            className="inline-flex items-center gap-1 rounded-md border border-purple-200/80 bg-purple-50/80 px-1.5 py-0.5 font-mono text-[10px] font-bold text-purple-700 dark:border-purple-900/40 dark:bg-purple-950/40 dark:text-purple-300"
+                            title={t("location.locStock", { loc, qty: formatNumber(qty) })}
+                          >
+                            <span>{t("location.locPrefix", { loc })}:</span>
+                            <span className="font-extrabold">{formatNumber(qty)}</span>
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="text-right">

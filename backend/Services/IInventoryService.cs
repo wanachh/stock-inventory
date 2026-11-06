@@ -12,7 +12,7 @@ public interface IInventoryService
     Task<bool> DeleteProductAsync(int id);
 
     Task<List<BatchResponseDto>> GetProductBatchesAsync(int productId);
-    Task<StockOutPreviewResponse> PreviewStockOutAsync(int? productId, string? skuOrBarcode, int quantity);
+    Task<StockOutPreviewResponse> PreviewStockOutAsync(int? productId, string? skuOrBarcode, int quantity, string? location = null);
     Task<StockTransactionDto> StockInAsync(StockInRequest req);
     Task<StockTransactionDto> StockOutAsync(StockOutRequest req);
 
@@ -22,4 +22,5 @@ public interface IInventoryService
     Task<bool> DeleteTransactionAsync(int id);
     Task<DashboardSummaryResponse> GetDashboardSummaryAsync();
     Task<ExcelImportResult> ImportExcelAsync(ExcelImportRequest req);
+    Task ClearAllDataAsync(string confirmation);
 }

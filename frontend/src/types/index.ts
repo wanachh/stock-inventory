@@ -9,6 +9,7 @@ export interface InventoryBatch {
   receivedDate: string;
   reference?: string | null;
   status: "Active" | "Depleted";
+  location?: string;
 }
 
 export interface ProductDetail {
@@ -50,6 +51,7 @@ export interface StockTransaction {
   createdAt: string;
   details: TransactionDetailItem[];
   isProductDeleted?: boolean;
+  location?: string | null;
 }
 
 export interface StockOutPreviewItem {
@@ -59,6 +61,7 @@ export interface StockOutPreviewItem {
   quantityToDraw: number;
   unitCost: number;
   subtotalCost: number;
+  location?: string;
 }
 
 export interface StockOutPreviewResponse {
@@ -125,6 +128,7 @@ export interface CreateProductRequest {
   initialUnitCost?: number;
   reference?: string;
   transactionDate?: string;
+  location?: string;
 }
 
 export interface UpdateProductRequest {
@@ -151,6 +155,7 @@ export interface StockInRequest {
   reference?: string;
   batchNumber?: string;
   transactionDate?: string;
+  location?: string;
 }
 
 export interface StockOutRequest {
@@ -159,6 +164,7 @@ export interface StockOutRequest {
   quantity: number;
   referenceNote?: string;
   transactionDate?: string;
+  location?: string;
 }
 
 export interface VisitorStats {
@@ -169,26 +175,39 @@ export interface VisitorStats {
 
 export interface ExcelImportItem {
   lineNumber?: number;
-  sku: string;
+  sku?: string;
   barcode?: string | null;
+  name?: string | null;
   brand?: string | null;
   quantity: number;
   priceBeforeVat: number;
   vat?: number | null;
   priceAfterVat?: number | null;
   receivedDate?: string | null;
+  location?: string | null;
 }
 
 export interface ExcelImportRequest {
   items: ExcelImportItem[];
   usePriceAfterVatAsCost?: boolean;
+  defaultLocation?: string;
 }
 
 export interface ExcelImportResult {
   totalProcessed: number;
   createdProductsCount: number;
   stockInBatchesCount: number;
+  stockOutBatchesCount?: number;
+  zeroQuantityCount?: number;
+  totalUnitsIn?: number;
+  totalUnitsOut?: number;
+  totalValueIn?: number;
+  totalValueOut?: number;
   totalUnits: number;
   totalValue: number;
   messages: string[];
+}
+
+export interface ClearAllDataRequest {
+  confirmation: string;
 }

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { InventoryBatch, ProductDetail } from "../../types";
 import { api, formatCurrency, formatDate, formatNumber } from "../../lib/api";
-import { X, Layers, Calendar, Receipt, CheckCircle2, Clock } from "lucide-react";
+import { X, Layers, Calendar, Receipt, MapPin } from "lucide-react";
 
 interface BatchesModalProps {
   isOpen: boolean;
@@ -16,10 +16,12 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
   const { t } = useTranslation();
   const [batches, setBatches] = useState<InventoryBatch[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<string>("ALL");
 
   useEffect(() => {
     if (isOpen && product) {
       setLoading(true);
+      setSelectedLocation("ALL");
       api
         .getProductBatches(product.id)
         .then((res) => setBatches(res))
@@ -30,11 +32,15 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
 
   if (!isOpen || !product) return null;
 
-  const totalRemaining = batches
+  const filteredBatches = batches.filter(
+    (b) => selectedLocation === "ALL" || (b.location || "BT").toUpperCase() === selectedLocation
+  );
+
+  const totalRemaining = filteredBatches
     .filter((b) => b.status === "Active")
     .reduce((acc, b) => acc + b.quantityRemaining, 0);
 
-  const totalValuation = batches
+  const totalValuation = filteredBatches
     .filter((b) => b.status === "Active")
     .reduce((acc, b) => acc + b.totalBatchValue, 0);
 
@@ -88,17 +94,48 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
           </div>
         </div>
 
+        {/* Location Filter Tabs */}
+        <div className="flex items-center gap-1.5 border-b border-slate-100 bg-slate-50/50 px-5 py-2.5 dark:border-slate-800 dark:bg-slate-900/50">
+          <span className="mr-1 flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            <MapPin className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+            <span>{t("location.title")}:</span>
+          </span>
+          {["ALL", "BT", "EB", "MT", "WS"].map((loc) => {
+            const countInLoc = batches.filter(
+              (b) =>
+                loc === "ALL" ||
+                ((b.location || "BT").toUpperCase() === loc &&
+                  b.status === "Active" &&
+                  b.quantityRemaining > 0)
+            ).length;
+            return (
+              <button
+                key={loc}
+                type="button"
+                onClick={() => setSelectedLocation(loc)}
+                className={`cursor-pointer rounded-xl px-2.5 py-1 text-xs font-bold transition ${
+                  selectedLocation === loc
+                    ? "bg-purple-600 text-white shadow-xs"
+                    : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                }`}
+              >
+                {loc === "ALL" ? t("location.allLots") : t("location.locPrefix", { loc })} ({countInLoc})
+              </button>
+            );
+          })}
+        </div>
+
         {/* Batches Content */}
         <div className="flex-1 overflow-y-auto p-5">
           {loading ? (
             <div className="py-12 text-center text-xs text-slate-400">{t("common.loading")}</div>
-          ) : batches.length === 0 ? (
+          ) : filteredBatches.length === 0 ? (
             <div className="py-12 text-center text-xs text-slate-400">
               {t("transaction.empty")}
             </div>
           ) : (
             <div className="space-y-3">
-              {batches.map((b) => {
+              {filteredBatches.map((b) => {
                 const isActive = b.status === "Active" && b.quantityRemaining > 0;
                 const percentUsed = Math.round(
                   ((b.quantityReceived - b.quantityRemaining) / b.quantityReceived) * 100
@@ -118,6 +155,9 @@ export const BatchesModal: React.FC<BatchesModalProps> = ({ isOpen, onClose, pro
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-sm font-bold text-slate-900 dark:text-slate-100">
                             {b.batchNumber}
+                          </span>
+                          <span className="rounded-md border border-purple-200/80 bg-purple-50 px-2 py-0.5 font-mono text-[10px] font-bold text-purple-700 dark:border-purple-900/40 dark:bg-purple-950/50 dark:text-purple-300">
+                            {t("location.locPrefix", { loc: b.location || "BT" })}
                           </span>
                           {isActive ? (
                             <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">

@@ -10,7 +10,8 @@ public record CreateProductRequest(
     int? InitialQuantity,
     decimal? InitialUnitCost,
     string? Reference,
-    DateTime? TransactionDate = null
+    DateTime? TransactionDate = null,
+    string? Location = "BT"
 );
 
 public record UpdateProductRequest(
@@ -29,7 +30,8 @@ public record StockInRequest(
     decimal UnitCost,
     string? Reference,
     string? BatchNumber,
-    DateTime? TransactionDate = null
+    DateTime? TransactionDate = null,
+    string? Location = "BT"
 );
 
 public record StockOutRequest(
@@ -37,7 +39,8 @@ public record StockOutRequest(
     string? SkuOrBarcode,
     int Quantity,
     string? ReferenceNote,
-    DateTime? TransactionDate = null
+    DateTime? TransactionDate = null,
+    string? Location = null
 );
 
 public record UpdateTransactionRequest(
@@ -53,7 +56,8 @@ public record StockOutPreviewItem(
     int AvailableInBatch,
     int QuantityToDraw,
     decimal UnitCost,
-    decimal SubtotalCost
+    decimal SubtotalCost,
+    string Location = "BT"
 );
 
 public record StockOutPreviewResponse(
@@ -76,7 +80,8 @@ public record BatchResponseDto(
     decimal TotalBatchValue,
     DateTime ReceivedDate,
     string? Reference,
-    string Status
+    string Status,
+    string Location = "BT"
 );
 
 public record ProductDetailDto(
@@ -117,7 +122,8 @@ public record StockTransactionDto(
     DateTime CreatedAt,
     List<TransactionDetailItemDto> Details,
     string? Brand = null,
-    bool IsProductDeleted = false
+    bool IsProductDeleted = false,
+    string? Location = "BT"
 );
 
 public record DashboardKpis(
@@ -165,26 +171,37 @@ public record DashboardSummaryResponse(
 
 public record ExcelImportItem(
     int? LineNumber,
-    string Sku,
+    string? Sku,
     string? Barcode,
+    string? Name,
     string? Brand,
     int Quantity,
     decimal PriceBeforeVat,
     decimal? Vat,
     decimal? PriceAfterVat,
-    DateTime? ReceivedDate
+    DateTime? ReceivedDate,
+    string? Location = null
 );
 
 public record ExcelImportRequest(
     List<ExcelImportItem> Items,
-    bool UsePriceAfterVatAsCost = false
+    bool UsePriceAfterVatAsCost = false,
+    string? DefaultLocation = "BT"
 );
 
 public record ExcelImportResult(
     int TotalProcessed,
     int CreatedProductsCount,
     int StockInBatchesCount,
-    int TotalUnits,
-    decimal TotalValue,
+    int StockOutBatchesCount,
+    int ZeroQuantityCount,
+    int TotalUnitsIn,
+    int TotalUnitsOut,
+    decimal TotalValueIn,
+    decimal TotalValueOut,
     List<string> Messages
+);
+
+public record ClearAllDataRequest(
+    string Confirmation
 );
